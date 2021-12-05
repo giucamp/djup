@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="public">
+      <UniqueIdentifier>{6ed827f1-df0a-4126-81aa-742772772792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="private">
+      <UniqueIdentifier>{8bc5a7f8-9ca0-4ff1-9f3c-4a28b9172ab3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{23930c8a-cb98-4356-af49-c7960622fee5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\tests\test_from_chars.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_split.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\diagnostic.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\from_chars.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\to_chars.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\to_string.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_core.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_to_string.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_to_chars.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_traits.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_udp_socket.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\sockets.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_queue.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\public\core\hash_variant.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\pointer_iterator.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\span.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\split.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\to_chars.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\to_string.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\traits.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\address.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\diagnostic.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\from_chars.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\hash.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\has_fp_charconv.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\sockets.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\flags.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\queue.h">
+      <Filter>public</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
