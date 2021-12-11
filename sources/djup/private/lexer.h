@@ -60,4 +60,9 @@ namespace djup
         void operator() (CharBufferView & i_dest, const Lexer & i_source) noexcept;
     };
 
+    bool IsSpace(uint32_t i_char);
+    bool IsDigit(uint32_t i_char);
+    bool IsAlpha(uint32_t i_char);
+    bool IsAlphaOrUnderscore(uint32_t i_char);
+
 } // namespace djup

@@ -41,6 +41,7 @@
     <ClInclude Include="..\public\core\from_chars.h" />
     <ClInclude Include="..\public\core\hash.h" />
     <ClInclude Include="..\public\core\hash_variant.h" />
+    <ClInclude Include="..\public\core\numeric_cast.h" />
     <ClInclude Include="..\public\core\pointer_iterator.h" />
     <ClInclude Include="..\public\core\queue.h" />
     <ClInclude Include="..\public\core\sockets.h" />

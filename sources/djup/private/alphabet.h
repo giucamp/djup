@@ -42,7 +42,7 @@ namespace djup
         Comma, Of, Is,
 
         // dynamic symbols
-        Name, Literal,
+        Name, NumericLiteral, BoolLiteral,
 
         // special symbols
         EndOfSource, // the source code is over
@@ -164,8 +164,11 @@ namespace djup
         case SymbolId::Name:
             return "<name>";
 
-        case SymbolId::Literal:
-            return "<literal>";
+        case SymbolId::NumericLiteral:
+            return "<numeric_literal>";
+
+        case SymbolId::BoolLiteral:
+            return "<bool_literal>";
 
         case SymbolId::EndOfSource:
             return "<end_of_source>";

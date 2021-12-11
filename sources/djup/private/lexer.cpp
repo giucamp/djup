@@ -11,37 +11,37 @@
 
 namespace djup
 {
+    bool IsSpace(uint32_t i_char)
+    {
+        if( i_char >= 0x0009 && i_char <= 0x000D )
+            return true;
+
+        if(i_char == 0x0020)
+            return true;
+
+        return false;
+    }
+
+    bool IsDigit(uint32_t i_char)
+    {
+        return i_char >= '0' && i_char <= '9';
+    }
+
+    // to support UTF-8 we consider alphabetic also any non-ansi char
+    bool IsAlpha(uint32_t i_char)
+    {
+        return i_char >= 'a' && i_char <= 'z' ||
+            i_char >= 'A' && i_char <= 'Z' ||
+            i_char >= 0x7F;
+    }
+
+    bool IsAlphaOrUnderscore(uint32_t i_char)
+    {
+        return IsAlpha(i_char) || i_char == '_';
+    }
+
     namespace
     {
-        bool IsSpace(uint32_t i_char)
-        {
-            if( i_char >= 0x0009 && i_char <= 0x000D )
-                return true;
-
-            if(i_char == 0x0020)
-                return true;
-
-            return false;
-        }
-
-        bool IsDigit(uint32_t i_char)
-        {
-            return i_char >= '0' && i_char <= '9';
-        }
-
-        // to support UTF-8 we consider alphabetic also any non-ansi char
-        bool IsAlpha(uint32_t i_char)
-        {
-            return i_char >= 'a' && i_char <= 'z' ||
-                i_char >= 'A' && i_char <= 'Z' ||
-                i_char >= 0x7F;
-        }
-
-        bool IsAlphaOrUnderscore(uint32_t i_char)
-        {
-            return IsAlpha(i_char) || i_char == '_';
-        }
-
         bool StartsWith(std::string_view i_what, std::string_view i_with)
         {
             return i_what.length() >= i_with.length() &&
@@ -62,6 +62,21 @@ namespace djup
             {
                 io_source = io_source.substr(i_what.length());
                 return true;
+            }
+
+            return false;
+        }
+
+        bool TryParseWholeString(std::string_view & io_source, std::string_view i_what)
+        {
+            if (StartsWith(io_source, i_what))
+            {
+                std::string_view new_source = io_source.substr(i_what.length());
+                if(new_source.empty() || !IsAlpha(new_source.front()))
+                {
+                    io_source = new_source;
+                    return true;
+                }
             }
 
             return false;
@@ -115,7 +130,7 @@ namespace djup
                 SkipDigits();
             }
 
-            return Token{ SymbolId::Literal };
+            return Token{ SymbolId::NumericLiteral };
         }
 
         Token ParseName(std::string_view & io_source)
@@ -161,6 +176,8 @@ namespace djup
                 return { SymbolId::EndOfSource };
             else if(IsDigit(io_source.front()))
                 return ParseNumericLiteral(io_source);
+            else if(TryParseWholeString(io_source, "true") || TryParseWholeString(io_source, "false"))
+                return Token{ SymbolId::BoolLiteral };
             else if(IsAlpha(io_source.front()))
                 return ParseName(io_source);
             else

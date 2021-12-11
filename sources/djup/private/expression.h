@@ -11,17 +11,19 @@ namespace djup
 {
     class Scope;
 
-    class Expresssion
+    class Expression
     {
     public:
 
-        Expresssion(bool i_value);
+        Expression(bool i_value);
 
-        Expresssion(int64_t i_value);
+        Expression(int64_t i_value);
 
-        Expresssion(Name i_name, std::vector<std::shared_ptr<const Expresssion>> i_arguments);
+        Expression(double i_value);
 
-        Expresssion(std::shared_ptr<const Scope> i_scope);
+        Expression(Name i_name, std::vector<std::shared_ptr<const Expression>> i_arguments);
+
+        Expression(std::shared_ptr<const Scope> i_scope);
 
         uint64_t GetHash() const { return m_hash; }
 
@@ -30,7 +32,7 @@ namespace djup
         struct SymbolRef
         {
             Name m_name;
-            std::vector<std::shared_ptr<const Expresssion>> m_arguments;
+            std::vector<std::shared_ptr<const Expression>> m_arguments;
         };
         
         struct IntegerConstant

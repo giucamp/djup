@@ -2,29 +2,51 @@
 #pragma once
 #include <memory>
 #include <core/span.h>
+#include <core/numeric_cast.h>
 
 namespace djup
 {
+    class Expression;
+    
     class Tensor
     {
     public:
-
-        Tensor(bool i_value);
-        Tensor(int64_t i_value);
-        Tensor(double i_value);
+        
+        /** Construct a tensor from an integer, floating point or bool scalar constant*/
+        template <typename SCALAR, typename = std::enable_if_t<std::is_integral_v<SCALAR> || std::is_floating_point_v<SCALAR>>>
+            Tensor(const SCALAR & i_scalar)
+                : Tensor(ScalarConst{}, CanonicalizeScalar(i_scalar)) { }
 
     public:
 
-        Tensor(const std::shared_ptr<const class Expression> & i_expression)
+        Tensor(const std::shared_ptr<const Expression> & i_expression)
             : m_expression(i_expression) { }
 
-        Tensor(std::shared_ptr<const class Expression> && i_expression)
+        Tensor(std::shared_ptr<const Expression> && i_expression)
             : m_expression(std::move(i_expression)) { }
 
         const std::shared_ptr<const Expression> & GetExpression() const { return m_expression; }
 
     private:
-        std::shared_ptr<const class Expression> m_expression;
+        
+        enum class ScalarConst {};
+        Tensor(ScalarConst, double i_scalar);
+        Tensor(ScalarConst, int64_t i_scalar);
+        Tensor(ScalarConst, bool i_scalar);
+
+        template <typename TYPE>
+            static auto CanonicalizeScalar(TYPE i_scalar)
+        {
+            if constexpr(std::is_same_v<TYPE, bool>)
+                return i_scalar;
+            else if constexpr(std::is_floating_point_v<TYPE>)
+                return NumericCast<double>(i_scalar);
+            else if constexpr(std::is_integral_v<TYPE>)
+                return NumericCast<int64_t>(i_scalar);
+        }
+
+    private:
+        std::shared_ptr<const Expression> m_expression;
     };
 
     Tensor Rank(const Tensor & i_tensor);
