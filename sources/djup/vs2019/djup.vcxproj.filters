@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="public">
+      <UniqueIdentifier>{6ed827f1-df0a-4126-81aa-742772772792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="private">
+      <UniqueIdentifier>{8bc5a7f8-9ca0-4ff1-9f3c-4a28b9172ab3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{23930c8a-cb98-4356-af49-c7960622fee5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\private\expression.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\name.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\discrimination_network.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\scope.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\djup\tensor.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\alphabet.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\domain.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\lexer.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\parser.h">
+      <Filter>private</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\private\expression.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\name.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\discrimination_network.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\scope.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\tensor.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\domain.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\lexer.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\parser.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

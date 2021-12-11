@@ -52,6 +52,12 @@ namespace djup
         Word m_value = 5381;
     };
 
+    template <typename... PARAMATERS>
+        Hash::Word ComputeHash(PARAMATERS && ... i_parameters)
+    {
+        return Hash(std::forward<PARAMATERS...>(i_parameters...)).GetValue();
+    }
+
     template <typename TYPE, typename = std::enable_if_t<
             std::is_arithmetic_v<TYPE> || std::is_enum_v<TYPE> >>
         Hash & operator << (Hash & i_dest, const TYPE & i_object)
@@ -64,7 +70,7 @@ namespace djup
 
     inline Hash & operator << (Hash & i_dest, const Hash & i_source)
     {
-        return i_dest << i_dest.GetValue();
+        return i_dest << i_source.GetValue();
     }
 
     constexpr Hash & operator << (Hash & i_dest, std::string_view i_src)

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -19,45 +19,60 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\core\vs2019\core.vcxproj">
       <Project>{a00ddaa3-66e9-408c-ad6e-a877b67c2b59}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\djup\vs2019\djup.vcxproj">
-      <Project>{df5b6ba9-4ac4-46ab-822e-59eb2ea458d6}</Project>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\private\alphabet.h" />
+    <ClInclude Include="..\private\discrimination_network.h" />
+    <ClInclude Include="..\private\domain.h" />
+    <ClInclude Include="..\private\expression.h" />
+    <ClInclude Include="..\private\lexer.h" />
+    <ClInclude Include="..\private\name.h" />
+    <ClInclude Include="..\private\parser.h" />
+    <ClInclude Include="..\private\scope.h" />
+    <ClInclude Include="..\public\djup\tensor.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\private\discrimination_network.cpp" />
+    <ClCompile Include="..\private\domain.cpp" />
+    <ClCompile Include="..\private\expression.cpp" />
+    <ClCompile Include="..\private\lexer.cpp" />
+    <ClCompile Include="..\private\name.cpp" />
+    <ClCompile Include="..\private\parser.cpp" />
+    <ClCompile Include="..\private\scope.cpp" />
+    <ClCompile Include="..\private\tensor.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{AD73FEE2-D025-4CB7-B08E-400039C9124D}</ProjectGuid>
+    <ProjectGuid>{DF5B6BA9-4AC4-46AB-822E-59EB2EA458D6}</ProjectGuid>
     <RootNamespace>djub</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -85,25 +100,25 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>$(SolutionDir)..\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(SolutionDir)..\sources\core\public;$(SolutionDir)..\sources\object_model\public;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\sources\djup\public;$(SolutionDir)..\sources\djup;$(SolutionDir)..\sources\core\public;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>$(SolutionDir)..\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(SolutionDir)..\sources\core\public;$(SolutionDir)..\sources\object_model\public;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\sources\djup\public;$(SolutionDir)..\sources\djup;$(SolutionDir)..\sources\core\public;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>$(SolutionDir)..\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(SolutionDir)..\sources\core\public;$(SolutionDir)..\sources\object_model\public;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\sources\djup\public;$(SolutionDir)..\sources\djup;$(SolutionDir)..\sources\core\public;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>$(SolutionDir)..\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(SolutionDir)..\sources\core\public;$(SolutionDir)..\sources\object_model\public;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\sources\djup\public;$(SolutionDir)..\sources\djup;$(SolutionDir)..\sources\core\public;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

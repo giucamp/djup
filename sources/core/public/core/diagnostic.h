@@ -106,15 +106,15 @@ namespace djup
 
     void Print(const std::string & i_text);
 
-    inline void PrintLn(const std::string_view & i_text)
-    {
-        Print(ToString(i_text, "\n"));
-    }
-
     template <typename... TYPE>
         void Print(const TYPE & ... i_object)
     {
         Print(ToString(i_object...));
+    }
+
+    inline void PrintLn(const std::string_view & i_text)
+    {
+        Print(ToString(i_text, "\n"));
     }
 
     template <typename... TYPE>
@@ -140,7 +140,7 @@ namespace djup
             const char * i_source_file, int i_source_line)
     {
         if(!(i_first == i_second))
-            Error(i_source_file, "(", i_source_line, ") - SNABB_EXPECTS_EQ - ", 
+            Error(i_source_file, "(", i_source_line, ") - DJUP_EXPECTS_EQ - ", 
                 i_first_cpp_expr, " is ", i_first, ", ",
                 i_second_cpp_expr, " is ", i_second );
     }
@@ -148,9 +148,9 @@ namespace djup
     void ExpectsError(const std::function<void()> & i_function,
         const char * i_cpp_source_code, const char * i_expected_message);
 
-    #define SNABB_EXPECTS(expr) ::djup::Expects(expr, #expr)
-    #define SNABB_EXPECTS_EQ(first, second) ::djup::ExpectsEq(first, #first, second, #second, __FILE__, __LINE__)
+    #define DJUP_EXPECTS(expr) ::djup::Expects(expr, #expr)
+    #define DJUP_EXPECTS_EQ(first, second) ::djup::ExpectsEq(first, #first, second, #second, __FILE__, __LINE__)
 
-    #define SNABB_EXPECTS_ERROR(expr, expected_error) \
+    #define DJUP_EXPECTS_ERROR(expr, expected_error) \
         ::djup::ExpectsError([&]{ (void)(expr); }, #expr, expected_error);
 }
