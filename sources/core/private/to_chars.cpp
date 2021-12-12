@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #include <core/to_chars.h>
 #include <limits>
 #include <private/has_fp_charconv.h>
@@ -19,7 +24,7 @@ namespace djup
                 /* we use an intermediate buffer because otherwise there no way
                     to know the total size of the string if there is not enough
                     space in the buffer. */
-                constexpr size_t buffer_size = 4 + 
+                constexpr size_t buffer_size = 4 +
                     std::numeric_limits<FLOAT>::max_exponent10 +
                     std::numeric_limits<FLOAT>::max_digits10;
                 char buffer[buffer_size];
@@ -53,7 +58,7 @@ namespace djup
             constexpr size_t buffer_size = 1024;
             char buffer[buffer_size];
 
-            snprintf(buffer, buffer_size - 1, 
+            snprintf(buffer, buffer_size - 1,
                 "%.*g", std::numeric_limits<float>::max_digits10, i_source);
             i_dest << buffer;
         }
@@ -63,7 +68,7 @@ namespace djup
             constexpr size_t buffer_size = 1024;
             char buffer[buffer_size];
 
-            snprintf(buffer, buffer_size - 1, 
+            snprintf(buffer, buffer_size - 1,
                 "%.*g", std::numeric_limits<double>::max_digits10, i_source);
             i_dest << buffer;
         }

@@ -1,7 +1,7 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2020.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
 // Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
+//        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
@@ -69,10 +69,10 @@ namespace djup
                 i_tensor_value.GetShape().GetPhysicalLinearIndex(m_indices));
 
             Span<SCALAR_TYPE const> const elements = i_tensor_value.GetAs<SCALAR_TYPE>();
-            
+
             // constant reduction wraps the storage
             size_t const modulo_index = physical_linear_index % elements.size();
-            
+
             return elements.at(modulo_index);
         }
 
@@ -82,7 +82,7 @@ namespace djup
             return i_initializer.At<SCALAR_TYPE>(m_indices);
         }*/
 
-    private: 
+    private:
         void DbgCheck();
 
     private:

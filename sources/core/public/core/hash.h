@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #pragma once
 #include <core/span.h>
 #include <core/to_chars.h>
@@ -64,7 +69,7 @@ namespace djup
     {
         // type-aliasing rule is not violated becuse we inspect the object with unsigned chars
         // https://en.cppreference.com/w/cpp/language/reinterpret_cast#Type_aliasing
-        auto const address = reinterpret_cast<const unsigned char*>(&i_object);
+        auto const address = reinterpret_cast<const char*>(&i_object);
         return i_dest << Span(address, sizeof(TYPE));
     }
 
@@ -79,7 +84,7 @@ namespace djup
     }
 
     template <typename CONTAINER>
-        FirstOf<Hash, ContainerElementTypeT<CONTAINER>> & operator << 
+        FirstOf<Hash, ContainerElementTypeT<CONTAINER>> & operator <<
             (Hash & i_dest, const CONTAINER & i_container)
     {
         for(const auto & element : i_container)

@@ -1,7 +1,7 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2020.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
 // Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
+//        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
@@ -12,7 +12,7 @@
 
 namespace djup
 {
-    /* Every symbol in the alphabet has its own SymbolId. Anyway some SymbolId's 
+    /* Every symbol in the alphabet has its own SymbolId. Anyway some SymbolId's
         (i.e. dynamic symbols and special symbols) have no matching alphabet symbol. */
     enum class SymbolId
     {
@@ -32,7 +32,7 @@ namespace djup
         // boolean operators
         And, Or, Not,
 
-        // bracket 
+        // bracket
         LeftParenthesis, RightParenthesis, LeftBracket, RightBracket, LeftBrace, RightBrace,
 
         // if
@@ -61,7 +61,7 @@ namespace djup
     using UnaryApplier = Tensor (*)(const Tensor & i_operand);
     using OperatorApplier = std::variant<std::monostate, UnaryApplier, BinaryApplier, Domain>;
 
-    // element of the alphabet 
+    // element of the alphabet
     struct Symbol
     {
         std::string_view m_chars;
@@ -91,7 +91,7 @@ namespace djup
         { "real",       SymbolId::Real,              Domain::Real        },
         { "rational",   SymbolId::Rational,          Domain::Integer     },
         { "natural",    SymbolId::Natural,           Domain::Natural     },
-        
+
         // comparison
         { "==",         SymbolId::Equal,             operator ==,     100 },
         { "!=",         SymbolId::NotEqual,          operator !=,     100 },
@@ -99,7 +99,7 @@ namespace djup
         { "<=",         SymbolId::LessOrEqual,       operator <=,     100 },
         { ">",          SymbolId::Greater,           operator >,      100 },
         { "<",          SymbolId::Less,              operator <,      100 },
-            
+
         // boolean operators
         { "or",         SymbolId::Or,                operator ||,     200 },
         { "and",        SymbolId::And,               operator &&,     300 },
@@ -110,7 +110,7 @@ namespace djup
         { "-",          SymbolId::BinaryMinus,       (BinaryApplier)operator -,     500 },
         { "*",          SymbolId::Mul,               operator *,                    600 },
         { "/",          SymbolId::Div,               operator /,                    600 },
-        { "^",          SymbolId::Pow,               Pow,                           600, 
+        { "^",          SymbolId::Pow,               Pow,                           600,
                                                           SymbolFlags::RightAssociative },
 
         // unary arithmetic operators
@@ -176,7 +176,7 @@ namespace djup
         default:
             Error("GetSymbolChars - unrecognized symbol id: ", static_cast<int>(i_symbol_id));
         }
-            
+
     }
-    
+
 } // namespace liquid

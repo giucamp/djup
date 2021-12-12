@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #include <core/sockets.h>
 #include <core/diagnostic.h>
 #include <type_traits>
@@ -20,7 +25,7 @@
 
 namespace djup
 {
-    namespace 
+    namespace
     {
         std::string GetLastErrorString()
         {
@@ -28,7 +33,7 @@ namespace djup
                 const int error_code = WSAGetLastError();
 
                 char * msg = nullptr;
-                FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 
+                FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                     NULL, error_code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPSTR)&msg, 0, NULL);
                 std::string result = msg;
                 LocalFree(msg);
@@ -60,7 +65,7 @@ namespace djup
     }
 
     Udp4Socket::Udp4Socket(const ConstructionParams & i_params)
-    {   
+    {
         #ifdef _WIN32
 
             static_assert(std::is_same_v<decltype(m_socket), SOCKET>);
@@ -230,20 +235,20 @@ namespace djup
         }
     }
 
-    void Udp4Socket::Send(Ip4Address i_dest_address, uint16_t i_dest_port, 
+    void Udp4Socket::Send(Ip4Address i_dest_address, uint16_t i_dest_port,
         Span<const unsigned char> i_data)
     {
         // Send on empty socket is undefined behaviour
         assert(m_socket != s_invalid_socket);
-        
+
         struct sockaddr_in dest_addr = {};
         dest_addr.sin_family = AF_INET;
         dest_addr.sin_port = htons(i_dest_port);
         assert(sizeof(dest_addr.sin_addr.s_addr) == i_dest_address.GetInternalData().size());
         memcpy(&dest_addr.sin_addr.s_addr, i_dest_address.GetInternalData().data(), sizeof(dest_addr.sin_addr.s_addr));
 
-        const int result = sendto(m_socket, 
-            reinterpret_cast<const char*>(i_data.data()), 
+        const int result = sendto(m_socket,
+            reinterpret_cast<const char*>(i_data.data()),
             static_cast<int>(i_data.size()),
             0,
             (struct sockaddr*)&dest_addr,
@@ -271,8 +276,8 @@ namespace djup
         #else
             socklen_t address_len = sizeof(recv_addr);
         #endif
-        const int recv_result = recvfrom(m_socket, 
-            reinterpret_cast<char*>(i_dest.data()), 
+        const int recv_result = recvfrom(m_socket,
+            reinterpret_cast<char*>(i_dest.data()),
             static_cast<int>(i_dest.size()),
             0,
             (struct sockaddr*)&recv_addr, &address_len);

@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #pragma once
 #include <core/span.h>
 #include <stdint.h>
@@ -41,7 +46,7 @@ namespace djup
             size_t m_receive_buffer_size = 0;
         };
 
-        /**< Constructs an empty socket. Any communication operation except on an 
+        /**< Constructs an empty socket. Any communication operation except on an
             empty socket causes undefined behaviour. */
         Udp4Socket() = default;
 
@@ -70,7 +75,7 @@ namespace djup
         uint16_t GetPort() const noexcept { return m_port; }
 
         /**< Sends a datagram to the destination port and address */
-        void Send(Ip4Address i_dest_address, uint16_t i_dest_port, 
+        void Send(Ip4Address i_dest_address, uint16_t i_dest_port,
             Span<const unsigned char> i_data);
 
         struct ReceiveResult
@@ -81,7 +86,7 @@ namespace djup
 
             uint16_t m_source_port = 0; /**< The port used by the sender */
 
-            bool m_more_data = false; /**< if true the datagram was larger than the buffer, 
+            bool m_more_data = false; /**< if true the datagram was larger than the buffer,
                 and it was truncated. The remaining content of the datagram is discarded, and
                 m_received_bytes is set to zero. */
 

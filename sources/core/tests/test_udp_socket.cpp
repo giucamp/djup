@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #include <core/sockets.h>
 #include <core/diagnostic.h>
 #include <future>
@@ -30,7 +35,7 @@ namespace djup
                 int16_t other_port = io_ports[i_thread_index ^ 1].load();
                 if(other_port != 0)
                     socket.Send(Ip4Address("127.0.0.1"), other_port, message);
-                
+
                 if(!this_received)
                 {
                     unsigned char received_message[64];
@@ -42,7 +47,7 @@ namespace djup
                             Error("Udp4 Test - Truncated datagram");
                         if(!Span(received_message, received.m_received_bytes).content_equals(Span(message)))
                             Error("Udp4 Test - Received wrong message");
-                    
+
                         io_received_count++;
                         this_received = true;
                     }

@@ -1,5 +1,9 @@
 
-#pragma once
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #include <private/expression.h>
 
 namespace djup
@@ -20,7 +24,7 @@ namespace djup
         : m_content(SymbolRef{std::move(i_name), std::move(i_arguments)})
     {
         const SymbolRef & symbol_ref = std::get<SymbolRef>(m_content);
-        
+
         Hash hash;
         hash << symbol_ref.m_name;
         hash << symbol_ref.m_arguments.size();

@@ -1,7 +1,7 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2020.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
 // Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
+//        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <core/diagnostic.h>
@@ -26,7 +26,7 @@ namespace djup
             {
                 int64_t exponent = 0;
                 std::string result;
-                
+
                 size_t i = 0;
                 for( ;i < i_source_chars.length() && IsDigit(i_source_chars[i]); i++)
                     result += i_source_chars[i];
@@ -59,7 +59,7 @@ namespace djup
             }
 
             // parses a space-separated or comma-separated list of expressions
-            static std::vector<Tensor> ParseExpressionList(Lexer & i_lexer, 
+            static std::vector<Tensor> ParseExpressionList(Lexer & i_lexer,
                 const std::shared_ptr<const Scope> & i_scope, SymbolId i_terminator_symbol)
             {
                 std::vector<Tensor> result;
@@ -89,7 +89,7 @@ namespace djup
                 {
                     int64_t exponent = 0;
                     std::string value_chars = ParseNumericLiteral(token->m_source_chars, &exponent);
-                    
+
                     // to do: use multi-precion ints
                     return Tensor(Parse<int64_t>(value_chars)) / Pow(Tensor(10), Tensor(exponent));
                 }
@@ -208,7 +208,7 @@ namespace djup
                     return i_look_ahead.m_symbol->m_precedence > i_operator.m_symbol->m_precedence;
             }
 
-            /* given a left operand, tries to parse a binary expression ignoring operators 
+            /* given a left operand, tries to parse a binary expression ignoring operators
                 whoose precedence is less than i_min_precedence */
             static Tensor CombineWithOperator(
                 Lexer & i_lexer, const std::shared_ptr<const Scope> & i_scope,
@@ -251,7 +251,7 @@ namespace djup
                 if(std::optional<Tensor> const left_operand = ParseLeftExpression(i_lexer, i_scope))
                 {
                     // try to combine with a binary operator
-                    Tensor result = CombineWithOperator(i_lexer, i_scope, 
+                    Tensor result = CombineWithOperator(i_lexer, i_scope,
                         *left_operand, i_min_precedence);
                     return result;
                 }
@@ -280,7 +280,7 @@ namespace djup
 
             // all the source must be consumed
             if(!lexer.IsSourceOver())
-                Error("expected end of source, ", 
+                Error("expected end of source, ",
                     GetSymbolChars(lexer.GetCurrentToken().m_symbol_id), " found");
 
             return result;

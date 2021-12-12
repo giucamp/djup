@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #pragma once
 #include <assert.h>
 #include <type_traits>
@@ -18,7 +23,7 @@ namespace djup
         using UnderlyingType = std::underlying_type_t<ENUM_TYPE>;
         const auto source = static_cast<UnderlyingType>(i_source);
         const auto flag = static_cast<UnderlyingType>(i_flag);
-        
+
         // i_flag must have only one bit set
         assert(flag != 0 && (flag & (flag - 1)) == 0);
 

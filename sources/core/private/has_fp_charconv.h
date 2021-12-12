@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 /* HAS_FLOAT_CHARCONV - detect the implementation of floating point functions
     of <charconv> https://en.cppreference.com/w/cpp/header/charconv based on 
     the compiler version */

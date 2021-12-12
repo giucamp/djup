@@ -1,7 +1,7 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2020.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
 // Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
+//        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/lexer.h>
@@ -30,8 +30,8 @@ namespace djup
     // to support UTF-8 we consider alphabetic also any non-ansi char
     bool IsAlpha(uint32_t i_char)
     {
-        return i_char >= 'a' && i_char <= 'z' ||
-            i_char >= 'A' && i_char <= 'Z' ||
+        return (i_char >= 'a' && i_char <= 'z') ||
+            (i_char >= 'A' && i_char <= 'Z') ||
             i_char >= 0x7F;
     }
 
@@ -82,7 +82,7 @@ namespace djup
             return false;
         }
 
-        /* returns true if two sequences of spaces are simmetrical, that is 
+        /* returns true if two sequences of spaces are simmetrical, that is
             if i_prefix == reverse(i_postfix). The sequence \r\n is considered
             a single space, and must not be reversed in the postix. */
         bool WhiteSimmetry(std::string_view i_prefix, std::string_view i_postfix)
@@ -116,7 +116,7 @@ namespace djup
                 while(IsDigit(io_source.front()))
                     io_source.remove_prefix(1);
             };
-            
+
             SkipDigits();
 
             if(io_source.front() == '.')
@@ -162,7 +162,7 @@ namespace djup
                             io_source = new_source;
                             return { symbol };
                         }
-                    }                    
+                    }
                 }
                 else
                 {

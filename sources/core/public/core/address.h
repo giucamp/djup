@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
@@ -143,7 +148,7 @@ namespace djup
         @param i_alignment alignment required from the pointer. It must be an integer power of 2
         @param i_alignment_offset alignment offset
         @return the result address */
-    inline const void * address_lower_align(const void * i_address, 
+    inline const void * address_lower_align(const void * i_address,
         size_t i_alignment, size_t i_alignment_offset) noexcept
     {
         const void * address = address_add(i_address, i_alignment_offset);
@@ -233,7 +238,7 @@ namespace djup
         @param i_alignment alignment required from the pointer. It must be an integer power of 2
         @param i_alignment_offset alignment offset
         @return the result address */
-    inline const void * address_upper_align(const void * i_address, 
+    inline const void * address_upper_align(const void * i_address,
         size_t i_alignment, size_t i_alignment_offset) noexcept
     {
         const void * address = address_add(i_address, i_alignment_offset);

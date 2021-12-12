@@ -1,7 +1,7 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2020.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
 // Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
+//        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
@@ -17,7 +17,7 @@ namespace djup
         SymbolId m_symbol_id = SymbolId::EndOfSource;
         const Symbol * m_symbol = nullptr;
         std::string_view m_source_chars;
-        
+
         Token() = default;
 
         Token(const Symbol & i_symbol)

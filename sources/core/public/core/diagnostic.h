@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #pragma once
 #include <functional>
 #include <variant>
@@ -6,8 +11,8 @@
 
 namespace djup
 {
-    /** Exception described by a static null-terminated string. This class is 
-        designed to be small, to be used with Expected without significantly 
+    /** Exception described by a static null-terminated string. This class is
+        designed to be small, to be used with Expected without significantly
         increasing its size. */
     class StaticCStrException
     {
@@ -99,8 +104,8 @@ namespace djup
         }
 
     private:
-        std::variant< 
-            std::conditional_t<std::is_void_v<VALUE>, std::monostate, VALUE>, 
+        std::variant<
+            std::conditional_t<std::is_void_v<VALUE>, std::monostate, VALUE>,
             ERROR > m_content;
     };
 
@@ -140,7 +145,7 @@ namespace djup
             const char * i_source_file, int i_source_line)
     {
         if(!(i_first == i_second))
-            Error(i_source_file, "(", i_source_line, ") - DJUP_EXPECTS_EQ - ", 
+            Error(i_source_file, "(", i_source_line, ") - DJUP_EXPECTS_EQ - ",
                 i_first_cpp_expr, " is ", i_first, ", ",
                 i_second_cpp_expr, " is ", i_second );
     }

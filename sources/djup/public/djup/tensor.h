@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #pragma once
 #include <memory>
 #include <core/span.h>
@@ -7,11 +12,11 @@
 namespace djup
 {
     class Expression;
-    
+
     class Tensor
     {
     public:
-        
+
         /** Construct a tensor from an integer, floating point or bool scalar constant*/
         template <typename SCALAR, typename = std::enable_if_t<std::is_integral_v<SCALAR> || std::is_floating_point_v<SCALAR>>>
             Tensor(const SCALAR & i_scalar)
@@ -28,7 +33,7 @@ namespace djup
         const std::shared_ptr<const Expression> & GetExpression() const { return m_expression; }
 
     private:
-        
+
         enum class ScalarConst {};
         Tensor(ScalarConst, double i_scalar);
         Tensor(ScalarConst, int64_t i_scalar);

@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #pragma once
 #include <core/to_chars.h>
 #include <core/diagnostic.h>
@@ -10,8 +15,8 @@
 
 namespace djup
 {
-    /** Primary template for a parser. The second paramater can be used in partial 
-        sepcializations to simplify sfinae conditions. The function operator must 
+    /** Primary template for a parser. The second paramater can be used in partial
+        sepcializations to simplify sfinae conditions. The function operator must
         function must be noexcept, and may be constexpr. */
     template <typename TYPE, typename SFINAE_CONDITION = VoidT<>> struct Parser
     {
@@ -31,7 +36,7 @@ namespace djup
         constexpr Expected<TYPE> TryParse(std::string_view & i_source) noexcept
     {
         static_assert(
-            std::is_same_v<std::invoke_result_t<Parser<TYPE>, std::string_view &>, Expected<TYPE>>, 
+            std::is_same_v<std::invoke_result_t<Parser<TYPE>, std::string_view &>, Expected<TYPE>>,
             "Parser<TYPE>{}(i_source) must return Expected<TYPE>");
         return Parser<TYPE>{}(i_source);
     }
@@ -56,7 +61,7 @@ namespace djup
         return *Parser<TYPE>{}(i_source);
     }
 
-    /* Parse from const std::string_view & - defined if the type has a Parser 
+    /* Parse from const std::string_view & - defined if the type has a Parser
        Expects the source to be empty after parsing. Throws on error.  */
     template <typename TYPE, typename = std::enable_if_t<HasParserV<TYPE>>>
         constexpr TYPE Parse(const std::string_view & i_source)
@@ -140,9 +145,9 @@ namespace djup
     }
 
     // Parser for signed integer
-    template <typename INT_TYPE> 
+    template <typename INT_TYPE>
         struct Parser<INT_TYPE, std::enable_if_t<std::is_integral_v<INT_TYPE> && std::is_signed_v<INT_TYPE>>>
-    { 
+    {
         constexpr Expected<INT_TYPE> operator()(std::string_view & i_source) noexcept
         {
             const char * curr_digit = i_source.data();
@@ -209,9 +214,9 @@ namespace djup
     };
 
     // Parser for unsigned integer
-    template <typename UINT_TYPE> 
+    template <typename UINT_TYPE>
         struct Parser<UINT_TYPE, std::enable_if_t<std::is_integral_v<UINT_TYPE> && !std::is_signed_v<UINT_TYPE>>>
-    { 
+    {
         constexpr Expected<UINT_TYPE> operator()(std::string_view & i_source) noexcept
         {
             const char * curr_digit = i_source.data();
@@ -252,7 +257,7 @@ namespace djup
     };
 
     template <> struct Parser<bool>
-    { 
+    {
         constexpr Expected<bool> operator()(std::string_view & i_source) noexcept
         {
             if (TryAccept(i_source, "true"))
@@ -264,20 +269,20 @@ namespace djup
             return StaticCStrException("Expected true or false");
         }
     };
-    
+
     template <> struct Parser<float>
-    { 
-        Expected<float> operator()(std::string_view & i_source) noexcept; 
+    {
+        Expected<float> operator()(std::string_view & i_source) noexcept;
     };
 
     template <> struct Parser<double>
-    { 
-        Expected<double> operator()(std::string_view & i_source) noexcept; 
+    {
+        Expected<double> operator()(std::string_view & i_source) noexcept;
     };
 
     template <> struct Parser<long double>
-    { 
-        Expected<long double> operator()(std::string_view & i_source) noexcept; 
+    {
+        Expected<long double> operator()(std::string_view & i_source) noexcept;
     };
 
 } // namespace djup

@@ -1,17 +1,22 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #include <core/from_chars.h>
 #include <private/has_fp_charconv.h>
 #if HAS_FLOAT_CHARCONV
     #include <charconv>
 #else
-    #include <cstdlib>    
+    #include <cstdlib>
 #endif
 
 namespace djup
 {
     #if HAS_FLOAT_CHARCONV
 
-        namespace 
+        namespace
         {
             template <typename TYPE> Expected<TYPE> TryParseFloat(std::string_view & i_source) noexcept
             {
@@ -22,7 +27,7 @@ namespace djup
                 {
                     i_source.remove_prefix(res.ptr - i_source.data());
                     return out;
-                } 
+                }
                 else if(res.ec == std::errc::invalid_argument)
                 {
                     return StaticCStrException("Unrecognized floating point value");

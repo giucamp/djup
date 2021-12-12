@@ -8,5 +8,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 add_subdirectory(sources/core)
+add_subdirectory(sources/djup)
 add_subdirectory(sources/test)
 

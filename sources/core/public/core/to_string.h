@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #pragma once
 #include <core/to_chars.h>
 #include <utility>
@@ -24,7 +29,7 @@ namespace djup
             for (;;)
             {
                 size_t const original_size = size();
-                
+
                 m_writer << i_value;
                 if (!m_writer.IsTruncated())
                     return *this;
@@ -33,7 +38,7 @@ namespace djup
             }
         }
 
-    private:        
+    private:
         void Grow(size_t i_original_used_size);
 
     private:

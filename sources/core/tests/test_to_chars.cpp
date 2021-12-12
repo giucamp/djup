@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #include <core/to_chars.h>
 #include <core/diagnostic.h>
 #include <string_view>
@@ -9,7 +14,7 @@ namespace djup
     namespace tests
     {
         struct TypeWithNoToChars{};
-        
+
         void ToChars()
         {
             Print("Test: Core - ToChars...");
@@ -33,7 +38,7 @@ namespace djup
 
             // floating point
             DJUP_EXPECTS_EQ(std::string_view(ToCharArray<10>(42.f).data()), "42");
-            
+
             // sequence
             DJUP_EXPECTS_EQ(std::string_view(ToCharArray<128>(
                 42.f, "abc", 52).data()), "42abc52");

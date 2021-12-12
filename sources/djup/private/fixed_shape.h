@@ -1,7 +1,7 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2020.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
 // Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
+//        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
@@ -32,7 +32,7 @@ namespace djup
 
         int64_t GetDimension(int64_t i_index) const { return m_dimensions.at(NumericCast<size_t>(i_index)); }
 
-        int64_t GetDimensionBackward(int64_t i_backward_index) const 
+        int64_t GetDimensionBackward(int64_t i_backward_index) const
             { return m_dimensions.at(NumericCast<size_t>(GetRank() - 1 - i_backward_index)); }
 
         int64_t GetStride(int64_t i_index) const { return m_strides.at(static_cast<size_t>(i_index)); }

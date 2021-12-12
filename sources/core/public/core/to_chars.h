@@ -1,4 +1,9 @@
 
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+// Distributed under the Boost Software License, Version 1.0.
+//        (See accompanying file LICENSE or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #pragma once
 #include <core/span.h>
 #include <array>
@@ -11,7 +16,7 @@
 
 namespace djup
 {
-   /** Allows to write chars to a fixed length buffer, truncating when the 
+   /** Allows to write chars to a fixed length buffer, truncating when the
         buffer is over. The char sequence is not automatically null-terminated. */
     class CharBufferView
     {
@@ -55,7 +60,7 @@ namespace djup
                 std::min(m_remaining_size, static_cast<ptrdiff_t>(i_string.length()));
 
             m_remaining_size -= static_cast<ptrdiff_t>(i_string.length());
-            
+
             if (length_to_write > 0)
             {
                 for (ptrdiff_t index = 0; index < length_to_write; index++)
@@ -83,8 +88,8 @@ namespace djup
         ptrdiff_t m_remaining_size = 0;
     };
 
-    /** Primary template for a CharWriter. The second paramater can be used in partial 
-        sepcializations to simplify sfinae conditions. The function operator must be 
+    /** Primary template for a CharWriter. The second paramater can be used in partial
+        sepcializations to simplify sfinae conditions. The function operator must be
         noexcept, and may be constexpr. */
     template <typename TYPE, typename SFINAE_CONDITION = void>
         struct CharWriter
@@ -110,7 +115,7 @@ namespace djup
     }
 
     // CharWriter for strings and chars
-    template <typename TYPE> struct CharWriter<TYPE, 
+    template <typename TYPE> struct CharWriter<TYPE,
         std::enable_if_t<std::is_constructible_v<std::string_view, TYPE> >
         >
     {
@@ -129,7 +134,7 @@ namespace djup
 
     // CharWriter for pointers
     template <typename TYPE> struct CharWriter<TYPE, VoidT<
-            std::enable_if_t< std::is_pointer_v<TYPE> 
+            std::enable_if_t< std::is_pointer_v<TYPE>
             && !std::is_constructible_v<std::string_view, TYPE>
         > >>
     {
@@ -197,7 +202,7 @@ namespace djup
             char buffer[buffer_size] = {};
             size_t length = 0;
             /* note: if the number is negative, we can't just negate the sign and use the same algorithm,
-               because the unary minus operator is lossy: for example, negating -128 as int8 produces an 
+               because the unary minus operator is lossy: for example, negating -128 as int8 produces an
                overflow, as 128 can't be represented as int8 */
             if (is_negative)
             {
@@ -243,7 +248,7 @@ namespace djup
             i_dest << std::string_view(buffer, length);
         }
     };
-    
+
     // CharWriter for bool
     template <> struct CharWriter<bool>
     {
@@ -288,7 +293,7 @@ namespace djup
                 : (o_dest << std::get<INDICES>(i_source))),
                 ...);
         }
-    } // namespace detail 
+    } // namespace detail
 
     template <typename TUPLE, typename = decltype(std::tuple_size<TUPLE>::value)>
         constexpr CharBufferView & operator<<(CharBufferView & o_dest, const TUPLE & i_tuple) noexcept

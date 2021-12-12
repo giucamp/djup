@@ -1,7 +1,7 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2020.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
 // Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
+//        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
@@ -12,10 +12,10 @@
 namespace djup
 {
     enum class Domain
-    { 
+    {
         Any                                 = 0b11111111,
             Tuple                           = 0b01000000,
-            Number                          = 0b00111111, 
+            Number                          = 0b00111111,
                 Bool                        = 0b00000001,
                 Complex                     = 0b00111110,
                     Real                    = 0b00111100,
@@ -37,12 +37,12 @@ namespace djup
 
     Domain GetSmallestCommonSuperset(Span<const Domain> i_elements);
 
-    /** Returns whether the first set type may be equivalent or a subset of 
+    /** Returns whether the first set type may be equivalent or a subset of
         the second type. If any of the set is NumericSet::Number, the result
-        is always true. 
-        
+        is always true.
+
         assert(MayBeSupersetOf(NumericSet::Real, NumericSet::Real));
-        assert(MayBeSupersetOf(NumericSet::Real, NumericSet::Complex));    
+        assert(MayBeSupersetOf(NumericSet::Real, NumericSet::Complex));
     */
     constexpr bool MayBeSupersetOf(Domain i_what, Domain i_candidate_superset) noexcept
     {
@@ -66,7 +66,7 @@ namespace djup
                 case Domain::Integer:  i_dest << "int";     break;
                 case Domain::Rational: i_dest << "rational";break;
                 case Domain::Real:     i_dest << "real";    break;
-                case Domain::Complex:  i_dest << "complex"; break;      
+                case Domain::Complex:  i_dest << "complex"; break;
                 default: Error("Unrecognized scalar type ", static_cast<int>(i_source));
             }
         }
