@@ -7,7 +7,7 @@
 #pragma once
 #include <string_view>
 #include "djup/tensor.h"
-#include "private/expression.h"
+#include <private/expression.h>
 
 namespace djup
 {

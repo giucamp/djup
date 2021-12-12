@@ -4,14 +4,14 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "core/diagnostic.h"
-#include "core/flags.h"
-#include "core/from_chars.h"
-#include "private/parser.h"
-#include "private/lexer.h"
-#include "private/alphabet.h"
-#include "private/domain.h"
-#include "private/expression.h"
+#include <core/diagnostic.h>
+#include <core/flags.h>
+#include <core/from_chars.h>
+#include <private/parser.h>
+#include <private/lexer.h>
+#include <private/alphabet.h>
+#include <private/domain.h>
+#include <private/expression.h>
 
 namespace djup
 {
@@ -75,6 +75,16 @@ namespace djup
             static std::optional<Tensor> ParseLeftExpression(Lexer & i_lexer,
                 const std::shared_ptr<const Scope> & i_scope)
             {
+                if(i_lexer.GetCurrentToken().m_symbol_id >= SymbolId::FirstScalarType &&
+                    i_lexer.GetCurrentToken().m_symbol_id <= SymbolId::LastScalarType)
+                {
+                    // found scalar type
+                    if(i_lexer.TryAccept(SymbolId::LeftBracket))
+                    {
+                        // parse the shape
+                        std::vector<Tensor> shape = ParseExpressionList(i_lexer, i_scope, SymbolId::RightBracket);
+                    }
+                }
                 if(std::optional<Token> token = i_lexer.TryAccept(SymbolId::NumericLiteral))
                 {
                     int64_t exponent = 0;
@@ -97,15 +107,11 @@ namespace djup
                     // stack operator [] - creates a tensor
                     return Stack(ParseExpressionList(i_lexer, i_scope, SymbolId::RightBracket));
                 }
-                /*else if(i_lexer.TryAccept(SymbolId::LeftParenthesis))
+                else if(i_lexer.TryAccept(SymbolId::LeftParenthesis))
                 {
-                    // list operator ()
-                    std::vector<Tensor> list = ParseExpressionList(i_lexer, i_scope, SymbolId::RightParenthesis);
-                    if(list.size() != 1)
-                        Error("expected a list with a sigle element");
-                    return list[0];
+                    return ParseExpression(i_lexer, i_scope, 0);
                 }
-                else if (i_lexer.TryAccept(SymbolId::LeftBrace))
+                /*else if(i_lexer.TryAccept(SymbolId::LeftBrace))
                 {
                     // scope operator {}
                     std::vector<Tensor> list = ParseExpressionList(i_lexer, i_scope->MakeInner(), SymbolId::RightBrace);
@@ -185,7 +191,7 @@ namespace djup
             static std::optional<Domain> TryParseScalarDomain(Lexer & i_lexer)
             {
                 auto const symbol_id = i_lexer.GetCurrentToken().m_symbol_id;
-                if(symbol_id >= SymbolId::FirstType && symbol_id <= SymbolId::LastType)
+                if(symbol_id >= SymbolId::FirstScalarType && symbol_id <= SymbolId::LastScalarType)
                     return std::get<Domain>(i_lexer.GetCurrentToken().m_symbol->m_operator_applier);
                 else
                     return {};

@@ -28,21 +28,27 @@
     <ClInclude Include="..\private\discrimination_network.h" />
     <ClInclude Include="..\private\domain.h" />
     <ClInclude Include="..\private\expression.h" />
+    <ClInclude Include="..\private\fixed_shape.h" />
+    <ClInclude Include="..\private\indices.h" />
     <ClInclude Include="..\private\lexer.h" />
     <ClInclude Include="..\private\name.h" />
     <ClInclude Include="..\private\parser.h" />
     <ClInclude Include="..\private\scope.h" />
+    <ClInclude Include="..\private\type.h" />
     <ClInclude Include="..\public\djup\tensor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\discrimination_network.cpp" />
     <ClCompile Include="..\private\domain.cpp" />
     <ClCompile Include="..\private\expression.cpp" />
+    <ClCompile Include="..\private\fixed_shape.cpp" />
+    <ClCompile Include="..\private\indices.cpp" />
     <ClCompile Include="..\private\lexer.cpp" />
     <ClCompile Include="..\private\name.cpp" />
     <ClCompile Include="..\private\parser.cpp" />
     <ClCompile Include="..\private\scope.cpp" />
     <ClCompile Include="..\private\tensor.cpp" />
+    <ClCompile Include="..\private\type.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

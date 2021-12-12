@@ -18,7 +18,7 @@ namespace djup
     {
         // types
         Any, Tuple, Number, Bool, Complex, Real, Rational, Integer, Natural,
-        FirstType = Any, LastType = Natural,
+        FirstScalarType = Any, LastScalarType = Natural,
 
         // arithmetic unary operators
         UnaryPlus, UnaryMinus,

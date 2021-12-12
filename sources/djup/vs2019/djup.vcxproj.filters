@@ -39,6 +39,15 @@
     <ClInclude Include="..\private\parser.h">
       <Filter>private</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\type.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\fixed_shape.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\indices.h">
+      <Filter>private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
@@ -63,6 +72,15 @@
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\parser.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\type.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\fixed_shape.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\indices.cpp">
       <Filter>private</Filter>
     </ClCompile>
   </ItemGroup>
