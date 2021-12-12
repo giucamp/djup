@@ -26,4 +26,9 @@ namespace djup
     {
 
     }
+
+    void CharWriter<Tensor>::operator() (CharBufferView & i_dest, const Tensor & i_source)
+    {
+        Error("Not implemented");
+    }
 }

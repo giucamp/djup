@@ -229,7 +229,7 @@ namespace djup
     }
 
     Lexer::Lexer(std::string_view i_source)
-        : m_whole_source(i_source), m_remaining_source(i_source)
+        : m_remaining_source(i_source), m_whole_source(i_source)
     {
         NextToken();
     }

@@ -156,5 +156,8 @@ namespace djup
 
     Tensor Substitute(const Tensor & i_where, Span<const Rule> i_rules);
 
-    std::ostream & operator << (std::ostream & i_dest, const Tensor & i_tensor);
+    template <> struct CharWriter<Tensor>
+    {
+        void operator() (CharBufferView & i_dest, const Tensor & i_source);
+    };
 }

@@ -77,6 +77,11 @@ namespace djup
             { return std::holds_alternative<BinaryApplier>(m_operator_applier); }
     };
 
+    #ifdef __GNUC__
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+    #endif
+
     /* The lexer recognizes symbols in the order they appear in this array.
         Shadowing must be considered: so ">" must appear after ">=", otherwise
         the former would always shadow the latter. */
@@ -136,6 +141,10 @@ namespace djup
         { "of ",        SymbolId::Of                                                    },
         { "is",         SymbolId::Is,                BinaryApplier{},               400 },
     };
+
+    #ifdef __GNUC__
+        #pragma GCC diagnostic pop
+    #endif
 
     constexpr const Symbol * TryFindSymbol(SymbolId i_symbol_id)
     {

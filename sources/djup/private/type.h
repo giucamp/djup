@@ -26,6 +26,16 @@ namespace djup
         {
             Domain m_domain;
             std::variant<std::monostate, FixedShape, Tensor> m_shape;
+
+            bool IsUndefinedShape() const { return std::holds_alternative<std::monostate>(m_shape); }
+
+            bool IsFixedShape() const { return std::holds_alternative<FixedShape>(m_shape); }
+
+            const FixedShape & GetFixedShape() const { return std::get<FixedShape>(m_shape); }
+
+            bool IsVariableShape() const { return std::holds_alternative<Tensor>(m_shape); }
+
+            const Tensor & GetVariableShape() const { return std::get<Tensor>(m_shape); }
         };
 
         struct TupleType
@@ -35,8 +45,14 @@ namespace djup
 
         struct FunctionType
         {
+            /** The first element is the function type, the others are the parameter types.
+                The reason for not having the return type as separate member is that Type 
+                is still an incomplete type here, and it would require some kind of 
+                pointer anyway. */
             std::vector<Type> m_return_and_parameter_types;
         };
+
+        bool IsUndefined() const { return std::holds_alternative<std::monostate>(m_content); }
 
         bool IsTensor() const { return std::holds_alternative<TensorType>(m_content); }
 
@@ -56,6 +72,6 @@ namespace djup
 
     template <> struct CharWriter<Type>
     {
-        void operator() (CharBufferView & i_dest, const Type & i_source) noexcept;
+        void operator() (CharBufferView & i_dest, const Type & i_source);
     };
 }
