@@ -5,38 +5,66 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/expression.h>
+#include <djup/tensor.h>
+#include <core/hash_variant.h>
 
 namespace djup
 {
-    Expression::Expression(bool i_value)
-        : m_content(BoolConstant{i_value})
+    Hash & operator << (Hash & i_dest, const Expression::SymbolRef & i_src)
     {
-        m_hash = ComputeHash(i_value);
+        i_dest << i_src.m_name;
+        i_dest << i_src.m_arguments;
+        return i_dest;
     }
 
-    Expression::Expression(int64_t i_value)
-        : m_content(IntegerConstant{i_value})
+    Hash & operator << (Hash & i_dest, const Expression::BoolConstant & i_src)
     {
-        m_hash = ComputeHash(i_value);
+        i_dest << i_src.m_value;
+        return i_dest;
     }
 
-    Expression::Expression(Name i_name, std::vector<std::shared_ptr<const Expression>> i_arguments)
-        : m_content(SymbolRef{std::move(i_name), std::move(i_arguments)})
+    Hash & operator << (Hash & i_dest, const Expression::IntegerConstant & i_src)
     {
-        const SymbolRef & symbol_ref = std::get<SymbolRef>(m_content);
-
-        Hash hash;
-        hash << symbol_ref.m_name;
-        hash << symbol_ref.m_arguments.size();
-        for(const auto & argument : symbol_ref.m_arguments)
-            hash << argument->GetHash();
-
-        m_hash = hash.GetValue();
+        i_dest << i_src.m_value;
+        return i_dest;
     }
 
-    Expression::Expression(std::shared_ptr<const Scope> i_scope)
-        : m_content(ScopeExpression{std::move(i_scope)})
+    Hash & operator << (Hash & i_dest, const Expression::ScopeExpression & i_src)
     {
+        Error("To do");
+        return i_dest;
+    }
 
+    Expression::Expression(SymbolRef && i_symbol_ref)
+        : m_content(std::move(i_symbol_ref))
+    {
+        m_hash << m_content;
+    }
+
+    Expression::Expression(IntegerConstant && i_integer_constant)
+        : m_content(std::move(i_integer_constant))
+    {
+        m_hash << m_content;
+    }
+
+    Expression::Expression(BoolConstant && i_bool_constant)
+        : m_content(std::move(i_bool_constant))
+    {
+        m_hash << m_content;
+    }
+
+    Expression::Expression(ScopeExpression && i_scope_constant)
+        : m_content(std::move(i_scope_constant))
+    {
+        m_hash << m_content;
+    }
+
+    Hash & operator << (Hash & i_dest, const Tensor & i_src)
+    {
+        if(!i_src.IsEmpty())
+            return i_dest << i_src.GetExpression()->GetHash();
+        else
+            i_dest << 1;
+        return i_dest;
     }
 }

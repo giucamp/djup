@@ -20,11 +20,11 @@ namespace djup
 
         const std::string & AsString() const { return m_name; }
 
-        uint64_t GetHash() const { return m_hash; }
+        Hash GetHash() const { return m_hash; }
 
     private:
         std::string m_name;
-        uint64_t m_hash;
+        Hash m_hash;
     };
 
     template <> struct CharWriter<Name>
@@ -47,7 +47,7 @@ namespace std
     {
         size_t operator()(const djup::Name & i_source)
         {
-            return std::hash<decltype(i_source.GetHash())>{}(i_source.GetHash());
+            return std::hash<decltype(i_source.GetHash().GetValue())>{}(i_source.GetHash().GetValue());
         }
     };
 }

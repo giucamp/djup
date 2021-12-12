@@ -18,10 +18,6 @@ namespace djup
     {
     public:
 
-        // tensor types
-        Type(Domain i_domain, const FixedShape & i_shape);
-        Type(Domain i_domain, const Tensor & i_shape);
-
         struct TensorType
         {
             Domain m_domain;
@@ -38,19 +34,25 @@ namespace djup
             const Tensor & GetVariableShape() const { return std::get<Tensor>(m_shape); }
         };
 
+        Type(TensorType && i_tensor_type);
+
         struct TupleType
         {
             std::vector<Type> m_element_types;
         };
 
+        Type(TupleType && i_tuple_type);
+
         struct FunctionType
         {
             /** The first element is the function type, the others are the parameter types.
-                The reason for not having the return type as separate member is that Type 
-                is still an incomplete type here, and it would require some kind of 
-                pointer anyway. */
+            The reason for not having the return type as separate member is that Type 
+            is still an incomplete type here, and it would require some kind of 
+            pointer anyway. */
             std::vector<Type> m_return_and_parameter_types;
         };
+
+        Type(FunctionType && i_function_type);
 
         bool IsUndefined() const { return std::holds_alternative<std::monostate>(m_content); }
 
@@ -66,12 +68,20 @@ namespace djup
 
         const FunctionType & AsFunction() const { return std::get<FunctionType>(m_content); }
 
+        Hash GetHash() const noexcept { return m_hash; }
+
     private:
         std::variant<std::monostate, TensorType, TupleType, FunctionType> m_content;
+        Hash m_hash;
     };
 
     template <> struct CharWriter<Type>
     {
         void operator() (CharBufferView & i_dest, const Type & i_source);
     };
+
+    Hash & operator << (Hash & i_dest, const Type & i_src)
+    {
+        return i_dest << i_src.GetHash();
+    }
 }

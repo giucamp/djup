@@ -9,22 +9,30 @@
 
 namespace djup
 {
-    Tensor::Tensor(ScalarConst, double i_scalar)
+    /*Tensor::Tensor(ScalarConst, double i_scalar)
         : m_expression(std::make_shared<Expression>(i_scalar))
     {
 
-    }
+    }*/
 
     Tensor::Tensor(ScalarConst, int64_t i_scalar)
-        : m_expression(std::make_shared<Expression>(i_scalar))
+        : m_expression(std::make_shared<Expression>(Expression::IntegerConstant{i_scalar}))
     {
 
     }
 
     Tensor::Tensor(ScalarConst, bool i_scalar)
-        : m_expression(std::make_shared<Expression>(i_scalar))
+        : m_expression(std::make_shared<Expression>(Expression::BoolConstant{i_scalar}))
     {
 
+    }
+
+    const std::shared_ptr<const Expression> & Tensor::GetExpression() const
+    { 
+        if(m_expression)
+            return m_expression; 
+        else
+            Error("Trying to retrieve the expression from an empty tensor");
     }
 
     void CharWriter<Tensor>::operator() (CharBufferView & i_dest, const Tensor & i_source)

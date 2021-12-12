@@ -17,6 +17,8 @@ namespace djup
     {
     public:
 
+        Tensor() = default;
+
         /** Construct a tensor from an integer, floating point or bool scalar constant*/
         template <typename SCALAR, typename = std::enable_if_t<std::is_integral_v<SCALAR> || std::is_floating_point_v<SCALAR>>>
             Tensor(const SCALAR & i_scalar)
@@ -30,7 +32,9 @@ namespace djup
         Tensor(std::shared_ptr<const Expression> && i_expression)
             : m_expression(std::move(i_expression)) { }
 
-        const std::shared_ptr<const Expression> & GetExpression() const { return m_expression; }
+        bool IsEmpty() const noexcept { return m_expression.get() != nullptr; }
+
+        const std::shared_ptr<const Expression> & GetExpression() const;
 
     private:
 

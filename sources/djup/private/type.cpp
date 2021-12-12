@@ -5,19 +5,46 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/type.h>
+#include <private/expression.h>
+#include <core/hash_variant.h>
 
 namespace djup
 {
-    Type::Type(Domain i_domain, const FixedShape & i_shape)
-        : m_content(TensorType{i_domain, i_shape})
+    Hash & operator << (Hash & i_dest, const Type::TensorType & i_src)
     {
-
+        i_dest << i_src.m_domain;
+        i_dest << i_src.m_shape;
+        return i_dest;
     }
 
-    Type::Type(Domain i_domain, const Tensor & i_shape)
-        : m_content(TensorType{i_domain, i_shape})
+    Hash & operator << (Hash & i_dest, const Type::TupleType & i_src)
     {
+        i_dest << i_src.m_element_types;
+        return i_dest;
+    }
 
+    Hash & operator << (Hash & i_dest, const Type::FunctionType & i_src)
+    {
+        i_dest << i_src.m_return_and_parameter_types;
+        return i_dest;
+    }
+
+    Type::Type(TensorType && i_tensor_type)
+        : m_content(std::move(i_tensor_type))
+    {
+        m_hash << m_content;
+    }
+
+    Type::Type(TupleType && i_tuple_type)
+        : m_content(std::move(i_tuple_type))
+    {
+        m_hash << m_content;
+    }
+
+    Type::Type(FunctionType && i_function_type)
+        : m_content(std::move(i_function_type))
+    {
+        m_hash << m_content;
     }
 
     void CharWriter<Type>::operator() (CharBufferView & i_dest, const Type & i_source)
