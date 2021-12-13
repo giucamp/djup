@@ -29,6 +29,12 @@ namespace djup
         return i_dest;
     }
 
+    Type::TensorType::TensorType(Domain i_domain, Shape && i_shape)
+        : m_domain(i_domain), m_shape(std::move(i_shape))
+    {
+        assert(false); // to do: detect constant shapes
+    }
+
     Type::Type(TensorType && i_tensor_type)
         : m_content(std::move(i_tensor_type))
     {

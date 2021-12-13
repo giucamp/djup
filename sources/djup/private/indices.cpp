@@ -25,7 +25,7 @@ namespace djup
         #endif
     }
 
-    Indices::Indices(const FixedShape& i_shape)
+    Indices::Indices(const ConstantShape& i_shape)
         : m_shape(i_shape), m_indices(i_shape.GetDimensions().size())
     {
         DbgCheck();

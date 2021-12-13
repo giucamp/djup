@@ -7,6 +7,7 @@
 #pragma once
 #include <memory>
 #include <private/discrimination_network.h>
+#include <private/type.h>
 
 namespace djup
 {
@@ -24,6 +25,10 @@ namespace djup
         static const std::shared_ptr<const Scope> & Root();
 
         std::shared_ptr<const Scope> const & GetParent() const { return m_parent; }
+
+        void AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when);
+
+        void AddTypeAxiom(const Tensor & i_what, const Type & i_type, const Tensor & i_when);
 
     private:
         std::shared_ptr<const Scope> const m_parent;

@@ -11,6 +11,7 @@
 #include <vector>
 #include <core/hash.h>
 #include <private/name.h>
+#include <private/type.h>
 
 namespace djup
 {
@@ -24,6 +25,7 @@ namespace djup
         struct SymbolRef
         {
             Name m_name;
+            Type m_type;
             std::vector<std::shared_ptr<const Expression>> m_arguments;
         };
 

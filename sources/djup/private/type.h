@@ -9,7 +9,7 @@
 #include <vector>
 #include <core/hash.h>
 #include <private/domain.h>
-#include <private/fixed_shape.h>
+#include <private/constant_shape.h>
 #include <djup/tensor.h>
 
 namespace djup
@@ -20,14 +20,17 @@ namespace djup
 
         struct TensorType
         {
+            using Shape = std::variant<std::monostate, ConstantShape, Tensor>;
             Domain m_domain;
-            std::variant<std::monostate, FixedShape, Tensor> m_shape;
+            Shape m_shape;
+
+            TensorType(Domain i_domain, Shape && i_shape);
 
             bool IsUndefinedShape() const { return std::holds_alternative<std::monostate>(m_shape); }
 
-            bool IsFixedShape() const { return std::holds_alternative<FixedShape>(m_shape); }
+            bool IsFixedShape() const { return std::holds_alternative<ConstantShape>(m_shape); }
 
-            const FixedShape & GetFixedShape() const { return std::get<FixedShape>(m_shape); }
+            const ConstantShape & GetFixedShape() const { return std::get<ConstantShape>(m_shape); }
 
             bool IsVariableShape() const { return std::holds_alternative<Tensor>(m_shape); }
 

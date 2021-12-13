@@ -7,7 +7,7 @@
 #pragma once
 
 #include <vector>
-#include <private/fixed_shape.h>
+#include <private/constant_shape.h>
 
 namespace djup
 {
@@ -15,7 +15,7 @@ namespace djup
     {
     public:
 
-        Indices(const FixedShape & i_shape);
+        Indices(const ConstantShape & i_shape);
 
         Indices & operator ++ ()
         {
@@ -86,7 +86,7 @@ namespace djup
         void DbgCheck();
 
     private:
-        FixedShape m_shape;
+        ConstantShape m_shape;
         std::vector<int64_t> m_indices;
         int64_t m_logical_linear_index = 0;
     };

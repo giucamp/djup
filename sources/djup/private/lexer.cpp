@@ -42,6 +42,11 @@ namespace djup
 
     namespace
     {
+        bool StartsWith(std::string_view i_what, char i_with)
+        {
+            return !i_what.empty() && i_what.front() == i_with;
+        }
+
         bool StartsWith(std::string_view i_what, std::string_view i_with)
         {
             return i_what.length() >= i_with.length() &&
@@ -119,14 +124,20 @@ namespace djup
 
             SkipDigits();
 
-            if(io_source.front() == '.')
+            if(StartsWith(io_source, '.'))
                 io_source.remove_prefix(1);
 
             SkipDigits();
 
-            if(io_source.front() == 'e' || io_source.front() == 'E')
+            if(StartsWith(io_source, 'e') || StartsWith(io_source, 'E'))
             {
                 io_source.remove_prefix(1);
+
+                if(StartsWith(io_source, '-'))
+                    io_source.remove_prefix(1);
+                else if(StartsWith(io_source, '+'))
+                    io_source.remove_prefix(1);
+
                 SkipDigits();
             }
 

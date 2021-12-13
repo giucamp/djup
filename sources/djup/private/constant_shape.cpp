@@ -4,7 +4,7 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <private/fixed_shape.h>
+#include <private/constant_shape.h>
 
 namespace djup
 {
@@ -78,10 +78,10 @@ namespace djup
         return linear_index;
     }
 
-    std::optional<FixedShape> TryBroadcast(Span<const FixedShape> i_shapes)
+    std::optional<ConstantShape> TryBroadcast(Span<const ConstantShape> i_shapes)
     {
         int64_t rank = 0;
-        for (const FixedShape& shape : i_shapes)
+        for (const ConstantShape& shape : i_shapes)
             if (shape.GetRank() > rank)
                 rank = shape.GetRank();
 
@@ -92,7 +92,7 @@ namespace djup
             int64_t& this_dim = dimensions[static_cast<size_t>(dim_index)];
             for (size_t shape_index = 0; shape_index < i_shapes.size(); shape_index++)
             {
-                FixedShape const& shape = i_shapes[shape_index];
+                ConstantShape const& shape = i_shapes[shape_index];
                 int64_t const rank_offset = rank - shape.GetRank();
                 if (dim_index >= rank_offset)
                 {
@@ -107,40 +107,40 @@ namespace djup
             }
         }
 
-        return FixedShape{ dimensions };
+        return ConstantShape{ dimensions };
     }
 
-    FixedShape Broadcast(Span<const FixedShape> i_shapes)
+    ConstantShape Broadcast(Span<const ConstantShape> i_shapes)
     {
         if(auto result = TryBroadcast(i_shapes))
             return *result;
         Error("Broadcast failure");
     }
 
-    FixedShape::FixedShape(std::initializer_list<int64_t> i_initializer_list)
+    ConstantShape::ConstantShape(std::initializer_list<int64_t> i_initializer_list)
         : m_dimensions(i_initializer_list), m_strides(i_initializer_list.size() + 1)
     {
         ComputeStrides(m_dimensions, m_strides);
     }
 
-    FixedShape::FixedShape(Span<const int64_t> i_initializer_list)
+    ConstantShape::ConstantShape(Span<const int64_t> i_initializer_list)
         : m_dimensions(i_initializer_list.begin(), i_initializer_list.end()),
           m_strides(i_initializer_list.size() + 1)
     {
         ComputeStrides(m_dimensions, m_strides);
     }
 
-    int64_t FixedShape::GetPhysicalLinearIndex(Span<const int64_t> i_indices) const
+    int64_t ConstantShape::GetPhysicalLinearIndex(Span<const int64_t> i_indices) const
     {
         return djup::GetPhysicalLinearIndex(i_indices, m_dimensions, m_strides);
     }
 
-    void CharWriter<FixedShape>::operator() (CharBufferView & i_dest, const FixedShape & i_source) noexcept
+    void CharWriter<ConstantShape>::operator() (CharBufferView & i_dest, const ConstantShape & i_source) noexcept
     {
         i_dest << "[" << i_source.GetDimensions() << "]";
     }
 
-    Hash & operator << (Hash & i_dest, const FixedShape & i_source)
+    Hash & operator << (Hash & i_dest, const ConstantShape & i_source)
     {
         return i_dest << i_source.m_dimensions;
     }

@@ -48,6 +48,24 @@ namespace djup
         EndOfSource, // the source code is over
     };
 
+    constexpr Domain SymbolIdToDomain(SymbolId i_symbol_id)
+    {
+        assert(i_symbol_id >= SymbolId::FirstScalarType && i_symbol_id <= SymbolId::LastScalarType);
+        switch(i_symbol_id)
+        {
+            case SymbolId::Any:       return Domain::Any;
+            case SymbolId::Tuple:     return Domain::Tuple;
+            case SymbolId::Number:    return Domain::Number;
+            case SymbolId::Bool:      return Domain::Bool;
+            case SymbolId::Complex:   return Domain::Complex;
+            case SymbolId::Real:      return Domain::Real;
+            case SymbolId::Rational:  return Domain::Rational;
+            case SymbolId::Integer:   return Domain::Integer;
+            case SymbolId::Natural:   return Domain::Natural;
+        }
+        Error("Unrecognized domain symbol_id");
+    }
+
     enum class SymbolFlags : uint32_t
     {
         None = 0,

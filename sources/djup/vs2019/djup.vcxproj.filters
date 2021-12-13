@@ -42,12 +42,10 @@
     <ClInclude Include="..\private\type.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\fixed_shape.h">
-      <Filter>private</Filter>
-    </ClInclude>
     <ClInclude Include="..\private\indices.h">
       <Filter>private</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\constant_shape.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
@@ -77,7 +75,7 @@
     <ClCompile Include="..\private\type.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\fixed_shape.cpp">
+    <ClCompile Include="..\private\constant_shape.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\indices.cpp">

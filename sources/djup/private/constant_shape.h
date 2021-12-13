@@ -16,13 +16,13 @@
 
 namespace djup
 {
-    class FixedShape
+    class ConstantShape
     {
     public:
 
-        FixedShape(std::initializer_list<int64_t> i_initializer_list);
+        ConstantShape(std::initializer_list<int64_t> i_initializer_list);
 
-        FixedShape(Span<const int64_t> i_initializer_list);
+        ConstantShape(Span<const int64_t> i_initializer_list);
 
         int64_t GetRank() const { return static_cast<int64_t>(m_dimensions.size()); }
 
@@ -41,32 +41,32 @@ namespace djup
 
         Span<const int64_t> GetStrides() const { return m_strides; }
 
-        bool operator == (const FixedShape & i_other) const
+        bool operator == (const ConstantShape & i_other) const
         {
             return m_dimensions == i_other.m_dimensions;
         }
 
-        bool operator != (const FixedShape & i_other) const
+        bool operator != (const ConstantShape & i_other) const
         {
             return m_dimensions != i_other.m_dimensions;
         }
 
-        static const FixedShape & Scalar()
+        static const ConstantShape & Scalar()
         {
-            static const FixedShape scalar({});
+            static const ConstantShape scalar({});
             return scalar;
         }
 
-        friend Hash & operator << (Hash & i_dest, const FixedShape & i_source);
+        friend Hash & operator << (Hash & i_dest, const ConstantShape & i_source);
 
     private:
         std::vector<int64_t> m_dimensions;
         std::vector<int64_t> m_strides;
     };
 
-    template <> struct CharWriter<FixedShape>
+    template <> struct CharWriter<ConstantShape>
     {
-        void operator() (CharBufferView & i_dest, const FixedShape & i_source) noexcept;
+        void operator() (CharBufferView & i_dest, const ConstantShape & i_source) noexcept;
     };
 
     /* Strides[i] = Product of Dim[j], for i <= j < rank
@@ -86,8 +86,8 @@ namespace djup
         Span<const int64_t> i_dimensions,
         Span<const int64_t> i_strides);
 
-    std::optional<FixedShape> TryBroadcast(Span<const FixedShape> i_shapes);
+    std::optional<ConstantShape> TryBroadcast(Span<const ConstantShape> i_shapes);
 
-    FixedShape Broadcast(Span<const FixedShape> i_shapes);
+    ConstantShape Broadcast(Span<const ConstantShape> i_shapes);
 
 } // namespace liquid

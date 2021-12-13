@@ -10,8 +10,8 @@ add_library(djup STATIC
 	private/domain.h
 	private/expression.cpp
 	private/expression.h
-	private/fixed_shape.cpp
-	private/fixed_shape.h
+	private/constant_shape.cpp
+	private/constant_shape.h
 	private/indices.cpp
 	private/indices.h
 	private/lexer.cpp
