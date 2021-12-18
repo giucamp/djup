@@ -10,7 +10,7 @@
 
 namespace djup
 {
-    Hash & operator << (Hash & i_dest, const Expression::SymbolRef & i_src)
+    Hash & operator << (Hash & i_dest, const Expression::TensorExpr & i_src)
     {
         i_dest << i_src.m_name;
         i_dest << i_src.m_arguments;
@@ -35,7 +35,7 @@ namespace djup
         return i_dest;
     }
 
-    Expression::Expression(SymbolRef && i_symbol_ref)
+    Expression::Expression(TensorExpr && i_symbol_ref)
         : m_content(std::move(i_symbol_ref))
     {
         m_hash << m_content;

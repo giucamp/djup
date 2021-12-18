@@ -28,7 +28,7 @@ namespace djup
 
         void AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when);
 
-        void AddTypeAxiom(const Tensor & i_what, const Type & i_type, const Tensor & i_when);
+        void AddTypeAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when);
 
     private:
         std::shared_ptr<const Scope> const m_parent;

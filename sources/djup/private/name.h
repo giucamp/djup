@@ -16,11 +16,15 @@ namespace djup
     {
     public:
 
+        Name() = default;
+
         Name(std::string i_name);
 
         const std::string & AsString() const { return m_name; }
 
         Hash GetHash() const { return m_hash; }
+
+        bool IsEmpty() const { return m_name.empty(); }
 
     private:
         std::string m_name;

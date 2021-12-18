@@ -22,14 +22,18 @@ namespace djup
     {
     public:
 
-        struct SymbolRef
+        struct TensorExpr
         {
             Name m_name;
-            Type m_type;
-            std::vector<std::shared_ptr<const Expression>> m_arguments;
+            TensorType m_type;
+            std::vector<Tensor> m_arguments;
         };
 
-        Expression(SymbolRef && i_symbol_ref);
+        Expression(TensorExpr && i_symbol_ref);
+
+        bool IsTensorExpr() const { return std::holds_alternative<TensorExpr>(m_content); }
+
+        const TensorExpr & AsTensorExpr() const { return std::get<TensorExpr>(m_content); }
 
         struct IntegerConstant
         {
@@ -38,12 +42,16 @@ namespace djup
 
         Expression(IntegerConstant && i_integer_constant);
 
+        bool IsIntegerConstant() const { return std::holds_alternative<IntegerConstant>(m_content); }
+
         struct BoolConstant
         {
             bool m_value;
         };
 
         Expression(BoolConstant && i_bool_constant);
+
+        bool IsBoolConstant() const { return std::holds_alternative<BoolConstant>(m_content); }
 
         struct ScopeExpression
         {
@@ -55,7 +63,7 @@ namespace djup
         Hash GetHash() const { return m_hash; }
 
     private:
-        std::variant<SymbolRef, IntegerConstant, BoolConstant, ScopeExpression> m_content;
+        std::variant<TensorExpr, IntegerConstant, BoolConstant, ScopeExpression> m_content;
         Hash m_hash;
     };
 

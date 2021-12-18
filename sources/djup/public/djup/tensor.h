@@ -24,6 +24,8 @@ namespace djup
             Tensor(const SCALAR & i_scalar)
                 : Tensor(ScalarConst{}, CanonicalizeScalar(i_scalar)) { }
 
+        explicit operator bool () const noexcept { return m_expression.get() != nullptr; }
+
     public:
 
         Tensor(const std::shared_ptr<const Expression> & i_expression)
