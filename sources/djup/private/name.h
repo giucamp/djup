@@ -31,6 +31,29 @@ namespace djup
         Hash m_hash;
     };
 
+    class ConstexprName
+    {
+    public:
+
+        constexpr ConstexprName() = default;
+
+        constexpr ConstexprName(std::string_view i_name)
+            : m_name(std::move(i_name))
+        {
+            m_hash << m_name;
+        }
+
+        constexpr const std::string_view & AsString() const { return m_name; }
+
+        constexpr Hash GetHash() const { return m_hash; }
+
+        constexpr bool IsEmpty() const { return m_name.empty(); }
+
+    private:
+        std::string_view m_name;
+        Hash m_hash;
+    };
+
     template <> struct CharWriter<Name>
     {
         void operator() (CharBufferView & i_dest, const Name & i_source) noexcept
@@ -39,7 +62,20 @@ namespace djup
         }
     };
 
+    template <> struct CharWriter<ConstexprName>
+    {
+        void operator() (CharBufferView & i_dest, const ConstexprName & i_source) noexcept
+        {
+            i_dest << i_source.AsString();
+        }
+    };
+
     inline Hash & operator << (Hash & i_dest, const Name & i_source)
+    {
+        return i_dest << i_source.GetHash();
+    }
+
+    inline Hash & operator << (Hash & i_dest, const ConstexprName & i_source)
     {
         return i_dest << i_source.GetHash();
     }

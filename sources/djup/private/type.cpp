@@ -15,8 +15,6 @@ namespace djup
     {
         m_hash << m_domain;
         m_hash << m_shape;
-
-        assert(false); // to do: detect constant shapes
     }
 
     void CharWriter<TensorType>::operator() (CharBufferView & i_dest, const TensorType & i_source)

@@ -73,4 +73,15 @@ namespace djup
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src);
+
+    template <auto VALUE>
+        const Tensor & MakeConstant()
+    {
+        static Tensor s_value(std::make_shared<Expression>(Expression::IntegerConstant{VALUE}));
+        return s_value;
+    }
+
+    Tensor MakeTensorExpression(const Name & i_name, Span<const Tensor> i_arguments);
+
+    Tensor MakeTensorExpression(const Name & i_name, Span<const Tensor> i_arguments, const Scope & i_scope);
 }

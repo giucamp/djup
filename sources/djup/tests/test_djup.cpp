@@ -4,22 +4,19 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <core/to_string.h>
 #include <core/diagnostic.h>
 
 namespace djup
 {
     namespace tests
     {
-        void ToString()
+        void Parse();
+
+        void Djup()
         {
-            Print("Test: Core - ToString...");
+            PrintLn("Test: Djup...");
 
-            std::string dots(20000, '.');
-
-            DJUP_EXPECTS_EQ(
-                djup::ToString("abc", 1, "cde", dots, 1.5, "zzz"),
-                "abc1cde" + dots + "1.5zzz");
+            Parse();
 
             PrintLn("successful");
         }

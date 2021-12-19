@@ -49,6 +49,8 @@
     <ClCompile Include="..\private\scope.cpp" />
     <ClCompile Include="..\private\tensor.cpp" />
     <ClCompile Include="..\private\type.cpp" />
+    <ClCompile Include="..\tests\test_djup.cpp" />
+    <ClCompile Include="..\tests\test_parse.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

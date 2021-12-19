@@ -11,10 +11,13 @@ namespace djup
     namespace tests
     {
         void Core();
+
+        void Djup();
     }
 }
 
 int main()
 {
     djup::tests::Core();
+    djup::tests::Djup();
 }

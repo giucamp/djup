@@ -13,6 +13,7 @@
 #include <private/domain.h>
 #include <private/expression.h>
 #include <private/type.h>
+#include <private/scope.h>
 #include <djup/tensor.h>
 
 namespace djup
@@ -33,7 +34,7 @@ namespace djup
                 for( ;i < i_source_chars.length() && IsDigit(i_source_chars[i]); i++)
                     result += i_source_chars[i];
 
-                if(i_source_chars[i] == '.')
+                if(i < i_source_chars.length() && i_source_chars[i] == '.')
                 {
                     i++;
 
@@ -44,7 +45,7 @@ namespace djup
                     }
                 }
 
-                if(i_source_chars[i] == 'e' || i_source_chars[i] == 'E')
+                if(i < i_source_chars.length() && (i_source_chars[i] == 'e' || i_source_chars[i] == 'E'))
                 {
                     i++;
 
@@ -92,15 +93,15 @@ namespace djup
                     i_lexer.GetCurrentToken().m_symbol_id <= SymbolId::LastScalarType)
                 {
                     TensorType type = ParseTensorType(i_lexer, i_scope);
+                    
                     Name name;
+                    if(auto name_token = i_lexer.TryAccept(SymbolId::Name))
+                        name = std::string(name_token->m_source_chars);
+                    
                     std::vector<Tensor> arguments;
-                    if(i_lexer.GetCurrentToken().m_symbol_id == SymbolId::Name)
-                    {
-                        name = std::string(i_lexer.GetCurrentToken().m_source_chars);
-                        i_lexer.NextToken();
-                    }
-                    if(i_lexer.GetCurrentToken().m_symbol_id == SymbolId::LeftParenthesis)
+                    if(i_lexer.TryAccept(SymbolId::LeftParenthesis))
                         arguments = ParseExpressionList(i_lexer, i_scope, SymbolId::RightParenthesis);
+                    
                     return std::make_shared<const Expression>(Expression::TensorExpr{name, type, arguments});
                 }
                 else if(std::optional<Token> token = i_lexer.TryAccept(SymbolId::NumericLiteral))
@@ -127,7 +128,9 @@ namespace djup
                 }
                 else if(i_lexer.TryAccept(SymbolId::LeftParenthesis))
                 {
-                    return ParseExpression(i_lexer, i_scope, 0);
+                    Tensor expr = ParseExpression(i_lexer, i_scope, 0);
+                    if(i_lexer.TryAccept(SymbolId::RightParenthesis))
+                        Error("expected ')'");
                 }
                 /*else if(i_lexer.TryAccept(SymbolId::LeftBrace))
                 {
@@ -234,7 +237,7 @@ namespace djup
                     i_lexer.NextToken();
 
                     Tensor right = ParseLeftExpression(i_lexer, i_scope);
-                    if(!right)
+                    if(right.IsEmpty())
                         Error("expected right operand for ", GetSymbolChars(operator_token.m_symbol_id));
 
                     while (ShouldParseDeeper(i_lexer.GetCurrentToken(), operator_token))
@@ -256,13 +259,7 @@ namespace djup
                 Scope & i_scope, int32_t i_min_precedence)
             {
                 Tensor result = ParseLeftExpression(i_lexer, i_scope);
-
-                if(IsTypeExpression(*result.GetExpression()))
-                {
-                    
-                }
-
-                if(result)
+                if(!result.IsEmpty())
                 {
                     // try to combine with a binary operator
                     return CombineWithOperator(i_lexer, i_scope, result, i_min_precedence);
@@ -273,7 +270,8 @@ namespace djup
 
             static Tensor ParseExpression(Lexer & i_lexer, Scope & i_scope, int32_t i_min_precedence)
             {
-                if(Tensor expression = TryParseExpression(i_lexer, i_scope, i_min_precedence))
+                Tensor expression = TryParseExpression(i_lexer, i_scope, i_min_precedence);
+                if(!expression.IsEmpty())
                     return expression;
                 else
                     Error("expected an expression");
@@ -282,13 +280,13 @@ namespace djup
 
     } // namespace
 
-    Tensor TryParseExpression(std::string_view i_source,
-        const std::shared_ptr<Scope> & i_parent_scope)
+    Tensor ParseExpression(std::string_view i_source,
+        const std::shared_ptr<const Scope> & i_parent_scope)
     {
         Lexer lexer(i_source);
         try
         {
-            Tensor result = ParserImpl::ParseExpression(lexer, *i_parent_scope, 0);
+            Tensor result = ParserImpl::ParseExpression(lexer, *std::make_shared<Scope>(i_parent_scope), 0);
 
             // all the source must be consumed
             if(!lexer.IsSourceOver())

@@ -5,6 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/expression.h>
+#include <private/scope.h>
 #include <djup/tensor.h>
 #include <core/hash_variant.h>
 
@@ -66,5 +67,17 @@ namespace djup
         else
             i_dest << 1;
         return i_dest;
+    }
+
+    Tensor MakeTensorExpression(const Name & i_name, Span<const Tensor> i_arguments, const Scope & i_scope)
+    {
+        return Tensor(std::make_shared<Expression>(Expression::TensorExpr{
+            i_name, TensorType{Domain::Any, {}}, std::vector<Tensor>{i_arguments.begin(), i_arguments.end()}
+            }));
+    }
+
+    Tensor MakeTensorExpression(const Name & i_name, Span<const Tensor> i_arguments)
+    {
+        return MakeTensorExpression(i_name, i_arguments, *Scope::Root());
     }
 }

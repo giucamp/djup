@@ -19,12 +19,14 @@ namespace djup
 
         Tensor() = default;
 
-        /** Construct a tensor from an integer, floating point or bool scalar constant*/
+        /** Construct a tensor from an integer, floating point or bool scalar constant */
         template <typename SCALAR, typename = std::enable_if_t<std::is_integral_v<SCALAR> || std::is_floating_point_v<SCALAR>>>
             Tensor(const SCALAR & i_scalar)
                 : Tensor(ScalarConst{}, CanonicalizeScalar(i_scalar)) { }
 
-        explicit operator bool () const noexcept { return m_expression.get() != nullptr; }
+        Tensor(std::string_view i_expression);
+        
+        bool IsEmpty() const noexcept { return m_expression.get() == nullptr; }
 
     public:
 
@@ -33,8 +35,6 @@ namespace djup
 
         Tensor(std::shared_ptr<const Expression> && i_expression)
             : m_expression(std::move(i_expression)) { }
-
-        bool IsEmpty() const noexcept { return m_expression.get() != nullptr; }
 
         const std::shared_ptr<const Expression> & GetExpression() const;
 
@@ -117,6 +117,10 @@ namespace djup
     }
 
     Tensor Not(Tensor const & i_bool_operand);
+
+    Tensor Equal(const Tensor & i_first, const Tensor & i_second);
+    
+    Tensor Less(const Tensor & i_first, const Tensor & i_second);
 
     Tensor operator + (const Tensor & i_operand);
     Tensor operator - (const Tensor & i_operand);

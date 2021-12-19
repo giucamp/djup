@@ -4,25 +4,18 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <core/split.h>
+#include <djup/tensor.h>
 #include <core/diagnostic.h>
-#include <string>
 
 namespace djup
 {
     namespace tests
     {
-        void Split()
+        void Parse()
         {
-            Print("Test: Core - Split...");
+            Print("Test: Core - FromChars...");
 
-            std::string expected_words[] = {"abc", "def", "fgh"};
-            size_t i = 0;
-            for(auto && word : djup::Split("abc def fgh", ' '))
-            {
-                DJUP_EXPECTS_EQ(expected_words[i], word);
-                i++;
-            }
+            Tensor v("2 + 3");
 
             PrintLn("successful");
         }

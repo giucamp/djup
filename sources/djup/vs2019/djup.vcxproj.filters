@@ -81,5 +81,11 @@
     <ClCompile Include="..\private\indices.cpp">
       <Filter>private</Filter>
     </ClCompile>
+    <ClCompile Include="..\tests\test_parse.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_djup.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

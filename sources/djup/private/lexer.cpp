@@ -118,7 +118,7 @@ namespace djup
             assert(!io_source.empty());
 
             auto SkipDigits = [&]{
-                while(IsDigit(io_source.front()))
+                while(!io_source.empty() && IsDigit(io_source.front()))
                     io_source.remove_prefix(1);
             };
 
