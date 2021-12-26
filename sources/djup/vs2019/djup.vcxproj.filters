@@ -46,6 +46,9 @@
       <Filter>private</Filter>
     </ClInclude>
     <ClInclude Include="..\private\constant_shape.h" />
+    <ClInclude Include="..\private\builtin_names.h">
+      <Filter>private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">

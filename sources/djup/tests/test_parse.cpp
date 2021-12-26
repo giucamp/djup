@@ -17,6 +17,8 @@ namespace djup
 
             Tensor v("2 + 3");
 
+            Tensor v1("real [2 4] m");
+
             PrintLn("successful");
         }
 

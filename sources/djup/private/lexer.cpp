@@ -147,9 +147,9 @@ namespace djup
         Token ParseName(std::string_view & io_source)
         {
             assert(!io_source.empty());
-            assert(IsAlpha(io_source.empty()));
+            assert(IsAlpha(io_source.front()));
 
-            while(IsAlphaOrUnderscore(io_source.back()))
+            while(!io_source.empty() && IsAlphaOrUnderscore(io_source.front()))
             {
                 io_source.remove_prefix(1);
             }

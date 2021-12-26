@@ -62,9 +62,12 @@ namespace djup
 
         Hash GetHash() const { return m_hash; }
 
+        bool IsConstant() const { return m_is_constant; }
+
     private:
         std::variant<TensorExpr, IntegerConstant, BoolConstant, ScopeExpression> m_content;
         Hash m_hash;
+        bool m_is_constant = false;
     };
 
     inline Hash & operator << (Hash & i_dest, const Expression & i_src)

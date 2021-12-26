@@ -43,13 +43,13 @@ namespace djup
     }
 
     Expression::Expression(IntegerConstant && i_integer_constant)
-        : m_content(std::move(i_integer_constant))
+        : m_content(std::move(i_integer_constant)), m_is_constant(true)
     {
         m_hash << m_content;
     }
 
     Expression::Expression(BoolConstant && i_bool_constant)
-        : m_content(std::move(i_bool_constant))
+        : m_content(std::move(i_bool_constant)), m_is_constant(true)
     {
         m_hash << m_content;
     }

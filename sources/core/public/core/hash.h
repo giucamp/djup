@@ -18,6 +18,8 @@ namespace djup
     {
     public:
 
+        constexpr Hash() = default;
+
         // Hash(values...)
         template <typename... TYPE>
             constexpr explicit Hash(const TYPE & ... i_object)

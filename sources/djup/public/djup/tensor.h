@@ -155,6 +155,8 @@ namespace djup
 
     Tensor Stack(Span<Tensor const> i_tensors);
 
+    Tensor Is(const Tensor & i_tensor, const Tensor & i_pattern);
+
     // to implement
     Tensor Substitute(const Tensor & i_where, const Tensor & i_what,
         const Tensor & i_with, const Tensor & i_when = true);

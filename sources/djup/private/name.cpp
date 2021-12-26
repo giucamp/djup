@@ -13,4 +13,10 @@ namespace djup
     {
         m_hash << m_name;
     }
+
+    Name::Name(ConstexprName i_name)
+        : m_name(i_name.AsString()), m_hash(i_name.GetHash())
+    {
+
+    }
 }

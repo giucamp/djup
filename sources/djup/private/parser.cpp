@@ -80,6 +80,7 @@ namespace djup
             static TensorType ParseTensorType(Lexer & i_lexer, Scope & i_scope)
             {                
                 Domain domain = std::get<Domain>(i_lexer.GetCurrentToken().m_symbol->m_operator_applier);
+                i_lexer.NextToken();
                 Tensor shape;
                 if(i_lexer.TryAccept(SymbolId::LeftBracket))
                     shape = Stack(ParseExpressionList(i_lexer, i_scope, SymbolId::RightBracket));

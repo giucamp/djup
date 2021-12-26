@@ -12,25 +12,6 @@
 
 namespace djup
 {
-    class Name
-    {
-    public:
-
-        Name() = default;
-
-        Name(std::string i_name);
-
-        const std::string & AsString() const { return m_name; }
-
-        Hash GetHash() const { return m_hash; }
-
-        bool IsEmpty() const { return m_name.empty(); }
-
-    private:
-        std::string m_name;
-        Hash m_hash;
-    };
-
     class ConstexprName
     {
     public:
@@ -51,6 +32,27 @@ namespace djup
 
     private:
         std::string_view m_name;
+        Hash m_hash;
+    };
+
+    class Name
+    {
+    public:
+
+        Name() = default;
+
+        Name(std::string i_name);
+
+        Name(ConstexprName i_name);
+
+        const std::string & AsString() const { return m_name; }
+
+        Hash GetHash() const { return m_hash; }
+
+        bool IsEmpty() const { return m_name.empty(); }
+
+    private:
+        std::string m_name;
         Hash m_hash;
     };
 

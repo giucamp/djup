@@ -8,6 +8,7 @@
 #include <private/expression.h>
 #include <private/parser.h>
 #include <private/scope.h>
+#include <private/builtin_names.h>
 
 namespace djup
 {
@@ -146,55 +147,58 @@ namespace djup
 
     Tensor Add(Span<Tensor const> i_arguments)
     {
-        static const Name name("Add");
-        return MakeTensorExpression(name, i_arguments);
+        return MakeTensorExpression(builtin_names::Add, i_arguments);
     }
 
     Tensor Mul(Span<Tensor const> i_arguments)
     {
-        static const Name name("Mul");
-        return MakeTensorExpression(name, i_arguments);
+        return MakeTensorExpression(builtin_names::Mul, i_arguments);
     }
 
     Tensor Pow(Tensor const & i_base, Tensor const & i_exp)
     {
-        static const Name name("Pow");
-        return MakeTensorExpression(name, {i_base, i_exp});
+        return MakeTensorExpression(builtin_names::Pow, {i_base, i_exp});
     }
 
     Tensor And(Span<Tensor const> i_arguments)
     {
-        static const Name name("And");
-        return MakeTensorExpression(name, i_arguments);
+        return MakeTensorExpression(builtin_names::And, i_arguments);
     }
 
     Tensor Or(Span<Tensor const> i_arguments)
     {
-        static const Name name("Or");
-        return MakeTensorExpression(name, i_arguments);
+        return MakeTensorExpression(builtin_names::Or, i_arguments);
     }
 
     Tensor Not(const Tensor & i_argument)
     {
-        static const Name name("Not");
-        return MakeTensorExpression(name, {i_argument});
+        return MakeTensorExpression(builtin_names::Not, {i_argument});
     }
 
     Tensor Equal(const Tensor & i_first, const Tensor & i_second)
     {
-        static const Name name("Equal");
-        return MakeTensorExpression(name, {i_first, i_second});
+        return MakeTensorExpression(builtin_names::Equal, {i_first, i_second});
     }
 
     Tensor Less(const Tensor & i_first, const Tensor & i_second)
     {
-        static const Name name("Less");
-        return MakeTensorExpression(name, {i_first, i_second});
+        return MakeTensorExpression(builtin_names::Less, {i_first, i_second});
     }
 
     Tensor Stack(Span<Tensor const> i_arguments)
     {
-        static const Name name("Stack");
-        return MakeTensorExpression(name, i_arguments);
+        return MakeTensorExpression(builtin_names::Stack, i_arguments);
+    }
+
+    Tensor Is(const Tensor & i_tensor, const Tensor & i_pattern)
+    {
+        return MakeTensorExpression(builtin_names::Is, {i_tensor, i_pattern});
+    }
+
+    Tensor MakeScope(const std::shared_ptr<const Scope> & i_parent_scope, Span<Tensor const> i_tensors)
+    {
+        std::shared_ptr<const Scope> new_scope = std::make_shared<Scope>(i_parent_scope);
+        
+        return Tensor(std::make_shared<Expression>(Expression::ScopeExpression{new_scope}));
     }
 }

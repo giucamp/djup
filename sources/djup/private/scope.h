@@ -33,4 +33,6 @@ namespace djup
     private:
         std::shared_ptr<const Scope> const m_parent;
     };
+
+    Tensor MakeScope(const std::shared_ptr<const Scope> & i_parent_scope, Span<Tensor const> i_tensors);
 }
