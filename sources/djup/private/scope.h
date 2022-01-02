@@ -30,8 +30,12 @@ namespace djup
 
         void AddTypeAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when);
 
+        Tensor Canonicalize(const Tensor & i_source) const;
+
     private:
         std::shared_ptr<const Scope> const m_parent;
+        DiscriminationNetwork m_canonicalization_axioms_patterns;
+        std::vector<Tensor> m_canonicalization_axioms_replacements;
     };
 
     Tensor MakeScope(Span<Tensor const> i_arguments);

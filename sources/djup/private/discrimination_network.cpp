@@ -5,7 +5,6 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/discrimination_network.h>
-#include <private/substitute_by_predicate.h>
 #include <vector>
 
 namespace djup
