@@ -33,8 +33,12 @@ namespace djup
             static_assert(std::string_view(ToCharArray<10>(false).data()) == "false");
 
             // ints
+            static_assert(std::string_view(ToCharArray<10>(4u).data()) == "4");
+            static_assert(std::string_view(ToCharArray<10>(-4).data()) == "-4");
             static_assert(std::string_view(ToCharArray<10>(42u).data()) == "42");
             static_assert(std::string_view(ToCharArray<10>(-42).data()) == "-42");
+            static_assert(std::string_view(ToCharArray<10>(142u).data()) == "142");
+            static_assert(std::string_view(ToCharArray<10>(-142).data()) == "-142");
 
             // floating point
             DJUP_EXPECTS_EQ(std::string_view(ToCharArray<10>(42.f).data()), "42");

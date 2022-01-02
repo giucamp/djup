@@ -61,7 +61,7 @@ namespace djup
         struct WalkingHead;
 
         std::unordered_multimap<size_t, Edge> m_edges;
-        size_t m_next_node_index = 0;
+        size_t m_next_node_index = 1;
 
     private:
 

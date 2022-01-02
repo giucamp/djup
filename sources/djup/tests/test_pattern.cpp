@@ -4,24 +4,23 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <core/to_string.h>
+#include <private/scope.h>
 #include <core/diagnostic.h>
 
 namespace djup
 {
     namespace tests
     {
-        void ToString()
+        void Pattern()
         {
-            Print("Test: Core - ToString...");
+            Print("Test: djup - Pattern...");
 
-            std::string dots(20000, '.');
+            Scope scope(Scope::Root());
+            scope.AddSubstitutionAxiom("2+3", "5", "true");
 
-            DJUP_EXPECTS_EQ(djup::ToString("abc", 1), "abc1");
+            DJUP_EXPECTS(AlwaysEqual( scope.Canonicalize(Tensor("2+3")), Tensor("5")));
 
-            DJUP_EXPECTS_EQ(
-                djup::ToString("abc", 1, "cde", dots, 1.5, "zzz"),
-                "abc1cde" + dots + "1.5zzz");
+            // DJUP_EXPECTS(TypeMatches(t1, p1));
 
             PrintLn("successful");
         }

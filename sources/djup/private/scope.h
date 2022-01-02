@@ -26,7 +26,9 @@ namespace djup
 
         std::shared_ptr<const Scope> const & GetParent() const { return m_parent; }
 
-        void AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when);
+        void AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when = MakeLiteralExpression<true>());
+
+        void AddSubstitutionAxiom(std::string_view i_what, std::string_view i_with, std::string_view i_when = "true");
 
         void AddTypeAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when);
 

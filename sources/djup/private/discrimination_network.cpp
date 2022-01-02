@@ -104,6 +104,11 @@ namespace djup
             m_edges.insert(std::make_pair(prev_node, std::move(edge)));
             prev_node = dest_node;
         }
+
+        Edge terminal_edge;
+        terminal_edge.m_kind = EdgeKind::Terminal;
+        terminal_edge.m_pattern_id = i_pattern_id;
+        m_edges.insert(std::make_pair(prev_node, std::move(terminal_edge)));
     }
 
     struct DiscriminationNetwork::WalkingHead
@@ -119,8 +124,6 @@ namespace djup
         std::vector<WalkingHead> & io_heads,
         const WalkingHead & i_curr_head, const LinearizedExpression & i_target) const
     {
-        const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
-
         auto edges = m_edges.equal_range(i_curr_head.m_source_node);
         for(auto it = edges.first; it != edges.second; ++it)
         {
@@ -128,6 +131,8 @@ namespace djup
             switch(edge.m_kind)
             {
             case EdgeKind::Constant:
+            {
+                const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
                 if(AlwaysEqual(edge.m_expr, token))
                 {
                     WalkingHead new_head = i_curr_head;
@@ -136,8 +141,11 @@ namespace djup
                     io_heads.push_back(std::move(new_head));
                 }
                 break;
+            }
 
             case EdgeKind::Name:
+            {
+                const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
                 if(edge.m_expr.GetName() == token.GetName())
                 {
                     WalkingHead new_head = i_curr_head;
@@ -146,8 +154,11 @@ namespace djup
                     io_heads.push_back(std::move(new_head));
                 }
                 break;
+            }
 
             case EdgeKind::Variable:
+            {
+                const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
                 if(TypeMatches(token.GetType(), edge.m_expr.GetType()))
                 {
                     WalkingHead new_head = i_curr_head;
@@ -157,6 +168,7 @@ namespace djup
                     io_heads.push_back(std::move(new_head));
                 }
                 break;
+            }
 
             case EdgeKind::Terminal:
             {
@@ -168,7 +180,7 @@ namespace djup
             }
 
             default:
-                Error("DiscriminationNetwork: unrecognized edje kind");
+                Error("DiscriminationNetwork: unrecognized edge kind");
             }
         }
     }

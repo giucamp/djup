@@ -25,68 +25,59 @@ namespace djup
 
         /** Constructs a writer with no buffer. It may be used to compute the
             size required for a buffer. */
-        constexpr CharBufferView() noexcept {}
+        constexpr CharBufferView() noexcept = default;
 
-        constexpr CharBufferView(Span<char> i_dest_buffer) noexcept
-            : m_next_char(i_dest_buffer.data()),
-              m_remaining_size(static_cast<ptrdiff_t>(i_dest_buffer.size()))
+        constexpr CharBufferView(Span<char> i_dest_buffer, size_t i_written_offset) noexcept
+            : m_chars(i_dest_buffer.data()), m_capacity(i_dest_buffer.size()), m_required_size(i_written_offset)
         {
         }
 
-        constexpr CharBufferView(char * i_buffer, size_t i_buffer_length) noexcept
-            : CharBufferView(Span(i_buffer, i_buffer_length))
+        constexpr CharBufferView(char * i_buffer, size_t i_buffer_length, size_t i_written_offset) noexcept
+            : m_chars(i_buffer), m_capacity(i_buffer_length), m_required_size(i_written_offset)
         {
         }
 
         /** Returns the number of charcters remaining in the buffer, which is negative
             in case of buffer overlow. */
-        constexpr ptrdiff_t RemainingSize() const noexcept { return m_remaining_size; }
+        constexpr size_t RemainingSize() const noexcept { return m_required_size > m_capacity ? 0 : m_capacity - m_required_size; }
 
         void SkipParsedChars(size_t i_number_of_parsed_chars) noexcept
         {
-            assert(i_number_of_parsed_chars <= size());
-            m_next_char += i_number_of_parsed_chars;
-            m_remaining_size -= i_number_of_parsed_chars;
+            assert(i_number_of_parsed_chars <= RemainingSize());
+            m_required_size += i_number_of_parsed_chars;
         }
 
         constexpr void Append(char i_char) noexcept
         {
-            if (--m_remaining_size >= 0)
-                *m_next_char++ = i_char;
+            if (m_required_size < m_capacity)
+                m_chars[m_required_size++] = i_char;
         }
 
         constexpr void Append(const std::string_view & i_string) noexcept
         {
-            auto const length_to_write =
-                std::min(m_remaining_size, static_cast<ptrdiff_t>(i_string.length()));
+            size_t size_to_write = 0;
+            if(m_required_size < m_capacity)
+                size_to_write = std::min(i_string.size(), m_capacity - m_required_size);
 
-            m_remaining_size -= static_cast<ptrdiff_t>(i_string.length());
+            size_t base_index = m_required_size;
+            m_required_size += i_string.size();
 
-            if (length_to_write > 0)
-            {
-                for (ptrdiff_t index = 0; index < length_to_write; index++)
-                    m_next_char[index] = i_string[index];
-                m_next_char += length_to_write;
-            }
+            for (size_t index = 0; index < size_to_write; index++)
+                m_chars[base_index + index] = i_string[index];
         }
 
-        constexpr char * data() const noexcept { return m_next_char; }
+        constexpr char * data() const noexcept { return m_chars; }
 
-        constexpr size_t size() const noexcept { return m_remaining_size > 0 ? static_cast<size_t>(m_remaining_size) : 0; }
+        constexpr size_t size() const noexcept { return m_required_size > m_capacity ? m_capacity : m_required_size; }
 
-        constexpr bool IsTruncated() const noexcept { return m_remaining_size < 0; }
+        constexpr bool IsTruncated() const noexcept { return m_required_size > m_capacity; }
 
-        size_t GetExtraRequiredSize() const
-        {
-            if(IsTruncated())
-                return static_cast<size_t>(-m_remaining_size);
-            else
-                return 0;
-        }
+        size_t GetRequiredSize() const noexcept { return m_required_size; }
 
     private:
-        char * m_next_char = nullptr;
-        ptrdiff_t m_remaining_size = 0;
+        char * m_chars = nullptr;
+        size_t m_capacity = 0;
+        size_t m_required_size = 0;
     };
 
     /** Primary template for a CharWriter. The second paramater can be used in partial
@@ -237,12 +228,13 @@ namespace djup
             }
 
             // until C++20 std::reverse is not constexpr
-            for (size_t index = 0; index < length / 2; index++)
+            assert(length > 0);
+            size_t end = length - 1;
+            for(size_t index = 0; index < end; index++, end--)
             {
-                auto const other_index = (length - 1) - index;
                 auto tmp = buffer[index];
-                buffer[index] = buffer[other_index];
-                buffer[other_index] = tmp;
+                buffer[index] = buffer[end];
+                buffer[end] = tmp;
             }
 
             i_dest << std::string_view(buffer, length);
@@ -289,9 +281,9 @@ namespace djup
     template <typename... TYPE>
         constexpr size_t ToChars(Span<char> i_dest, const TYPE &... i_objects)
     {
-        CharBufferView writer(i_dest);
+        CharBufferView writer(i_dest, 0);
         (writer << ... << i_objects);
-        return static_cast<size_t>(static_cast<ptrdiff_t>(i_dest.size()) - writer.RemainingSize());
+        return writer.GetRequiredSize();
     }
 
     /** Stringize multiple objects to a buffer, and returns a std::string_view that spans
@@ -300,7 +292,7 @@ namespace djup
     template <typename... TYPE>
         constexpr std::string_view ToCharsView(Span<char> i_dest, const TYPE &... i_objects)
     {
-        CharBufferView writer(i_dest);
+        CharBufferView writer(i_dest, 0);
         (writer << ... << i_objects);
         if(writer.IsTruncated())
             throw std::runtime_error("ToCharsView: buffer not big enough");
@@ -313,7 +305,7 @@ namespace djup
         constexpr std::array<char, SIZE> ToCharArray(const TYPE &... i_objects)
     {
         std::array<char, SIZE> dest{};
-        CharBufferView       writer(dest.data(), SIZE);
+        CharBufferView       writer(dest.data(), SIZE, 0);
         (writer << ... << i_objects);
         if(writer.IsTruncated())
             throw std::runtime_error("ToCharArray: buffer not big enough");

@@ -53,6 +53,7 @@
     <ClCompile Include="..\private\type.cpp" />
     <ClCompile Include="..\tests\test_djup.cpp" />
     <ClCompile Include="..\tests\test_parse.cpp" />
+    <ClCompile Include="..\tests\test_pattern.cpp" />
     <ClCompile Include="..\tests\test_type.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

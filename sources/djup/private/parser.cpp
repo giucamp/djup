@@ -111,14 +111,17 @@ namespace djup
                     std::string value_chars = ParseNumericLiteral(token->m_source_chars, &exponent);
 
                     // to do: use multi-precion ints
-                    return Tensor(Parse<int64_t>(value_chars)) / Pow(Tensor(10), Tensor(exponent));
+                    if(exponent == 0)
+                        return Tensor(Parse<int64_t>(value_chars));
+                    else
+                        return Tensor(Parse<int64_t>(value_chars)) / Pow(Tensor(10), Tensor(exponent));
                 }
                 else if(std::optional<Token> token = i_lexer.TryAccept(SymbolId::BoolLiteral))
                 {
                     if(token->m_source_chars == "true")
-                        return true;
+                        return MakeLiteralExpression<true>();
                     else if(token->m_source_chars == "false")
-                        return false;
+                        return MakeLiteralExpression<false>();
                     else
                         Error("Unrecognized bool literal: ", token->m_source_chars);
                 }

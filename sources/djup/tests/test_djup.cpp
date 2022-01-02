@@ -12,6 +12,7 @@ namespace djup
     {
         void Parse();
         void Type();
+        void Pattern();
 
         void Djup()
         {
@@ -19,6 +20,7 @@ namespace djup
 
             Parse();
             Type();
+            Pattern();
 
             PrintLn("successful");
         }

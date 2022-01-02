@@ -30,6 +30,7 @@ add_library(djup STATIC
 	public/djup/tensor.h
 	tests/test_djup.cpp
 	tests/test_parse.cpp
+	tests/test_pattern.cpp
 	tests/test_type.cpp
 )
 
