@@ -73,6 +73,10 @@ namespace djup
 
     [[nodiscard]] bool AlwaysEqual(const Expression & i_first, const Expression & i_second);
 
+    [[nodiscard]] bool IsConstant(const Expression & i_expr);
+
+    [[nodiscard]] bool IsVariable(const Expression & i_expr);
+
     template <auto VALUE>
         [[nodiscard]] const Tensor & MakeLiteralExpression()
     {

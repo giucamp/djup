@@ -215,4 +215,14 @@ namespace djup
 
         return AlwaysEqual(*i_first.GetExpression(), *i_second.GetExpression());
     }
+
+    bool IsConstant(const Tensor & i_tensor)
+    {
+        return !i_tensor.IsEmpty() && IsConstant(*i_tensor.GetExpression());
+    }
+
+    bool IsVariable(const Tensor & i_tensor)
+    {
+        return !i_tensor.IsEmpty() && IsVariable(*i_tensor.GetExpression());
+    }
 }

@@ -82,14 +82,14 @@ namespace djup
         return {std::make_shared<Expression>(std::move(i_name), std::move(i_type), i_arguments)};
     }
 
-    bool IsConstant(const Tensor & i_tensor)
+    bool IsConstant(const Expression & i_expr)
     {
-        return i_tensor.GetExpression()->IsConstant();
+        return i_expr.IsConstant();
     }
 
-    bool IsVariable(const Tensor & i_tensor)
+    bool IsVariable(const Expression & i_expr)
     {
-        return i_tensor.GetExpression()->GetArguments().empty();
+        return i_expr.GetArguments().empty();
     }
 
     bool IsType(const Tensor & i_tensor)

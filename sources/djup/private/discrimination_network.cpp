@@ -13,11 +13,11 @@ namespace djup
     /** Immutable flat representation of an expression.
         An expression is a directed acyclic graph. The construction of a flat representation 
         adds an overhead cost, but it greatly simplifies the pattern matching algorithms. */
-    class DiscriminationNetwork::LinearizedTarget
+    class DiscriminationNetwork::LinearizedExpression
     {
     public:
 
-        LinearizedTarget(const Tensor & i_target)
+        LinearizedExpression(const Tensor & i_target)
         {
             Linearize(i_target);
         }
@@ -47,7 +47,9 @@ namespace djup
         void Linearize(const Tensor & i_target)
         {
             m_tokens.push_back(Token{*i_target.GetExpression()});
-            if(!i_target.GetExpression()->GetArguments().empty())
+
+            // a constant is added as a single token, even if it's composite
+            if(!IsConstant(i_target) && !i_target.GetExpression()->GetArguments().empty())
             {
                 m_tokens.back().m_begin_arguments = true;
 
@@ -76,39 +78,33 @@ namespace djup
     void DiscriminationNetwork::AddPattern(size_t i_pattern_id, 
         const Tensor & i_pattern, const Tensor & i_condition)
     {
-        AddSubPattern(0, i_pattern_id, i_pattern, i_condition);
-    }
+        LinearizedExpression pattern(i_pattern);
 
-    size_t DiscriminationNetwork::AddSubPattern(size_t i_source_node, size_t i_pattern_id, 
-        const Tensor & i_pattern, const Tensor & i_condition)
-    {
-        size_t dest_node = m_next_node_index++;
+        const size_t pattern_length = pattern.GetLength();
+        size_t prev_node = 0;
 
-        /*if(IsConstant(i_pattern))
+        for(size_t token_index = 0; token_index < pattern_length; token_index++)
         {
-            // constant
-            Edge edge{dest_node, EdgeKind::Constant, i_pattern };
-            m_edges.insert(std::make_pair(i_source_node, std::move(edge)));
+            const Expression & token = pattern.GetToken(token_index);
+
+            Edge edge;
+            if(IsConstant(token))
+                edge.m_kind = EdgeKind::Constant;
+            else if(IsVariable(token))
+                edge.m_kind = EdgeKind::Variable;
+            else
+                edge.m_kind = EdgeKind::Name;
+
+            edge.m_begin_arguments = pattern.BeginsArguments(token_index);
+            edge.m_end_arguments = pattern.EndsArguments(token_index);
+            edge.m_expr = token;
+
+            size_t dest_node = m_next_node_index++;
+            edge.m_dest_node = dest_node;
+
+            m_edges.insert(std::make_pair(prev_node, std::move(edge)));
+            prev_node = dest_node;
         }
-        else if(IsVariable(i_pattern))
-        {
-            // variable
-            Edge edge{dest_node, EdgeKind::Variable, i_pattern };
-            m_edges.insert(std::make_pair(i_source_node, std::move(edge)));
-        }
-        else
-        {
-            // name
-            Edge edge{dest_node, EdgeKind::Name, i_pattern };
-            m_edges.insert(std::make_pair(i_source_node, std::move(edge)));
-
-            for(const Tensor & argument : i_pattern.GetExpression()->GetArguments())
-            {
-                dest_node = AddSubPattern(dest_node, i_pattern_id, argument, i_condition);
-            }
-        }*/
-
-        return dest_node;
     }
 
     struct DiscriminationNetwork::WalkingHead
@@ -116,82 +112,81 @@ namespace djup
         size_t m_source_node = 0;
         size_t m_current_token = 0;
         Tensor m_target;
+        std::vector<Substitution> m_substitutions;
     };
 
-    bool DiscriminationNetwork::MatchToken(WalkingHead & i_head, const LinearizedTarget & i_target) const
+    void DiscriminationNetwork::MatchToken(
+        std::vector<Match> & o_matches,
+        std::vector<WalkingHead> & io_heads,
+        const WalkingHead & i_curr_head, const LinearizedExpression & i_target) const
     {
-        const Expression & token = i_target.GetToken(i_head.m_current_token);
+        const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
 
-        auto edges = m_edges.equal_range(i_head.m_source_node);
+        auto edges = m_edges.equal_range(i_curr_head.m_source_node);
         for(auto it = edges.first; it != edges.second; ++it)
         {
             const Edge & edge = it->second;
             switch(edge.m_kind)
             {
             case EdgeKind::Constant:
-                if(!AlwaysEqual(edge.m_expr, token))
-                    return false;
-
-                i_head.m_current_token++;
-                i_head.m_source_node = edge.m_dest_node;
-                return true;
-
-            case EdgeKind::Variable:
-                
+                if(AlwaysEqual(edge.m_expr, token))
+                {
+                    WalkingHead new_head = i_curr_head;
+                    new_head.m_current_token++;
+                    new_head.m_source_node = edge.m_dest_node;
+                    io_heads.push_back(std::move(new_head));
+                }
                 break;
 
-            case EdgeKind::Name:                
-                if(edge.m_expr.GetName() != token.GetName())
-                    return false;
+            case EdgeKind::Name:
+                if(edge.m_expr.GetName() == token.GetName())
+                {
+                    WalkingHead new_head = i_curr_head;
+                    new_head.m_current_token++;
+                    new_head.m_source_node = edge.m_dest_node;
+                    io_heads.push_back(std::move(new_head));
+                }
+                break;
 
-                i_head.m_current_token++;
-                i_head.m_source_node = edge.m_dest_node;
-                return true;
+            case EdgeKind::Variable:
+                if(TypeMatches(token.GetType(), edge.m_expr.GetType()))
+                {
+                    WalkingHead new_head = i_curr_head;
+                    new_head.m_current_token++;
+                    new_head.m_source_node = edge.m_dest_node;
+                    new_head.m_substitutions.emplace_back(Substitution{edge.m_expr, token});
+                    io_heads.push_back(std::move(new_head));
+                }
+                break;
+
+            case EdgeKind::Terminal:
+            {
+                Match match;
+                match.m_substitutions = i_curr_head.m_substitutions;
+                match.m_pattern_id = edge.m_pattern_id;
+                o_matches.push_back(std::move(match));
+                break;
+            }
 
             default:
                 Error("DiscriminationNetwork: unrecognized edje kind");
             }
         }
-
-        return false;
     }
 
-    void DiscriminationNetwork::FindMatches(const Tensor & i_target, std::vector<Match> o_matches) const
+    void DiscriminationNetwork::FindMatches(const Tensor & i_target, std::vector<Match> & o_matches) const
     {
-        LinearizedTarget target(i_target);
+        LinearizedExpression target(i_target);
 
         std::vector<WalkingHead> heads;
         heads.emplace_back(WalkingHead{0, 0, i_target});
 
         while(!heads.empty())
         {
-            const WalkingHead & head = heads.back();
-
-            // if(MatchToken())
-            {
-
-            }
-
+            const WalkingHead & curr_head = std::move(heads.back());
             heads.pop_back();
-        }
 
-        /*if(IsConstant(i_target))
-        {
-            // constant
-            Edge edge{i_node_index, dest_node, EdgeKind::Constant, i_pattern };
-            m_edges.insert(std::make_pair(edge.GetHash(), std::move(edge)));
+            MatchToken(o_matches, heads, curr_head, target);
         }
-        else if(IsVariable(i_target))
-        {
-            // variable
-            Edge edge{i_node_index, dest_node, EdgeKind::Variable, i_pattern };
-            m_edges.insert(std::make_pair(edge.GetHash(), std::move(edge)));
-        }
-        else
-        {
-            // name
-            Edge edge{i_node_index, dest_node, EdgeKind::Name, i_pattern };
-            m_edges.insert(std::make_pair(edge.GetHash(), std::move(edge)));
-        }*/
     }
 }
