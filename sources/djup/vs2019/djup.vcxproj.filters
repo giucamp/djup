@@ -49,6 +49,9 @@
     <ClInclude Include="..\private\builtin_names.h">
       <Filter>private</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\substitute_by_predicate.h">
+      <Filter>private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
@@ -88,6 +91,9 @@
       <Filter>tests</Filter>
     </ClCompile>
     <ClCompile Include="..\tests\test_djup.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_type.cpp">
       <Filter>tests</Filter>
     </ClCompile>
   </ItemGroup>

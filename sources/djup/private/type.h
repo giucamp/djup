@@ -14,13 +14,13 @@
 
 namespace djup
 {
-    class Expression;
-
     class TensorType
     {
     public:
 
         using Shape = std::variant<std::monostate, ConstantShape, Tensor>;
+
+        TensorType();
 
         TensorType(Domain i_domain, Shape && i_shape);
 
@@ -30,21 +30,27 @@ namespace djup
 
         bool IsUndefinedShape() const { return std::holds_alternative<std::monostate>(m_shape); }
 
-        bool IsFixedShape() const { return std::holds_alternative<ConstantShape>(m_shape); }
+        bool IsConstantShape() const { return std::holds_alternative<ConstantShape>(m_shape); }
 
         bool IsVariableShape() const { return std::holds_alternative<Tensor>(m_shape); }
 
-        const ConstantShape & GetFixedShape() const { return std::get<ConstantShape>(m_shape); }
+        const ConstantShape & GetConstantShape() const { return std::get<ConstantShape>(m_shape); }
 
         const Tensor & GetVariableShape() const { return std::get<Tensor>(m_shape); }
 
         Hash GetHash() const noexcept { return m_hash; }
+
+        friend bool operator == (const TensorType & i_first, const TensorType & i_second);
+
+        friend bool operator != (const TensorType & i_first, const TensorType & i_second);
 
     private:
         Domain m_domain;
         Shape m_shape;
         Hash m_hash;
     };
+
+    bool TypeMatches(const TensorType & i_target, const TensorType & i_pattern);
 
     template <> struct CharWriter<TensorType>
     {

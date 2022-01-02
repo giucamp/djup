@@ -74,6 +74,8 @@ namespace djup
 
     bool Always(const Tensor & i_bool_tensor);
 
+    bool AlwaysEqual(const Tensor & i_first, const Tensor & i_second);
+
     bool Never(const Tensor & i_bool_tensor);
 
     Tensor Add(Span<Tensor const> i_addends);

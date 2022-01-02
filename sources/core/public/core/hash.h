@@ -35,6 +35,8 @@ namespace djup
 
         constexpr auto GetValue() const    { return m_value; }
 
+        constexpr size_t ToSizeT() const   { return static_cast<size_t>(m_value); }
+
         constexpr bool operator == (const Hash & i_right) const
             { return m_value == i_right.m_value; }
 
@@ -99,6 +101,14 @@ namespace djup
         constexpr void operator() (CharBufferView & i_dest, Hash i_source) noexcept
         {
             i_dest << i_source.GetValue();
+        }
+    };
+
+    struct StdHashAdapter
+    {
+        size_t operator() (Hash i_source) const
+        {
+            return i_source.ToSizeT();
         }
     };
 }

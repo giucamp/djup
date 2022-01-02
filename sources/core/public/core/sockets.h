@@ -94,7 +94,8 @@ namespace djup
             explicit operator bool () const noexcept { return m_received_bytes > 0; }
         };
 
-        /**< Tries to receive a datagram. This function blocks if the socket is blocking */
+        /**< Tries to receive a datagram. This function blocks if the socket is blocking. 
+             Can throw in case of errors. */
         ReceiveResult Receive(Span<unsigned char> i_dest);
 
     private:

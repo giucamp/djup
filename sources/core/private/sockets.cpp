@@ -322,7 +322,7 @@ namespace djup
         else
         {
             if(address_len != sizeof(recv_addr))
-                Error("Receive: wromg source address size");
+                Error("Receive: wrong source address size");
 
             assert(recv_result > 0);
             result.m_received_bytes = static_cast<size_t>(recv_result);

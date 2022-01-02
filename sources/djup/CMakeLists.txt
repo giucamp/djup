@@ -23,12 +23,14 @@ add_library(djup STATIC
 	private/parser.h
 	private/scope.cpp
 	private/scope.h
+	private/substitute_by_predicate.h
 	private/tensor.cpp
 	private/type.cpp
 	private/type.h
 	public/djup/tensor.h
 	tests/test_djup.cpp
 	tests/test_parse.cpp
+	tests/test_type.cpp
 )
 
 target_include_directories(djup PUBLIC public)

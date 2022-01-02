@@ -11,12 +11,14 @@ namespace djup
     namespace tests
     {
         void Parse();
+        void Type();
 
         void Djup()
         {
             PrintLn("Test: Djup...");
 
             Parse();
+            Type();
 
             PrintLn("successful");
         }

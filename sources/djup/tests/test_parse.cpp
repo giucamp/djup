@@ -13,7 +13,7 @@ namespace djup
     {
         void Parse()
         {
-            Print("Test: Core - FromChars...");
+            Print("Test: djup - Parse...");
 
             Tensor v("2 + 3");
 

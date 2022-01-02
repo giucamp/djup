@@ -103,4 +103,26 @@ namespace djup
 
         return false;
     }
+
+    bool AlwaysEqual(const Expression & i_first, const Expression & i_second)
+    {
+        if(i_first.GetHash() != i_second.GetHash())
+            return false;
+
+        if(i_first.GetName() != i_second.GetName())
+            return false;
+
+        if(i_first.GetType() != i_second.GetType())
+            return false;
+
+        const size_t argument_count = i_first.GetArguments().size();
+        if(argument_count != i_second.GetArguments().size())
+            return false;
+
+        for(size_t argument_index = 0; argument_index < argument_count; argument_index++)
+            if(!AlwaysEqual(i_first.GetArgument(argument_index), i_second.GetArgument(argument_index)))
+                return false;
+
+        return true;
+    }
 }

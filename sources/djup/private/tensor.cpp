@@ -207,4 +207,12 @@ namespace djup
     {
         return MakeExpression(builtin_names::Scope, i_arguments);
     }
+
+    bool AlwaysEqual(const Tensor & i_first, const Tensor & i_second)
+    {
+        if(i_first.IsEmpty() || i_second.IsEmpty())
+            return i_first.IsEmpty() == i_second.IsEmpty();
+
+        return AlwaysEqual(*i_first.GetExpression(), *i_second.GetExpression());
+    }
 }

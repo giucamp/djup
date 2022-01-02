@@ -6,9 +6,8 @@
 
 #pragma once
 #include <memory>
-#include <unordered_set>
-#include <variant>
-#include <private/name.h>
+#include <unordered_map>
+#include <limits>
 #include <private/expression.h>
 
 namespace djup
@@ -21,22 +20,40 @@ namespace djup
 
         void AddPattern(size_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
 
+
+        struct Match
+        {
+            size_t m_pattern_id;
+        };
+
+        void FindMatches(const Tensor & i_target, std::vector<Match> o_matches) const;
+
     private:
 
-        struct Node
+        enum class EdgeKind
         {
-            Expression m_content;
+            Constant, Variable, Name
         };
 
         struct Edge
         {
-            
+            size_t m_dest_node;
+            EdgeKind m_kind;
+            Expression m_expr;
         };
 
-        std::vector<Node> m_nodes;
-        std::unordered_multiset<Hash, Edge> m_edges; // the key is a combination of the source and dest node hashes
+        constexpr static size_t s_terminal_dest_node = std::numeric_limits<size_t>::max();
+
+        class LinearizedTarget;
+        struct WalkingHead;
+
+        std::unordered_multimap<size_t, Edge> m_edges;
+        size_t m_next_node_index = 0;
 
     private:
-        void AddSubPattern(size_t i_node_index, size_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
+
+        size_t AddSubPattern(size_t i_node_index, size_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
+
+        bool MatchToken(WalkingHead & i_head, const LinearizedTarget & i_target) const;
     };
 }

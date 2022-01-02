@@ -22,6 +22,8 @@ namespace djup
     {
     public:
 
+        Expression() = default;
+
         Expression(bool i_bool_literal);
         
         Expression(int64_t i_integer_literal);
@@ -38,7 +40,11 @@ namespace djup
 
         bool IsIntegerLiteral() const { return m_is_integer_literal; }
 
+        const Tensor & GetArgument(size_t i_index) const { return m_arguments[i_index]; }
+
         const std::vector<Tensor> & GetArguments() const { return m_arguments; }
+
+        const TensorType & GetType() const { return m_type; }
 
     private:
         Hash m_hash;
@@ -57,16 +63,18 @@ namespace djup
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src);
    
-    Tensor MakeExpression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments);
+    [[nodiscard]] Tensor MakeExpression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments);
 
-    Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments);
+    [[nodiscard]] Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments);
 
-    Tensor MakeLiteralExpression(bool i_bool_value);
+    [[nodiscard]] Tensor MakeLiteralExpression(bool i_bool_value);
 
-    Tensor MakeLiteralExpression(int64_t i_integer_value);
+    [[nodiscard]] Tensor MakeLiteralExpression(int64_t i_integer_value);
+
+    [[nodiscard]] bool AlwaysEqual(const Expression & i_first, const Expression & i_second);
 
     template <auto VALUE>
-        const Tensor & MakeLiteralExpression()
+        [[nodiscard]] const Tensor & MakeLiteralExpression()
     {
         if constexpr(std::is_same_v<decltype(VALUE), bool>)
         {
