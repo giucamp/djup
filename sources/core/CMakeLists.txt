@@ -10,11 +10,13 @@ add_library(core STATIC
 	private/to_chars.cpp
 	private/to_string.cpp
 	public/core/address.h
+	public/core/algorithms.h
 	public/core/diagnostic.h
 	public/core/flags.h
 	public/core/from_chars.h
 	public/core/hash.h
 	public/core/hash_variant.h
+	public/core/numeric_cast.h
 	public/core/pointer_iterator.h
 	public/core/queue.h
 	public/core/sockets.h

@@ -20,6 +20,8 @@ namespace djup
         constexpr ConstexprName Equal("Equal");
         constexpr ConstexprName Less("Less");
         constexpr ConstexprName Stack("Stack");
-        constexpr ConstexprName Is("Stack");
+        constexpr ConstexprName Is("Is");
+        constexpr ConstexprName Scope("Scope");
+        constexpr ConstexprName Tuple("Tuple");
     }
 }

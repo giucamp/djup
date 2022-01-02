@@ -26,15 +26,4 @@ namespace djup
         else if(i_source.IsVariableShape())
             i_dest << " [" << i_source.GetVariableShape() << ']';
     }
-
-    bool IsTypeExpression(const Expression & i_expr)
-    {
-        if(i_expr.IsTensorExpr())
-        {
-            const Expression::TensorExpr & tensor_expr = i_expr.AsTensorExpr();
-            if(tensor_expr.m_name.IsEmpty())
-                return true;
-        }
-        return false;
-    }
 }

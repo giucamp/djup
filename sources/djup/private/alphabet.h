@@ -83,6 +83,11 @@ namespace djup
         #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     #endif
 
+    inline Tensor NotEqual(const Tensor & i_first, const Tensor & i_second)
+    {
+        return !(i_first == i_second);
+    }
+
     /* The lexer recognizes symbols in the order they appear in this array.
         Shadowing must be considered: so ">" must appear after ">=", otherwise
         the former would always shadow the latter. */
@@ -99,8 +104,8 @@ namespace djup
         { "natural",    SymbolId::Natural,           Domain::Natural     },
 
         // comparison
-        { "==",         SymbolId::Equal,             operator ==,     100 },
-        { "!=",         SymbolId::NotEqual,          operator !=,     100 },
+        { "==",         SymbolId::Equal,             Equal,           100 },
+        { "!=",         SymbolId::NotEqual,          NotEqual,        100 },
         { ">=",         SymbolId::GreaterOrEqual,    operator >=,     100 },
         { "<=",         SymbolId::LessOrEqual,       operator <=,     100 },
         { ">",          SymbolId::Greater,           operator >,      100 },
@@ -116,8 +121,7 @@ namespace djup
         { "-",          SymbolId::BinaryMinus,       (BinaryApplier)operator -,     500 },
         { "*",          SymbolId::Mul,               operator *,                    600 },
         { "/",          SymbolId::Div,               operator /,                    600 },
-        { "^",          SymbolId::Pow,               Pow,                           600,
-                                                          SymbolFlags::RightAssociative },
+        { "^",          SymbolId::Pow,               Pow,                           600, SymbolFlags::RightAssociative },
 
         // unary arithmetic operators
         { "+",          SymbolId::UnaryPlus,         (UnaryApplier)operator +,      700 },

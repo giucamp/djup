@@ -6,7 +6,7 @@
 
 #pragma once
 #include <memory>
-#include <unordered_map>
+#include <unordered_set>
 #include <variant>
 #include <private/name.h>
 #include <private/expression.h>
@@ -17,16 +17,26 @@ namespace djup
     {
     public:
 
-        void AddPattern(const Tensor & i_pattern, const Tensor & i_condition, size_t i_pattern_id);
+        DiscriminationNetwork();
+
+        void AddPattern(size_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
 
     private:
 
         struct Node
         {
             Expression m_content;
-            std::unordered_map<Name, std::shared_ptr<Node>> m_map;
         };
 
-        Node m_root;
+        struct Edge
+        {
+            
+        };
+
+        std::vector<Node> m_nodes;
+        std::unordered_multiset<Hash, Edge> m_edges; // the key is a combination of the source and dest node hashes
+
+    private:
+        void AddSubPattern(size_t i_node_index, size_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
     };
 }

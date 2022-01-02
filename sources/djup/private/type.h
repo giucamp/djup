@@ -55,6 +55,4 @@ namespace djup
     {
         return i_dest << i_src.GetHash();
     }
-
-    bool IsTypeExpression(const Expression & i_expr);
 }

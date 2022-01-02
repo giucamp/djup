@@ -6,6 +6,7 @@
 
 #pragma once
 #include <string>
+#include <string_view>
 #include <functional> // for std::hash
 #include <core/hash.h>
 #include <core/to_chars.h>
@@ -19,7 +20,7 @@ namespace djup
         constexpr ConstexprName() = default;
 
         constexpr ConstexprName(std::string_view i_name)
-            : m_name(std::move(i_name))
+            : m_name(i_name)
         {
             m_hash << m_name;
         }
@@ -43,6 +44,9 @@ namespace djup
 
         Name(std::string i_name);
 
+        Name(std::string_view i_name)
+            : Name(std::string(i_name)) { }
+
         Name(ConstexprName i_name);
 
         const std::string & AsString() const { return m_name; }
@@ -55,6 +59,16 @@ namespace djup
         std::string m_name;
         Hash m_hash;
     };
+
+    bool operator == (const Name & i_first, const Name & i_second) noexcept;
+    bool operator == (const ConstexprName & i_first, const Name & i_second) noexcept;
+    bool operator == (const Name & i_first, const ConstexprName & i_second) noexcept;
+    bool operator == (const ConstexprName & i_first, const ConstexprName & i_second) noexcept;
+
+    bool operator != (const Name & i_first, const Name & i_second) noexcept;
+    bool operator != (const ConstexprName & i_first, const Name & i_second) noexcept;
+    bool operator != (const Name & i_first, const ConstexprName & i_second) noexcept;
+    bool operator != (const ConstexprName & i_first, const ConstexprName & i_second) noexcept;
 
     template <> struct CharWriter<Name>
     {

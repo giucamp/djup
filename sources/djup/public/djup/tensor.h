@@ -38,6 +38,8 @@ namespace djup
 
         const std::shared_ptr<const Expression> & GetExpression() const;
 
+        std::shared_ptr<const Expression> StealExpression();
+
     private:
 
         enum class ScalarConst {};
@@ -65,6 +67,10 @@ namespace djup
     Tensor Shape(const Tensor & i_tensor);
 
     bool IsConstant(const Tensor & i_tensor);
+
+    bool IsType(const Tensor & i_tensor);
+
+    bool IsVariable(const Tensor & i_tensor);
 
     bool Always(const Tensor & i_bool_tensor);
 

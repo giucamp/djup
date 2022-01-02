@@ -5,69 +5,49 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
-#include <memory>
-#include <string>
-#include <variant>
 #include <vector>
+#include <limits>
+#include <type_traits>
 #include <core/hash.h>
+#include <core/numeric_cast.h>
 #include <private/name.h>
 #include <private/type.h>
 
 namespace djup
 {
-    class Scope;
     class Tensor;
+    class TensorType;
 
     class Expression
     {
     public:
 
-        struct TensorExpr
-        {
-            Name m_name;
-            TensorType m_type;
-            std::vector<Tensor> m_arguments;
-        };
+        Expression(bool i_bool_literal);
+        
+        Expression(int64_t i_integer_literal);
 
-        Expression(TensorExpr && i_symbol_ref);
+        Expression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments);
 
-        bool IsTensorExpr() const { return std::holds_alternative<TensorExpr>(m_content); }
-
-        const TensorExpr & AsTensorExpr() const { return std::get<TensorExpr>(m_content); }
-
-        struct IntegerConstant
-        {
-            int64_t m_value;
-        };
-
-        Expression(IntegerConstant && i_integer_constant);
-
-        bool IsIntegerConstant() const { return std::holds_alternative<IntegerConstant>(m_content); }
-
-        struct BoolConstant
-        {
-            bool m_value;
-        };
-
-        Expression(BoolConstant && i_bool_constant);
-
-        bool IsBoolConstant() const { return std::holds_alternative<BoolConstant>(m_content); }
-
-        struct ScopeExpression
-        {
-            std::shared_ptr<const Scope> m_scope;
-        };
-
-        Expression(ScopeExpression && i_scope_expression);
+        const Name & GetName() const { return m_name; }
 
         Hash GetHash() const { return m_hash; }
 
         bool IsConstant() const { return m_is_constant; }
 
+        bool IsBoolLiteral() const { return m_is_bool_literal; }
+
+        bool IsIntegerLiteral() const { return m_is_integer_literal; }
+
+        const std::vector<Tensor> & GetArguments() const { return m_arguments; }
+
     private:
-        std::variant<TensorExpr, IntegerConstant, BoolConstant, ScopeExpression> m_content;
         Hash m_hash;
         bool m_is_constant = false;
+        bool m_is_integer_literal = false;
+        bool m_is_bool_literal = false;
+        Name m_name;
+        TensorType m_type;
+        std::vector<Tensor> m_arguments;
     };
 
     inline Hash & operator << (Hash & i_dest, const Expression & i_src)
@@ -76,15 +56,27 @@ namespace djup
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src);
+   
+    Tensor MakeExpression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments);
+
+    Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments);
+
+    Tensor MakeLiteralExpression(bool i_bool_value);
+
+    Tensor MakeLiteralExpression(int64_t i_integer_value);
 
     template <auto VALUE>
-        const Tensor & MakeConstant()
+        const Tensor & MakeLiteralExpression()
     {
-        static Tensor s_value(std::make_shared<Expression>(Expression::IntegerConstant{VALUE}));
-        return s_value;
+        if constexpr(std::is_same_v<decltype(VALUE), bool>)
+        {
+            static const Tensor s_value = MakeLiteralExpression(VALUE);
+            return s_value;
+        }
+        else
+        {
+            static const Tensor s_value = MakeLiteralExpression(NumericCast<int64_t>(VALUE));
+            return s_value;
+        }
     }
-
-    Tensor MakeTensorExpression(const Name & i_name, Span<const Tensor> i_arguments);
-
-    Tensor MakeTensorExpression(const Name & i_name, Span<const Tensor> i_arguments, const Scope & i_scope);
 }

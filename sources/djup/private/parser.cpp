@@ -103,7 +103,7 @@ namespace djup
                     if(i_lexer.TryAccept(SymbolId::LeftParenthesis))
                         arguments = ParseExpressionList(i_lexer, i_scope, SymbolId::RightParenthesis);
                     
-                    return std::make_shared<const Expression>(Expression::TensorExpr{name, type, arguments});
+                    return MakeExpression(std::move(name), std::move(type), arguments);
                 }
                 else if(std::optional<Token> token = i_lexer.TryAccept(SymbolId::NumericLiteral))
                 {

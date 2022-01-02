@@ -8,19 +8,29 @@
 
 namespace djup
 {
-    /*void DiscriminationNetwork::AddPattern(const Tensor & i_pattern, const Tensor & i_condition, size_t i_pattern_id)
+    namespace
     {
-        Node * curr_node = &m_root;
-        
-        std::vector<Tensor> stack;
-        stack.push_back(i_pattern);
-        while(!stack.empty())
+        Hash CombineHashes(Hash i_first, Hash i_second)
         {
-            Tensor expr = std::move(stack.back());
-            stack.pop_back();
-            
-            
-            //expr.GetExpression()->
+            i_first << i_second;
+            return i_first;
         }
-    }*/
+    }
+
+    DiscriminationNetwork::DiscriminationNetwork()
+    {
+
+    }
+
+    void DiscriminationNetwork::AddPattern(size_t i_pattern_id, 
+        const Tensor & i_pattern, const Tensor & i_condition)
+    {
+        AddSubPattern(0, i_pattern_id, i_pattern, i_condition);
+    }
+
+    void DiscriminationNetwork::AddSubPattern(size_t i_node_index, size_t i_pattern_id, 
+        const Tensor & i_pattern, const Tensor & i_condition)
+    {
+        //i_pattern.GetExpression()->
+    }
 }

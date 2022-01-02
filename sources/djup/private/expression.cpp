@@ -6,58 +6,51 @@
 
 #include <private/expression.h>
 #include <private/scope.h>
+#include <private/type.h>
+#include <private/builtin_names.h>
+#include <core/algorithms.h>
+#include <core/to_chars.h>
 #include <djup/tensor.h>
-#include <core/hash_variant.h>
+#include <algorithm>
 
 namespace djup
 {
-    Hash & operator << (Hash & i_dest, const Expression::TensorExpr & i_src)
+    Expression::Expression(bool i_bool_literal)
+        : m_type(Domain::Bool, ConstantShape{})
     {
-        i_dest << i_src.m_name;
-        i_dest << i_src.m_arguments;
-        return i_dest;
+        char buffer[8];
+        m_name = ToCharsView(buffer, i_bool_literal);
+
+        m_hash << m_name;
+        m_hash << m_type;
+
+        m_is_constant = true;
+        m_is_bool_literal = true;
     }
 
-    Hash & operator << (Hash & i_dest, const Expression::BoolConstant & i_src)
+    Expression::Expression(int64_t i_integer_literal)
+        : m_type(Domain::Integer, ConstantShape{})
     {
-        i_dest << i_src.m_value;
-        return i_dest;
+        char buffer[std::numeric_limits<int64_t>::max_digits10 + 4];
+        m_name = ToCharsView(buffer, i_integer_literal);
+
+        m_hash << m_name;
+        m_hash << m_type;
+
+        m_is_constant = true;
+        m_is_integer_literal = true;
     }
 
-    Hash & operator << (Hash & i_dest, const Expression::IntegerConstant & i_src)
+    Expression::Expression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments)
+        : m_name(std::move(i_name)), m_type(std::move(i_type)),
+          m_arguments(i_arguments.begin(), i_arguments.end())
     {
-        i_dest << i_src.m_value;
-        return i_dest;
-    }
+        m_hash << m_name;
+        m_hash << m_type;
+        m_hash << m_arguments;
 
-    Hash & operator << (Hash & i_dest, const Expression::ScopeExpression & i_src)
-    {
-        Error("To do");
-        return i_dest;
-    }
-
-    Expression::Expression(TensorExpr && i_symbol_ref)
-        : m_content(std::move(i_symbol_ref))
-    {
-        m_hash << m_content;
-    }
-
-    Expression::Expression(IntegerConstant && i_integer_constant)
-        : m_content(std::move(i_integer_constant)), m_is_constant(true)
-    {
-        m_hash << m_content;
-    }
-
-    Expression::Expression(BoolConstant && i_bool_constant)
-        : m_content(std::move(i_bool_constant)), m_is_constant(true)
-    {
-        m_hash << m_content;
-    }
-
-    Expression::Expression(ScopeExpression && i_scope_constant)
-        : m_content(std::move(i_scope_constant))
-    {
-        m_hash << m_content;
+        m_is_constant = std::all_of(m_arguments.begin(), m_arguments.end(), 
+            [](const Tensor i_arg){ return i_arg.GetExpression()->IsConstant(); });
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src)
@@ -69,15 +62,45 @@ namespace djup
         return i_dest;
     }
 
-    Tensor MakeTensorExpression(const Name & i_name, Span<const Tensor> i_arguments, const Scope & i_scope)
+    Tensor MakeLiteralExpression(bool i_bool_value)
     {
-        return Tensor(std::make_shared<Expression>(Expression::TensorExpr{
-            i_name, TensorType{Domain::Any, {}}, std::vector<Tensor>{i_arguments.begin(), i_arguments.end()}
-            }));
+        return {std::make_shared<Expression>(i_bool_value)};
     }
 
-    Tensor MakeTensorExpression(const Name & i_name, Span<const Tensor> i_arguments)
+    Tensor MakeLiteralExpression(int64_t i_integer_value)
     {
-        return MakeTensorExpression(i_name, i_arguments, *Scope::Root());
+        return {std::make_shared<Expression>(i_integer_value)};
+    }
+
+    Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments)
+    {
+        return MakeExpression(std::move(i_name), TensorType{Domain::Any, std::monostate{}}, i_arguments);
+    }
+
+    Tensor MakeExpression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments)
+    {
+        return {std::make_shared<Expression>(std::move(i_name), std::move(i_type), i_arguments)};
+    }
+
+    bool IsConstant(const Tensor & i_tensor)
+    {
+        return i_tensor.GetExpression()->IsConstant();
+    }
+
+    bool IsVariable(const Tensor & i_tensor)
+    {
+        return i_tensor.GetExpression()->GetArguments().empty();
+    }
+
+    bool IsType(const Tensor & i_tensor)
+    {
+        const Name & name = i_tensor.GetExpression()->GetName();
+
+        if(name.IsEmpty())
+            return true;
+        else if(name == builtin_names::Tuple)
+            return AllOf(i_tensor.GetExpression()->GetArguments(), IsType );
+
+        return false;
     }
 }

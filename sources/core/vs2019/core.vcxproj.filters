@@ -101,5 +101,8 @@
     <ClInclude Include="..\public\core\numeric_cast.h">
       <Filter>public</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\core\algorithms.h">
+      <Filter>public</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

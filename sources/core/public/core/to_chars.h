@@ -13,6 +13,7 @@
 #include <string_view>
 #include <type_traits>
 #include <utility>
+#include <stdexcept>
 
 namespace djup
 {
@@ -105,9 +106,9 @@ namespace djup
     template <typename TYPE> using HasCharWriterT = typename HasCharWriter<TYPE>::type;
     template <typename TYPE> constexpr bool HasCharWriterV = HasCharWriter<TYPE>::value;
 
-    // CharBufferView << TYPE for types with CharWriter
+    // CharBufferView << TYPE for types with a CharWriter
     template <typename TYPE, typename = std::enable_if_t<
-        HasCharWriterV<TYPE>
+            HasCharWriterV<TYPE>
         >> constexpr CharBufferView & operator << (CharBufferView & i_dest, const TYPE & i_source) noexcept
     {
         CharWriter<TYPE>{}(i_dest, i_source);
@@ -116,8 +117,7 @@ namespace djup
 
     // CharWriter for strings and chars
     template <typename TYPE> struct CharWriter<TYPE,
-        std::enable_if_t<std::is_constructible_v<std::string_view, TYPE> >
-        >
+        std::enable_if_t<std::is_constructible_v<std::string_view, TYPE> > >
     {
         constexpr void operator() (CharBufferView & i_dest, const TYPE & i_source) noexcept
         {
@@ -283,50 +283,46 @@ namespace djup
         }
     };
 
-    /* namespace detail
-    {
-        template <typename TUPLE, size_t... INDICES>
-        constexpr void print_tuple_like(
-            CharBufferView & o_dest, const TUPLE & i_source, std::index_sequence<INDICES...>) noexcept
-        {
-            (((INDICES + 1 < sizeof...(INDICES)) ? (o_dest << std::get<INDICES>(i_source) << ", ")
-                : (o_dest << std::get<INDICES>(i_source))),
-                ...);
-        }
-    } // namespace detail
-
-    template <typename TUPLE, typename = decltype(std::tuple_size<TUPLE>::value)>
-        constexpr CharBufferView & operator<<(CharBufferView & o_dest, const TUPLE & i_tuple) noexcept
-    {
-        detail::print_tuple_like(
-            o_dest, i_tuple, std::make_index_sequence<std::tuple_size<TUPLE>::value>{});
-        return o_dest;
-    } */
-
-    /** Stringize multiple objects to a buffer, truncating when the buffer is over
-        Returns the number of bytes required by the buffer to avoid truncation. */
+    /** Stringize multiple objects to a buffer, truncating if the buffer is too small.
+        Returns the number of bytes required by the buffer to avoid truncation. 
+        The destination is not null-terminated. */
     template <typename... TYPE>
-        constexpr size_t ToChars(Span<char> i_dest, const TYPE &... i_objects) noexcept
+        constexpr size_t ToChars(Span<char> i_dest, const TYPE &... i_objects)
     {
         CharBufferView writer(i_dest);
         (writer << ... << i_objects);
         return static_cast<size_t>(static_cast<ptrdiff_t>(i_dest.size()) - writer.RemainingSize());
     }
 
-    /** Stringize multiple objects to a char array. If the buffer is not big enough
-        the behaviour is undefined. */
+    /** Stringize multiple objects to a buffer, and returns a std::string_view that spans
+        the written content. If the buffer is too small, an exception is thrown.
+        The destination is not null-terminated. */
+    template <typename... TYPE>
+        constexpr std::string_view ToCharsView(Span<char> i_dest, const TYPE &... i_objects)
+    {
+        CharBufferView writer(i_dest);
+        (writer << ... << i_objects);
+        if(writer.IsTruncated())
+            throw std::runtime_error("ToCharsView: buffer not big enough");
+        return { writer.data(), writer.size() };
+    }
+
+    /** Stringize multiple objects to a char array. If the buffer is too small,
+        an exception is thrown. The destination is not null-terminated. */
     template <size_t SIZE, typename... TYPE>
         constexpr std::array<char, SIZE> ToCharArray(const TYPE &... i_objects)
     {
         std::array<char, SIZE> dest{};
         CharBufferView       writer(dest.data(), SIZE);
         (writer << ... << i_objects);
-        assert(writer.RemainingSize() >= 0);
+        if(writer.IsTruncated())
+            throw std::runtime_error("ToCharArray: buffer not big enough");
         return dest;
     }
 
-    /** Compute the required buffeer size to stringize multiple objects. */
-    template <typename... TYPE> constexpr size_t CharArraySize(const TYPE &... i_objects)
+    /** Compute the required buffer size to stringize multiple objects without
+        null-terminating char. */
+    template <typename... TYPE> constexpr size_t ToCharSize(const TYPE &... i_objects)
     {
         CharBufferView writer;
         (writer << ... << i_objects);

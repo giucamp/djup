@@ -36,6 +36,7 @@
   <ItemGroup>
     <ClInclude Include="..\private\has_fp_charconv.h" />
     <ClInclude Include="..\public\core\address.h" />
+    <ClInclude Include="..\public\core\algorithms.h" />
     <ClInclude Include="..\public\core\diagnostic.h" />
     <ClInclude Include="..\public\core\flags.h" />
     <ClInclude Include="..\public\core\from_chars.h" />

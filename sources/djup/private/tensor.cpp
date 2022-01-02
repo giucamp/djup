@@ -19,13 +19,13 @@ namespace djup
     }*/
 
     Tensor::Tensor(ScalarConst, int64_t i_scalar)
-        : m_expression(std::make_shared<Expression>(Expression::IntegerConstant{i_scalar}))
+        : m_expression(MakeLiteralExpression(i_scalar).StealExpression())
     {
 
     }
 
     Tensor::Tensor(ScalarConst, bool i_scalar)
-        : m_expression(std::make_shared<Expression>(Expression::BoolConstant{i_scalar}))
+        : m_expression(MakeLiteralExpression(i_scalar).StealExpression())
     {
 
     }
@@ -42,6 +42,14 @@ namespace djup
             return m_expression; 
         else
             Error("Trying to retrieve the expression from an empty tensor");
+    }
+
+    std::shared_ptr<const Expression> Tensor::StealExpression()
+    {
+        if(m_expression)
+            return std::move(m_expression);
+        else
+            Error("Trying to steal the expression from an empty tensor");
     }
 
     void CharWriter<Tensor>::operator() (CharBufferView & i_dest, const Tensor & i_source)
@@ -87,7 +95,7 @@ namespace djup
 
     Tensor operator / (const Tensor & i_dividend, const Tensor & i_divisor)
     {
-        return i_dividend * Pow(i_divisor, MakeConstant<-1>());
+        return i_dividend * Pow(i_divisor, MakeLiteralExpression<-1>());
     }
 
     Tensor & operator *= (Tensor & i_first, const Tensor & i_second)
@@ -147,58 +155,56 @@ namespace djup
 
     Tensor Add(Span<Tensor const> i_arguments)
     {
-        return MakeTensorExpression(builtin_names::Add, i_arguments);
+        return MakeExpression(builtin_names::Add, i_arguments);
     }
 
     Tensor Mul(Span<Tensor const> i_arguments)
     {
-        return MakeTensorExpression(builtin_names::Mul, i_arguments);
+        return MakeExpression(builtin_names::Mul, i_arguments);
     }
 
     Tensor Pow(Tensor const & i_base, Tensor const & i_exp)
     {
-        return MakeTensorExpression(builtin_names::Pow, {i_base, i_exp});
+        return MakeExpression(builtin_names::Pow, {i_base, i_exp});
     }
 
     Tensor And(Span<Tensor const> i_arguments)
     {
-        return MakeTensorExpression(builtin_names::And, i_arguments);
+        return MakeExpression(builtin_names::And, i_arguments);
     }
 
     Tensor Or(Span<Tensor const> i_arguments)
     {
-        return MakeTensorExpression(builtin_names::Or, i_arguments);
+        return MakeExpression(builtin_names::Or, i_arguments);
     }
 
     Tensor Not(const Tensor & i_argument)
     {
-        return MakeTensorExpression(builtin_names::Not, {i_argument});
+        return MakeExpression(builtin_names::Not, {i_argument});
     }
 
     Tensor Equal(const Tensor & i_first, const Tensor & i_second)
     {
-        return MakeTensorExpression(builtin_names::Equal, {i_first, i_second});
+        return MakeExpression(builtin_names::Equal, {i_first, i_second});
     }
 
     Tensor Less(const Tensor & i_first, const Tensor & i_second)
     {
-        return MakeTensorExpression(builtin_names::Less, {i_first, i_second});
+        return MakeExpression(builtin_names::Less, {i_first, i_second});
     }
 
     Tensor Stack(Span<Tensor const> i_arguments)
     {
-        return MakeTensorExpression(builtin_names::Stack, i_arguments);
+        return MakeExpression(builtin_names::Stack, i_arguments);
     }
 
     Tensor Is(const Tensor & i_tensor, const Tensor & i_pattern)
     {
-        return MakeTensorExpression(builtin_names::Is, {i_tensor, i_pattern});
+        return MakeExpression(builtin_names::Is, {i_tensor, i_pattern});
     }
 
-    Tensor MakeScope(const std::shared_ptr<const Scope> & i_parent_scope, Span<Tensor const> i_tensors)
+    Tensor MakeScope(Span<Tensor const> i_arguments)
     {
-        std::shared_ptr<const Scope> new_scope = std::make_shared<Scope>(i_parent_scope);
-        
-        return Tensor(std::make_shared<Expression>(Expression::ScopeExpression{new_scope}));
+        return MakeExpression(builtin_names::Scope, i_arguments);
     }
 }
