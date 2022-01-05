@@ -48,9 +48,6 @@ namespace djup
         m_hash << m_name;
         m_hash << m_type;
         m_hash << m_arguments;
-
-        m_is_constant = std::all_of(m_arguments.begin(), m_arguments.end(), 
-            [](const Tensor i_arg){ return i_arg.GetExpression()->IsConstant(); });
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src)

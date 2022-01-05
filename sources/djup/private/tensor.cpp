@@ -57,7 +57,6 @@ namespace djup
         Error("Not implemented");
     }
 
-
     Tensor operator + (const Tensor & i_operand)
     {
         return i_operand;

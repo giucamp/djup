@@ -96,6 +96,7 @@ namespace djup
 
             edge.m_begin_arguments = pattern.BeginsArguments(token_index);
             edge.m_end_arguments = pattern.EndsArguments(token_index);
+            edge.m_is_terminal = token_index + 1 >= pattern_length;
             edge.m_expr = token;
 
             size_t dest_node = m_next_node_index++;
@@ -105,10 +106,7 @@ namespace djup
             prev_node = dest_node;
         }
 
-        Edge terminal_edge;
-        terminal_edge.m_kind = EdgeKind::Terminal;
-        terminal_edge.m_pattern_id = i_pattern_id;
-        m_edges.insert(std::make_pair(prev_node, std::move(terminal_edge)));
+        m_terminal_states.insert(std::make_pair(prev_node, i_pattern_id));
     }
 
     struct DiscriminationNetwork::WalkingHead
@@ -124,63 +122,53 @@ namespace djup
         std::vector<WalkingHead> & io_heads,
         const WalkingHead & i_curr_head, const LinearizedExpression & i_target) const
     {
+        const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
+
         auto edges = m_edges.equal_range(i_curr_head.m_source_node);
         for(auto it = edges.first; it != edges.second; ++it)
         {
             const Edge & edge = it->second;
+            bool matching = false;
+
             switch(edge.m_kind)
             {
             case EdgeKind::Constant:
-            {
-                const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
-                if(AlwaysEqual(edge.m_expr, token))
-                {
-                    WalkingHead new_head = i_curr_head;
-                    new_head.m_current_token++;
-                    new_head.m_source_node = edge.m_dest_node;
-                    io_heads.push_back(std::move(new_head));
-                }
+                matching = AlwaysEqual(token, edge.m_expr);
                 break;
-            }
 
             case EdgeKind::Name:
-            {
-                const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
-                if(edge.m_expr.GetName() == token.GetName())
-                {
-                    WalkingHead new_head = i_curr_head;
-                    new_head.m_current_token++;
-                    new_head.m_source_node = edge.m_dest_node;
-                    io_heads.push_back(std::move(new_head));
-                }
+                matching = token.GetName() == edge.m_expr.GetName();
                 break;
-            }
 
             case EdgeKind::Variable:
-            {
-                const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
-                if(TypeMatches(token.GetType(), edge.m_expr.GetType()))
-                {
-                    WalkingHead new_head = i_curr_head;
-                    new_head.m_current_token++;
-                    new_head.m_source_node = edge.m_dest_node;
-                    new_head.m_substitutions.emplace_back(Substitution{edge.m_expr, token});
-                    io_heads.push_back(std::move(new_head));
-                }
+                matching = TypeMatches(token.GetType(), edge.m_expr.GetType());
                 break;
-            }
-
-            case EdgeKind::Terminal:
-            {
-                Match match;
-                match.m_substitutions = i_curr_head.m_substitutions;
-                match.m_pattern_id = edge.m_pattern_id;
-                o_matches.push_back(std::move(match));
-                break;
-            }
 
             default:
                 Error("DiscriminationNetwork: unrecognized edge kind");
+            }
+
+            if(matching)
+            {
+                WalkingHead new_head = i_curr_head;
+                if(edge.m_kind == EdgeKind::Variable)
+                {
+                    new_head.m_substitutions.emplace_back(Substitution{edge.m_expr, token});
+                }
+                
+                if(edge.m_is_terminal)
+                {
+                    auto it = m_terminal_states.find(edge.m_dest_node);
+                    if(it == m_terminal_states.end())
+                        Error("DiscriminationNetwork: terminal state not found");
+                    o_matches.push_back({it->second, i_curr_head.m_substitutions});
+                }
+                else
+                {
+                    new_head.m_current_token++;
+                    new_head.m_source_node = edge.m_dest_node;
+                    io_heads.push_back(std::move(new_head));
+                }
             }
         }
     }
@@ -197,7 +185,8 @@ namespace djup
             const WalkingHead & curr_head = std::move(heads.back());
             heads.pop_back();
 
-            MatchToken(o_matches, heads, curr_head, target);
+            if(curr_head.m_current_token < target.GetLength())
+                MatchToken(o_matches, heads, curr_head, target);
         }
     }
 }

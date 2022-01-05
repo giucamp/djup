@@ -39,7 +39,7 @@ namespace djup
 
         enum class EdgeKind
         {
-            Constant, Variable, Name, Terminal
+            Constant, Variable, Name
         };
 
         struct Edge
@@ -47,12 +47,9 @@ namespace djup
             EdgeKind m_kind;
             bool m_begin_arguments = false;
             bool m_end_arguments = false;
+            bool m_is_terminal = false;
             Expression m_expr;
-            union
-            {
-                size_t m_dest_node;
-                size_t m_pattern_id;
-            };
+            size_t m_dest_node;
         };
 
         constexpr static size_t s_terminal_dest_node = std::numeric_limits<size_t>::max();
@@ -61,6 +58,7 @@ namespace djup
         struct WalkingHead;
 
         std::unordered_multimap<size_t, Edge> m_edges;
+        std::unordered_multimap<size_t, size_t> m_terminal_states;
         size_t m_next_node_index = 1;
 
     private:

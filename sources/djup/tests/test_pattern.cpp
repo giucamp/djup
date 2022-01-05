@@ -13,14 +13,14 @@ namespace djup
     {
         void Pattern()
         {
-            Print("Test: djup - Pattern...");
+            Print("Test: djup - Pattern Mathing...");
 
             Scope scope(Scope::Root());
-            scope.AddSubstitutionAxiom("2+3", "5", "true");
+            scope.AddSubstitutionAxiom("2+3",           "5");
+            scope.AddSubstitutionAxiom("0 * real",      "0");
 
-            DJUP_EXPECTS(AlwaysEqual( scope.Canonicalize(Tensor("2+3")), Tensor("5")));
-
-            // DJUP_EXPECTS(TypeMatches(t1, p1));
+            DJUP_EXPECTS(AlwaysEqual(scope.Canonicalize(Tensor("2+3")), Tensor("5")));
+            DJUP_EXPECTS(AlwaysEqual(scope.Canonicalize(Tensor("0*7")), Tensor("0")));
 
             PrintLn("successful");
         }

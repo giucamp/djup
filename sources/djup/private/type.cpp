@@ -20,6 +20,15 @@ namespace djup
     TensorType::TensorType(Domain i_domain, Shape && i_shape)
         : m_domain(i_domain), m_shape(std::move(i_shape))
     {
+        if(std::holds_alternative<Tensor>(m_shape))
+        {
+            Tensor & variable_shape = std::get<Tensor>(m_shape);
+            if(variable_shape.IsEmpty())
+                m_shape = std::monostate{};
+            else 
+                ; // to do: check the type, convert to constant shape if possible
+        }
+
         m_hash << m_domain;
         m_hash << m_shape;
     }
