@@ -23,5 +23,6 @@ namespace djup
         constexpr ConstexprName Is("Is");
         constexpr ConstexprName Scope("Scope");
         constexpr ConstexprName Tuple("Tuple");
+        constexpr ConstexprName Assign("Assign");
     }
 }

@@ -10,6 +10,7 @@ namespace djup
 {
     namespace tests
     {
+        void Lexer();
         void Parse();
         void Type();
         void Pattern();
@@ -18,6 +19,7 @@ namespace djup
         {
             PrintLn("Test: Djup...");
 
+            Lexer();
             Parse();
             Type();
             Pattern();

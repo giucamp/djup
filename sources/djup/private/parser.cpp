@@ -30,7 +30,7 @@ namespace djup
 
         struct ParserImpl
         {
-            static std::string ParseNumericLiteral(std::string_view i_source_chars, int64_t * o_exponent)
+            static std::string AcceptNumericLiteral(std::string_view i_source_chars, int64_t * o_exponent)
             {
                 int64_t exponent = 0;
                 std::string result;
@@ -77,7 +77,7 @@ namespace djup
                 std::vector<Tensor> result;
                 while(!lexer.TryAccept(i_terminator_symbol))
                 {
-                    result.push_back(ParseExpression(i_context, 0));
+                    result.push_back(ParseExpression(i_context));
                     lexer.TryAccept(SymbolId::Comma);
                 }
                 return result;
@@ -86,7 +86,7 @@ namespace djup
             static TensorType ParseTensorType(ParsingContext & i_context)
             {
                 Lexer & lexer = i_context.m_lexer;
-                
+
                 Domain domain = std::get<Domain>(lexer.GetCurrentToken().m_symbol->m_operator_applier);
                 lexer.NextToken();
                 Tensor shape;
@@ -118,7 +118,7 @@ namespace djup
                 else if(std::optional<Token> token = lexer.TryAccept(SymbolId::NumericLiteral))
                 {
                     int64_t exponent = 0;
-                    std::string value_chars = ParseNumericLiteral(token->m_source_chars, &exponent);
+                    std::string value_chars = AcceptNumericLiteral(token->m_source_chars, &exponent);
 
                     // to do: use multi-precion ints
                     if(exponent == 0)
@@ -142,7 +142,7 @@ namespace djup
                 }
                 else if(lexer.TryAccept(SymbolId::LeftParenthesis))
                 {
-                    Tensor expr = ParseExpression(i_context, 0);
+                    Tensor expr = ParseExpression(i_context);
                     if(lexer.TryAccept(SymbolId::RightParenthesis))
                         Error("expected ')'");
                 }
@@ -283,15 +283,32 @@ namespace djup
                     return {};
             }
 
-            static Tensor ParseExpression(ParsingContext & i_context, int32_t i_min_precedence)
+            static Tensor ParseExpression(ParsingContext & i_context)
             {
-                // expr (may be a type), then name, then "=", then expr
-
-                Tensor expression = TryParseExpression(i_context, i_min_precedence);
-                if(!expression.IsEmpty())
-                    return expression;
-                else
+                Tensor expression = TryParseExpression(i_context, 0);                
+                if(expression.IsEmpty())
                     Error("expected an expression");
+
+                if(expression.GetExpression()->GetName().IsEmpty())
+                {
+                    if(std::optional<Token> name_token = i_context.m_lexer.TryAccept(SymbolId::Name))
+                    {
+                        expression = MakeExpression(name_token->m_source_chars, 
+                            expression.GetExpression()->GetType(), expression.GetExpression()->GetArguments());
+                    }
+                }
+
+                if(!expression.GetExpression()->GetName().IsEmpty() &&
+                    i_context.m_lexer.TryAccept(SymbolId::Assignment))
+                {
+                    Tensor right_hand_side = TryParseExpression(i_context, 0);
+                    if(right_hand_side.IsEmpty())
+                        Error("expected an expression after =");
+
+                    expression = Assign(expression, right_hand_side);
+                }
+
+                return expression;
             }
         };
 
@@ -306,7 +323,7 @@ namespace djup
             auto scope = std::make_shared<Scope>(i_parent_scope);
 
             ParsingContext context{lexer, *scope};
-            Tensor result = ParserImpl::ParseExpression(context, 0);
+            Tensor result = ParserImpl::ParseExpression(context);
 
             // all the source must be consumed
             if(!lexer.IsSourceOver())

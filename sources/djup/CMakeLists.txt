@@ -13,6 +13,7 @@ add_library(djup STATIC
 	private/domain.h
 	private/expression.cpp
 	private/expression.h
+	private/expression_to_string.cpp
 	private/indices.cpp
 	private/indices.h
 	private/lexer.cpp
@@ -29,6 +30,7 @@ add_library(djup STATIC
 	private/type.h
 	public/djup/tensor.h
 	tests/test_djup.cpp
+	tests/test_lexer.cpp
 	tests/test_parse.cpp
 	tests/test_pattern.cpp
 	tests/test_type.cpp

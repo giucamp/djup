@@ -99,5 +99,11 @@
     <ClCompile Include="..\tests\test_pattern.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\expression_to_string.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_lexer.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

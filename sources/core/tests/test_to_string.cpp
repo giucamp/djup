@@ -23,6 +23,19 @@ namespace djup
                 djup::ToString("abc", 1, "cde", dots, 1.5, "zzz"),
                 "abc1cde" + dots + "1.5zzz");
 
+            StringBuilder builder;
+            builder.WriteLine();
+            builder.Tab();
+                builder.WriteLine("This is an int8_t: ", int8_t(5));
+                builder.Tab();
+                    builder.WriteLine("This is an uint8_t: ", uint8_t(5));
+                builder.Untab();
+                builder.WriteLine("This is a char: ", 'a');
+            builder.Untab();
+            std::string str = builder.ShrinkAndGetString();
+            std::string test = "\n\tThis is an int8_t: 5\n\t\tThis is an uint8_t: 5\n\tThis is a char: a\n";
+            DJUP_EXPECTS_EQ(str, test);
+
             PrintLn("successful");
         }
 

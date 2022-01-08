@@ -14,7 +14,7 @@ namespace djup
 {
     /* Every symbol in the alphabet has its own SymbolId. Anyway some SymbolId's
         (i.e. dynamic symbols and special symbols) have no matching alphabet symbol. */
-    enum class SymbolId
+    enum class SymbolId : uint32_t
     {
         // types
         Any, Tuple, Number, Bool, Complex, Real, Rational, Integer, Natural,
@@ -33,8 +33,13 @@ namespace djup
         And, Or, Not,
 
         // bracket
-        LeftParenthesis, RightParenthesis, LeftBracket, RightBracket, LeftBrace, RightBrace,
-        BeginTuple, EndTuple,
+        LeftParenthesis,    RightParenthesis, 
+        LeftBracket,        RightBracket, 
+        LeftBrace,          RightBrace,
+        
+        BeginTuple,         EndTuple,
+
+        Assignment,
 
         // if
         If, Then, Elif, Else,
@@ -46,7 +51,7 @@ namespace djup
         Name, NumericLiteral, BoolLiteral,
 
         // special symbols
-        EndOfSource, // the source code is over
+        EndOfSource,
     };
 
     enum class SymbolFlags : uint32_t
@@ -136,6 +141,8 @@ namespace djup
         { "]",          SymbolId::RightBracket                                          },
         { "{",          SymbolId::LeftBrace                                             },
         { "}",          SymbolId::RightBrace                                            },
+
+        { "=",          SymbolId::Assignment                                            },
 
         // if
         { "if",         SymbolId::If                                                    },

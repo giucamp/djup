@@ -153,7 +153,7 @@ namespace djup
     void ExpectsError(const std::function<void()> & i_function,
         const char * i_cpp_source_code, const char * i_expected_message);
 
-    #define DJUP_EXPECTS(expr) ::djup::Expects(expr, #expr)
+    #define DJUP_EXPECTS(expr) ::djup::Expects(static_cast<bool>(expr), #expr)
     #define DJUP_EXPECTS_EQ(first, second) ::djup::ExpectsEq(first, #first, second, #second, __FILE__, __LINE__)
 
     #define DJUP_EXPECTS_ERROR(expr, expected_error) \

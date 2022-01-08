@@ -164,13 +164,18 @@ namespace djup
                 if(symbol.IsBinaryOperator())
                 {
                     // binary operator - enforce white space symmetry
-                    auto new_source = io_source;
+                    std::string_view new_source = io_source;
                     if(TryParseString(new_source, symbol.m_chars))
                     {
-                        std::string_view postfix_spaces = ParseSpaces(new_source);
-                        if(WhiteSimmetry(i_prefix_spaces, postfix_spaces))
+                        /* the operator was accepted on a copy of source, so that we are able to
+                            reject the matching if white simmetry is not respected. Now we do a 
+                            read-ahead of the spaces following the operator, but even if we accept 
+                            the operator we keep the spaces before the next token (that's why we save
+                            another copy of the source if new_source_with_spaces). */
+                        std::string_view new_source_with_spaces = new_source;
+                        if(WhiteSimmetry(i_prefix_spaces, ParseSpaces(new_source)))
                         {
-                            io_source = new_source;
+                            io_source = new_source_with_spaces;
                             return { symbol };
                         }
                     }
@@ -252,6 +257,7 @@ namespace djup
         const char * first_char = m_remaining_source.data();
         Token token = ParseTokenImpl(spaces, m_remaining_source);
         token.m_source_chars = { first_char, static_cast<size_t>(m_remaining_source.data() - first_char) };
+        token.m_follows_line_break = spaces.find_first_of('\n') != std::string_view::npos;
         m_curr_token = token;
         return m_curr_token;
     }
@@ -266,6 +272,14 @@ namespace djup
         }
         else
             return { };
+    }
+
+    std::optional<Token> Lexer::TryAcceptInline(SymbolId i_symbol_id)
+    {
+        if(!m_curr_token.m_follows_line_break)
+            return TryAccept(i_symbol_id);
+        else
+            return {};
     }
 
     bool Lexer::IsSourceOver() const

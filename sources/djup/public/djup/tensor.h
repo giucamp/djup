@@ -130,6 +130,8 @@ namespace djup
     
     Tensor Less(const Tensor & i_first, const Tensor & i_second);
 
+    Tensor Assign(const Tensor & i_left_hand_size, const Tensor & i_right_hand_side);
+
     Tensor operator + (const Tensor & i_operand);
     Tensor operator - (const Tensor & i_operand);
 
@@ -178,6 +180,9 @@ namespace djup
 
     template <> struct CharWriter<Tensor>
     {
-        void operator() (CharBufferView & i_dest, const Tensor & i_source);
+        void operator() (CharBufferView & i_dest, const Tensor & i_source)
+        {
+            assert(false); // to do
+        }
     };
 }

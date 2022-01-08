@@ -52,11 +52,6 @@ namespace djup
             Error("Trying to steal the expression from an empty tensor");
     }
 
-    void CharWriter<Tensor>::operator() (CharBufferView & i_dest, const Tensor & i_source)
-    {
-        Error("Not implemented");
-    }
-
     Tensor operator + (const Tensor & i_operand)
     {
         return i_operand;
@@ -213,6 +208,11 @@ namespace djup
             return i_first.IsEmpty() == i_second.IsEmpty();
 
         return AlwaysEqual(*i_first.GetExpression(), *i_second.GetExpression());
+    }
+
+    Tensor Assign(const Tensor & i_left_hand_size, const Tensor & i_right_hand_side)
+    {
+        return MakeExpression(builtin_names::Assign, {i_left_hand_size, i_right_hand_side});
     }
 
     bool IsConstant(const Tensor & i_tensor)

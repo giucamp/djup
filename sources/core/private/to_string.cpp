@@ -5,24 +5,49 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <core/to_string.h>
+#include <algorithm>
 #include <assert.h>
+#include <cstring> // for memcpy
 
 namespace djup
 {
-    StringBuilder::StringBuilder(size_t i_reserved_size)
+    StringBuilder::StringBuilder(size_t i_reserved_size, std::string_view i_new_line)
     {
+        m_tabs = 0;
+        m_tab_pending = 0;
+
         m_dest.resize(i_reserved_size);
         m_writer = CharBufferView(m_dest, 0);
+        
+        assert(i_new_line.length() < std::size(m_new_line));
+        memcpy(m_new_line, i_new_line.data(), i_new_line.length());
     }
 
-    size_t StringBuilder::size() const noexcept
+    void StringBuilder::NewLine()
     {
-        return m_writer.GetRequiredSize();
+        *this << m_new_line;
+        m_tab_pending = 1;
+    }
+
+    void StringBuilder::WriteTabs()
+    {
+        m_tab_pending = false;
+
+        const char tab_chars[] = "\t\t\t\t\t\t\t\t";
+        const int32_t tab_char_count = static_cast<int32_t>(std::size(tab_chars));
+
+        int32_t tabs = m_tabs;
+        while(tabs > 0)
+        {
+            int32_t len = std::min(tabs, tab_char_count);
+            *this << std::string_view(tab_chars, len);
+            tabs -= len;
+        }
     }
 
     const std::string & StringBuilder::ShrinkAndGetString()
     {
-        const size_t used_size = size();
+        const size_t used_size = m_writer.GetRequiredSize();
         m_dest.resize(used_size);
         return m_dest;
     }
@@ -43,6 +68,15 @@ namespace djup
     {
         std::swap(i_first.m_dest, i_second.m_dest);
         std::swap(i_first.m_writer, i_second.m_writer);
+        std::swap(i_first.m_new_line, i_second.m_new_line);
+
+        int32_t park = i_first.m_tabs;
+        i_first.m_tabs = i_second.m_tabs;
+        i_second.m_tabs = park;
+
+        park = i_first.m_tab_pending;
+        i_first.m_tab_pending = i_second.m_tab_pending;
+        i_second.m_tab_pending = park;
     }
 
 } // namespace djup

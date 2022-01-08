@@ -15,6 +15,7 @@ namespace djup
     struct Token
     {
         SymbolId m_symbol_id = SymbolId::EndOfSource;
+        bool m_follows_line_break = false;
         const Symbol * m_symbol = nullptr;
         std::string_view m_source_chars;
 
@@ -39,14 +40,23 @@ namespace djup
 
         Lexer(std::string_view i_source);
 
+        /** Returns the current token without accepting it. Heading spaces are ignored */
         const Token & GetCurrentToken() const { return m_curr_token; }
 
-        const Token & NextToken();
-
+        /** If after skipping spaces the current token matches the provided symbol id,
+            accepets and returns it. The heading spaces can contain line-breaks. */
         std::optional<Token> TryAccept(SymbolId i_symbol_id);
+
+        /** If after skipping spaces the current token matches the provided symbol id,
+            accepets and returns it. The heading spaces cannot contain line-breaks. */
+        std::optional<Token> TryAcceptInline(SymbolId i_symbol_id);
+
+        /** Moves to the next token, and returns it. Heading spaces are ignored. */
+        const Token & NextToken();
 
         bool IsSourceOver() const;
 
+        /** Returns the all source, as passed to the constructor. */
         std::string_view GetWholeSource() const { return m_whole_source; }
 
     private:
