@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <core/hash.h>
 #include <core/numeric_cast.h>
+#include <core/to_string.h>
 #include <private/name.h>
 #include <private/type.h>
 
@@ -18,42 +19,60 @@ namespace djup
     class Tensor;
     class TensorType;
 
+    struct ExpressionData
+    {
+        Name m_name;
+        TensorType m_type;
+        std::vector<Tensor> m_arguments;
+
+        union
+        {
+            struct
+            {
+                bool m_is_variable;
+                bool m_is_constant;
+                bool m_is_integer_literal;
+                bool m_is_bool_literal;
+            };
+            uint32_t m_all_flags = 0;
+        };
+    };
+
     class Expression
     {
     public:
 
         Expression() = default;
 
-        Expression(bool i_bool_literal);
-        
-        Expression(int64_t i_integer_literal);
+        Expression(ExpressionData && i_data);
 
-        Expression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments);
-
-        const Name & GetName() const { return m_name; }
+        const Name & GetName() const { return m_data.m_name; }
 
         Hash GetHash() const { return m_hash; }
 
-        bool IsConstant() const { return m_is_constant; }
+        bool IsVariable() const { return m_data.m_is_variable; }
 
-        bool IsBoolLiteral() const { return m_is_bool_literal; }
+        bool IsConstant() const { return m_data.m_is_constant; }
 
-        bool IsIntegerLiteral() const { return m_is_integer_literal; }
+        bool IsBoolLiteral() const { return m_data.m_is_bool_literal; }
 
-        const Tensor & GetArgument(size_t i_index) const { return m_arguments[i_index]; }
+        bool IsIntegerLiteral() const { return m_data.m_is_integer_literal; }
 
-        const std::vector<Tensor> & GetArguments() const { return m_arguments; }
+        auto GetAllFlags() const { return m_data.m_all_flags; }
 
-        const TensorType & GetType() const { return m_type; }
+        bool IsLiteral() const { return IsIntegerLiteral() || IsBoolLiteral(); }
+
+        const Tensor & GetArgument(size_t i_index) const { return m_data.m_arguments[i_index]; }
+
+        const std::vector<Tensor> & GetArguments() const { return m_data.m_arguments; }
+
+        const TensorType & GetType() const { return m_data.m_type; }
+
+        const ExpressionData & GetExpressionData() const { return m_data; }
 
     private:
         Hash m_hash;
-        bool m_is_constant = false;
-        bool m_is_integer_literal = false;
-        bool m_is_bool_literal = false;
-        Name m_name;
-        TensorType m_type;
-        std::vector<Tensor> m_arguments;
+        ExpressionData m_data;
     };
 
     inline Hash & operator << (Hash & i_dest, const Expression & i_src)
@@ -62,32 +81,35 @@ namespace djup
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src);
+
+    [[nodiscard]] Tensor MakeExpression(ExpressionData && i_data);
    
     [[nodiscard]] Tensor MakeExpression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments);
 
     [[nodiscard]] Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments);
 
-    [[nodiscard]] Tensor MakeLiteralExpression(bool i_bool_value);
+    [[nodiscard]] Tensor MakeConstant(bool i_bool_value);
 
-    [[nodiscard]] Tensor MakeLiteralExpression(int64_t i_integer_value);
+    [[nodiscard]] Tensor MakeConstant(int64_t i_integer_value);
 
+    [[nodiscard]] Tensor MakeVariable(Name i_name, TensorType i_type);
+    
     [[nodiscard]] bool AlwaysEqual(const Expression & i_first, const Expression & i_second);
 
-    [[nodiscard]] bool IsConstant(const Expression & i_expr);
-
-    [[nodiscard]] bool IsVariable(const Expression & i_expr);
+    void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source);
 
     template <auto VALUE>
-        [[nodiscard]] const Tensor & MakeLiteralExpression()
+        [[nodiscard]] const Tensor & MakeConstant()
     {
         if constexpr(std::is_same_v<decltype(VALUE), bool>)
         {
-            static const Tensor s_value = MakeLiteralExpression(VALUE);
+            static const Tensor s_value = MakeConstant(VALUE);
             return s_value;
         }
         else
         {
-            static const Tensor s_value = MakeLiteralExpression(NumericCast<int64_t>(VALUE));
+            static_assert(std::is_integral_v<decltype(VALUE)>);
+            static const Tensor s_value = MakeConstant(NumericCast<int64_t>(VALUE));
             return s_value;
         }
     }

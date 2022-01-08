@@ -103,17 +103,18 @@ namespace djup
                 if(lexer.GetCurrentToken().m_symbol_id >= SymbolId::FirstScalarType &&
                     lexer.GetCurrentToken().m_symbol_id <= SymbolId::LastScalarType)
                 {
-                    TensorType type = ParseTensorType(i_context);
+                    ExpressionData data;
+                    data.m_is_variable = true;
+
+                    data.m_type = ParseTensorType(i_context);
                     
-                    Name name;
                     if(auto name_token = lexer.TryAccept(SymbolId::Name))
-                        name = std::string(name_token->m_source_chars);
+                        data.m_name = Name(name_token->m_source_chars);
                     
-                    std::vector<Tensor> arguments;
                     if(lexer.TryAccept(SymbolId::LeftParenthesis))
-                        arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
+                        data.m_arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
                     
-                    return MakeExpression(std::move(name), std::move(type), arguments);
+                    return MakeExpression(std::move(data));
                 }
                 else if(std::optional<Token> token = lexer.TryAccept(SymbolId::NumericLiteral))
                 {
@@ -129,9 +130,9 @@ namespace djup
                 else if(std::optional<Token> token = lexer.TryAccept(SymbolId::BoolLiteral))
                 {
                     if(token->m_source_chars == "true")
-                        return MakeLiteralExpression<true>();
+                        return MakeConstant<true>();
                     else if(token->m_source_chars == "false")
-                        return MakeLiteralExpression<false>();
+                        return MakeConstant<false>();
                     else
                         Error("Unrecognized bool literal: ", token->m_source_chars);
                 }

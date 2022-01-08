@@ -105,5 +105,8 @@
     <ClCompile Include="..\tests\test_lexer.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\tests\test_tensor_to_string.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

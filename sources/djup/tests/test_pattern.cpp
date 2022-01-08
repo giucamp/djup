@@ -13,7 +13,7 @@ namespace djup
     {
         void Pattern()
         {
-            Print("Test: djup - Pattern Mathing...");
+            Print("Test: djup - Pattern Matching...");
 
             Scope scope(Scope::Root());
             scope.AddSubstitutionAxiom("2+3",           "5");

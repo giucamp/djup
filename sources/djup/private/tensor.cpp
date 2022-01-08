@@ -9,6 +9,7 @@
 #include <private/parser.h>
 #include <private/scope.h>
 #include <private/builtin_names.h>
+#include <core/algorithms.h>
 
 namespace djup
 {
@@ -19,13 +20,13 @@ namespace djup
     }*/
 
     Tensor::Tensor(ScalarConst, int64_t i_scalar)
-        : m_expression(MakeLiteralExpression(i_scalar).StealExpression())
+        : m_expression(MakeConstant(i_scalar).StealExpression())
     {
 
     }
 
     Tensor::Tensor(ScalarConst, bool i_scalar)
-        : m_expression(MakeLiteralExpression(i_scalar).StealExpression())
+        : m_expression(MakeConstant(i_scalar).StealExpression())
     {
 
     }
@@ -89,7 +90,7 @@ namespace djup
 
     Tensor operator / (const Tensor & i_dividend, const Tensor & i_divisor)
     {
-        return i_dividend * Pow(i_divisor, MakeLiteralExpression<-1>());
+        return i_dividend * Pow(i_divisor, MakeConstant<-1>());
     }
 
     Tensor & operator *= (Tensor & i_first, const Tensor & i_second)
@@ -217,11 +218,30 @@ namespace djup
 
     bool IsConstant(const Tensor & i_tensor)
     {
-        return !i_tensor.IsEmpty() && IsConstant(*i_tensor.GetExpression());
+        return !i_tensor.IsEmpty() && i_tensor.GetExpression()->IsConstant();
     }
 
     bool IsVariable(const Tensor & i_tensor)
     {
-        return !i_tensor.IsEmpty() && IsVariable(*i_tensor.GetExpression());
+        return !i_tensor.IsEmpty() && i_tensor.GetExpression()->IsVariable();
+    }
+
+    bool IsType(const Tensor & i_tensor)
+    {
+        const Name & name = i_tensor.GetExpression()->GetName();
+
+        if(name.IsEmpty())
+            return true;
+        else if(name == builtin_names::Tuple)
+            return AllOf(i_tensor.GetExpression()->GetArguments(), IsType );
+
+        return false;
+    }
+
+    std::string ToSimplifiedStringForm(const Tensor & i_source)
+    {
+        StringBuilder builder;
+        ToSimplifiedStringForm(builder, i_source);
+        return builder.ShrinkAndGetString();
     }
 }

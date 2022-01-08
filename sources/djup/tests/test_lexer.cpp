@@ -21,6 +21,11 @@ namespace djup
             }
 
             {
+                djup::Lexer lexer(" \n\t ");
+                DJUP_EXPECTS(lexer.IsSourceOver());
+            }
+
+            {
                 djup::Lexer lexer("*1234.3e-10 1234.3e+10 ((");
                 DJUP_EXPECTS(lexer.GetCurrentToken().m_symbol_id == SymbolId::Mul);
                 DJUP_EXPECTS(lexer.NextToken().m_symbol_id == SymbolId::NumericLiteral);

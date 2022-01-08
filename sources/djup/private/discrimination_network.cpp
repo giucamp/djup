@@ -47,8 +47,7 @@ namespace djup
         {
             m_tokens.push_back(Token{*i_target.GetExpression()});
 
-            // a constant is added as a single token, even if it's composite
-            if(!IsConstant(i_target) && !i_target.GetExpression()->GetArguments().empty())
+            if(!i_target.GetExpression()->GetArguments().empty())
             {
                 m_tokens.back().m_begin_arguments = true;
 
@@ -87,9 +86,9 @@ namespace djup
             const Expression & token = pattern.GetToken(token_index);
 
             Edge edge;
-            if(IsConstant(token))
+            if(token.IsConstant())
                 edge.m_kind = EdgeKind::Constant;
-            else if(IsVariable(token))
+            else if(token.IsVariable())
                 edge.m_kind = EdgeKind::Variable;
             else
                 edge.m_kind = EdgeKind::Name;

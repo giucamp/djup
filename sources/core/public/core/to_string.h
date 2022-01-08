@@ -66,6 +66,10 @@ namespace djup
 
         friend void swap(StringBuilder & i_first, StringBuilder & i_second) noexcept;
 
+        const char * GetData() const { return m_writer.data(); }
+
+        size_t GetSize() const { return m_writer.GetRequiredSize(); }
+
     private:
         void Grow(size_t i_original_used_size);
 
@@ -78,6 +82,19 @@ namespace djup
         int32_t m_tab_pending : 1;
         char m_new_line[4] = {};
     };
+
+    template <typename TYPE>
+        StringBuilder & operator << (StringBuilder & i_dest, Span<const TYPE> i_source)
+    {
+        for (size_t i = 0; i < i_source.size(); i++)
+        {
+            if(i != 0)
+                i_dest << ", ";
+            i_dest << i_source[i];
+        }
+
+        return i_dest;
+    }
 
     template <typename... TYPE> std::string ToString(const TYPE &... i_objects)
     {

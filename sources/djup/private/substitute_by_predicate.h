@@ -27,23 +27,23 @@ namespace djup
 
             Tensor replacement = i_predicate(i_where);
 
-            std::vector<Tensor> new_operands;
-            new_operands.reserve(replacement.GetExpression()->GetArguments().size());
+            std::vector<Tensor> new_arguments;
+            new_arguments.reserve(replacement.GetExpression()->GetArguments().size());
         
             bool some_operand_replaced = false;
             for(const Tensor & operand : replacement.GetExpression()->GetArguments())
             {
-                new_operands.push_back(
+                new_arguments.push_back(
                     SubstituteByPredicateImpl(operand, i_predicate, i_replacement_map));
 
                 some_operand_replaced = some_operand_replaced || 
-                    new_operands.back().GetExpression() != operand.GetExpression();
+                    new_arguments.back().GetExpression() != operand.GetExpression();
             }
             if(some_operand_replaced)
             {
-                replacement = MakeExpression(replacement.GetExpression()->GetName(),
-                    replacement.GetExpression()->GetType(),
-                    replacement.GetExpression()->GetArguments());
+                ExpressionData data = replacement.GetExpression()->GetExpressionData();
+                data.m_arguments = new_arguments;
+                replacement = MakeExpression(std::move(data));
             }
 
             if(!i_replacement_map.insert(std::make_pair(

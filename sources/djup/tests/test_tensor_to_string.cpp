@@ -4,27 +4,19 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <djup/tensor.h>
 #include <core/diagnostic.h>
 
 namespace djup
 {
     namespace tests
     {
-        void Lexer();
-        void TensorToString();
-        void Parse();
-        void Type();
-        void Pattern();
-
-        void Djup()
+        void TensorToString()
         {
-            PrintLn("Test: Djup...");
+            Print("Test: djup - TensorToString...");
 
-            Lexer();
-            TensorToString();
-            Parse();
-            Type();
-            Pattern();
+            Tensor a("real a"), b("real b");
+            DJUP_EXPECTS_EQ(ToSimplifiedStringForm(a + b * 2), "Add(real a, Mul(real b, 2))");
 
             PrintLn("successful");
         }

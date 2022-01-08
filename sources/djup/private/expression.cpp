@@ -11,43 +11,28 @@
 #include <core/algorithms.h>
 #include <core/to_chars.h>
 #include <djup/tensor.h>
-#include <algorithm>
+#include <core/algorithms.h>
 
 namespace djup
 {
-    Expression::Expression(bool i_bool_literal)
-        : m_type(Domain::Bool, ConstantShape{})
+    Expression::Expression(ExpressionData && i_data)
     {
-        char buffer[8];
-        m_name = ToCharsView(buffer, i_bool_literal);
+        m_data = std::move(i_data);
 
-        m_hash << m_name;
-        m_hash << m_type;
+        if(m_data.m_is_bool_literal || m_data.m_is_integer_literal)
+        {
+            assert(m_data.m_is_constant); 
+        }
 
-        m_is_constant = true;
-        m_is_bool_literal = true;
-    }
+        assert(!(m_data.m_is_constant && m_data.m_is_variable));
 
-    Expression::Expression(int64_t i_integer_literal)
-        : m_type(Domain::Integer, ConstantShape{})
-    {
-        char buffer[std::numeric_limits<int64_t>::max_digits10 + 4];
-        m_name = ToCharsView(buffer, i_integer_literal);
+        if(!m_data.m_is_variable && AllOf(m_data.m_arguments, djup::IsConstant))
+            m_data.m_is_constant = true;
 
-        m_hash << m_name;
-        m_hash << m_type;
-
-        m_is_constant = true;
-        m_is_integer_literal = true;
-    }
-
-    Expression::Expression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments)
-        : m_name(std::move(i_name)), m_type(std::move(i_type)),
-          m_arguments(i_arguments.begin(), i_arguments.end())
-    {
-        m_hash << m_name;
-        m_hash << m_type;
-        m_hash << m_arguments;
+        m_hash << m_data.m_name;
+        m_hash << m_data.m_type;
+        m_hash << m_data.m_arguments;
+        m_hash << m_data.m_all_flags;
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src)
@@ -59,14 +44,42 @@ namespace djup
         return i_dest;
     }
 
-    Tensor MakeLiteralExpression(bool i_bool_value)
+    Tensor MakeConstant(bool i_bool_value)
     {
-        return {std::make_shared<Expression>(i_bool_value)};
+        ExpressionData data;
+        char buffer[8];
+        data.m_name = ToCharsView(buffer, i_bool_value);
+        data.m_type = {Domain::Bool, ConstantShape{}};
+        data.m_is_constant = true;
+        data.m_is_bool_literal = true;
+
+        return {std::make_shared<Expression>(std::move(data))};
     }
 
-    Tensor MakeLiteralExpression(int64_t i_integer_value)
+    Tensor MakeConstant(int64_t i_integer_value)
     {
-        return {std::make_shared<Expression>(i_integer_value)};
+        ExpressionData data;
+        char buffer[std::numeric_limits<int64_t>::max_digits10 + 4];
+        data.m_name = ToCharsView(buffer, i_integer_value);
+        data.m_type = {Domain::Integer, ConstantShape{}};
+        data.m_is_constant = true;
+        data.m_is_integer_literal = true;
+
+        return {std::make_shared<Expression>(std::move(data))};
+    }
+
+    Tensor MakeVariable(Name i_name, TensorType i_type)
+    {
+        ExpressionData data;
+        data.m_name = std::move(i_name);
+        data.m_type = std::move(i_type);
+        data.m_is_variable = true;
+        return {std::make_shared<Expression>(std::move(data))};
+    }
+
+    Tensor MakeExpression(ExpressionData && i_data)
+    {
+        return {std::make_shared<Expression>(std::move(i_data))};
     }
 
     Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments)
@@ -76,29 +89,11 @@ namespace djup
 
     Tensor MakeExpression(Name i_name, TensorType i_type, Span<const Tensor> i_arguments)
     {
-        return {std::make_shared<Expression>(std::move(i_name), std::move(i_type), i_arguments)};
-    }
-
-    bool IsConstant(const Expression & i_expr)
-    {
-        return i_expr.IsConstant();
-    }
-
-    bool IsVariable(const Expression & i_expr)
-    {
-        return i_expr.GetArguments().empty();
-    }
-
-    bool IsType(const Tensor & i_tensor)
-    {
-        const Name & name = i_tensor.GetExpression()->GetName();
-
-        if(name.IsEmpty())
-            return true;
-        else if(name == builtin_names::Tuple)
-            return AllOf(i_tensor.GetExpression()->GetArguments(), IsType );
-
-        return false;
+        ExpressionData data;
+        data.m_name = std::move(i_name);
+        data.m_type = std::move(i_type);
+        data.m_arguments = {i_arguments.begin(), i_arguments.end()};
+        return {std::make_shared<Expression>(std::move(data))};
     }
 
     bool AlwaysEqual(const Expression & i_first, const Expression & i_second)
@@ -110,6 +105,9 @@ namespace djup
             return false;
 
         if(i_first.GetType() != i_second.GetType())
+            return false;
+
+        if(i_first.GetAllFlags() != i_second.GetAllFlags())
             return false;
 
         const size_t argument_count = i_first.GetArguments().size();

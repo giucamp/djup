@@ -185,4 +185,6 @@ namespace djup
             assert(false); // to do
         }
     };
+
+    std::string ToSimplifiedStringForm(const Tensor & i_source);
 }
