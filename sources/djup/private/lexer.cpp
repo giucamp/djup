@@ -247,10 +247,17 @@ namespace djup
     Lexer::Lexer(std::string_view i_source)
         : m_remaining_source(i_source), m_whole_source(i_source)
     {
-        NextToken();
+        NextTokenImpl();
     }
 
     const Token & Lexer::NextToken()
+    {
+        assert(!IsSourceOver());
+        NextTokenImpl();
+        return m_curr_token;
+    }
+
+    void Lexer::NextTokenImpl()
     {
         auto const spaces = ParseSpaces(m_remaining_source);
 
@@ -259,7 +266,6 @@ namespace djup
         token.m_source_chars = { first_char, static_cast<size_t>(m_remaining_source.data() - first_char) };
         token.m_follows_line_break = spaces.find_first_of('\n') != std::string_view::npos;
         m_curr_token = token;
-        return m_curr_token;
     }
 
     std::optional<Token> Lexer::TryAccept(SymbolId i_symbol_id)

@@ -17,10 +17,6 @@ namespace djup
 
         StringBuilder(size_t i_reserved_size = 511, std::string_view i_new_line = "\n");
 
-        friend void swap(StringBuilder & i_first, StringBuilder & i_second) noexcept;
-
-        const std::string & ShrinkAndGetString();
-
         template <typename TYPE> StringBuilder & operator<<(const TYPE & i_value)
         {
             static_assert(HasCharWriterV<TYPE>, "This type does not define a CharWriter");
@@ -42,7 +38,7 @@ namespace djup
 
         template <typename... TYPE> StringBuilder & Write(const TYPE &... i_objects)
         {
-            (*this << ... << i_objects);
+            (void)(*this << ... << i_objects);
             return *this;
         }
 
@@ -52,6 +48,8 @@ namespace djup
             NewLine();
             return *this;
         }
+
+        void NewLine();
 
         void Tab()
         {
@@ -64,7 +62,9 @@ namespace djup
             m_tabs--;
         }
 
-        void NewLine();
+        const std::string & ShrinkAndGetString();
+
+        friend void swap(StringBuilder & i_first, StringBuilder & i_second) noexcept;
 
     private:
         void Grow(size_t i_original_used_size);

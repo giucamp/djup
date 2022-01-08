@@ -96,8 +96,8 @@ namespace djup
     /* The lexer recognizes symbols in the order they appear in this array.
         Shadowing must be considered: so ">" must appear after ">=", otherwise
         the former would always shadow the latter. */
-    constexpr Symbol g_alphabet[] = {
-
+    constexpr Symbol g_alphabet[] = 
+    {
         // numeric types
         { "any",        SymbolId::Any,               Domain::Any         },
         { "tuple",      SymbolId::Tuple,             Domain::Tuple       },
