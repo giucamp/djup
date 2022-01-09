@@ -193,9 +193,19 @@ namespace djup
         return MakeExpression(builtin_names::Stack, i_arguments);
     }
 
+    Tensor Tuple(Span<Tensor const> i_arguments)
+    {
+        return MakeExpression(builtin_names::Tuple, i_arguments);
+    }
+
     Tensor Is(const Tensor & i_tensor, const Tensor & i_pattern)
     {
         return MakeExpression(builtin_names::Is, {i_tensor, i_pattern});
+    }
+
+    Tensor If(Span<Tensor const> i_operands)
+    {
+        return MakeExpression(builtin_names::If, i_operands);
     }
 
     Tensor MakeScope(Span<Tensor const> i_arguments)
@@ -211,9 +221,9 @@ namespace djup
         return AlwaysEqual(*i_first.GetExpression(), *i_second.GetExpression());
     }
 
-    Tensor Assign(const Tensor & i_left_hand_size, const Tensor & i_right_hand_side)
+    Tensor SubstitutionAxiom(const Tensor & i_what, const Tensor & i_when, const Tensor & i_with)
     {
-        return MakeExpression(builtin_names::Assign, {i_left_hand_size, i_right_hand_side});
+        return MakeExpression(builtin_names::SubstitutionAxiom, {i_what, i_when, i_with});
     }
 
     bool IsConstant(const Tensor & i_tensor)

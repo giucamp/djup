@@ -26,6 +26,7 @@
   <ItemGroup>
     <ClInclude Include="..\private\alphabet.h" />
     <ClInclude Include="..\private\builtin_names.h" />
+    <ClInclude Include="..\private\diagnostic.h" />
     <ClInclude Include="..\private\discrimination_network.h" />
     <ClInclude Include="..\private\domain.h" />
     <ClInclude Include="..\private\expression.h" />

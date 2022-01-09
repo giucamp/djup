@@ -56,12 +56,22 @@ namespace djup
         const Token & GetCurrentToken() const { return m_curr_token; }
 
         /** If after skipping spaces the current token matches the provided symbol id,
-            accepets and returns it. The heading spaces can contain line-breaks. */
+            accepets and returns it. Otherwise the return value is empty. The heading 
+            spaces can contain line-breaks. */
         std::optional<Token> TryAccept(SymbolId i_symbol_id);
+
+        /** If after skipping spaces the current token matches the provided symbol id,
+            accepets and returns it. Otherwise an exception is thrown. The heading spaces 
+            can contain line-breaks. */
+        Token Accept(SymbolId i_symbol_id);
 
         /** If after skipping spaces the current token matches the provided symbol id,
             accepets and returns it. The heading spaces cannot contain line-breaks. */
         std::optional<Token> TryAcceptInline(SymbolId i_symbol_id);
+
+        /** If after skipping spaces the current token matches the provided symbol id,
+            accepets and returns it. The heading spaces cannot contain line-breaks. */
+        Token AcceptInline(SymbolId i_symbol_id);
 
         /** Moves to the next token, and returns it. Heading spaces are ignored. 
             The behaviour is undefined if the id of the current symbol is 

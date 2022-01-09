@@ -288,6 +288,22 @@ namespace djup
             return {};
     }
 
+    Token Lexer::Accept(SymbolId i_symbol_id)
+    {
+        if(auto token = TryAccept(i_symbol_id))
+            return *token;
+
+        Error("Expected ", GetSymbolChars(i_symbol_id));
+    }
+
+    Token Lexer::AcceptInline(SymbolId i_symbol_id)
+    {
+        if(auto token = TryAcceptInline(i_symbol_id))
+            return *token;
+
+        Error("Expected ", GetSymbolChars(i_symbol_id), " in this line");
+    }
+
     bool Lexer::IsSourceOver() const
     {
         return m_curr_token.m_symbol_id == SymbolId::EndOfSource;

@@ -52,6 +52,9 @@
     <ClInclude Include="..\private\substitute_by_predicate.h">
       <Filter>private</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\diagnostic.h">
+      <Filter>private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">

@@ -77,10 +77,34 @@ namespace djup
                 std::vector<Tensor> result;
                 while(!lexer.TryAccept(i_terminator_symbol))
                 {
-                    result.push_back(ParseExpression(i_context));
-                    lexer.TryAccept(SymbolId::Comma);
+                    Tensor element = TryParseExpression(i_context);
+                    result.push_back(std::move(element));
+                    if(!result.back().IsEmpty())
+                    {
+                        lexer.TryAccept(SymbolId::Comma);
+                    }
+                    else if(!lexer.TryAccept(SymbolId::Comma))
+                    {
+                        if(lexer.GetCurrentToken().m_symbol_id != i_terminator_symbol)
+                        {
+                            Error("Expected expression, comma, or end of list");
+                        }
+                    }
                 }
                 return result;
+            }
+
+            static Tensor ParseScope(ParsingContext & i_context)
+            {
+                Lexer & lexer = i_context.m_lexer;
+
+                std::vector<Tensor> statements;
+                while(!lexer.TryAccept(SymbolId::RightBrace))
+                {
+                    statements.push_back(ParseExpressionOrAxiom(i_context));
+                    lexer.TryAccept(SymbolId::Comma);
+                }
+                return MakeScope(statements);
             }
 
             static TensorType ParseTensorType(ParsingContext & i_context)
@@ -138,22 +162,25 @@ namespace djup
                 }
                 else if(lexer.TryAccept(SymbolId::LeftBracket))
                 {
-                    // stack operator [] - creates a tensor
+                    // stack operators [] - create a tensor
                     return Stack(ParseExpressionList(i_context, SymbolId::RightBracket));
+                }
+                else if(lexer.TryAccept(SymbolId::BeginTuple))
+                {
+                    // tuple operators {{ }} - create a tuple
+                    return Tuple(ParseExpressionList(i_context, SymbolId::EndTuple));
                 }
                 else if(lexer.TryAccept(SymbolId::LeftParenthesis))
                 {
                     Tensor expr = ParseExpression(i_context);
                     if(lexer.TryAccept(SymbolId::RightParenthesis))
                         Error("expected ')'");
+                    return expr;
                 }
-                /*else if(lexer.TryAccept(SymbolId::LeftBrace))
+                else if(lexer.TryAccept(SymbolId::LeftBrace))
                 {
                     // scope operator {}
-                    std::vector<Tensor> list = ParseExpressionList(i_context, SymbolId::RightBrace);
-                    if(list.size() != 1)
-                        Error("expected a list with a sigle element");
-                    return list[0];
+                    return ParseScope(i_context);
                 }
                 else if(lexer.TryAccept(SymbolId::If))
                 {
@@ -161,64 +188,43 @@ namespace djup
 
                     do {
                         // condition then value
-                        operands.push_back(TryParseExpression(lexer, i_scope, 0));
-                        lexer.Accept(SymbolId::Then);
-                        operands.push_back(TryParseExpression(lexer, i_scope, 0));
+                        operands.push_back(ParseExpression(i_context));
+                        lexer.TryAccept(SymbolId::Then);
+                        operands.push_back(ParseExpression(i_context));
                     } while(lexer.TryAccept(SymbolId::Elif));
 
                     // else fallback
                     lexer.Accept(SymbolId::Else);
-                    operands.push_back(TryParseExpression(lexer, i_scope, 0));
+                    operands.push_back(ParseExpression(i_context));
 
                     return If(operands);
-                }
-                else if(auto const scalar_type = TryParseScalarDomain(lexer))
-                {
-                    // variable declaration: both shape and name are optional
-                    auto const shape_vector = TryParseExpression(lexer, i_scope, 0);
-                    auto const name = lexer.TryAccept(SymbolId::Name);
-
-                    // if shape_vector is non-null but not a vector, the following will error...
-                    TensorType const type = shape_vector ? TensorType{*scalar_type, *shape_vector} : *scalar_type;
-                    Tensor variable = MakeVariable(type, name ? name->m_source_chars: "");
-
-                    i_scope->AddVariable(variable);
-                    return variable;
                 }
 
                 else if (lexer.GetCurrentToken().IsUnaryOperator())
                 {
-                    auto const symbol = lexer.GetCurrentToken().m_symbol;
+                    const Symbol * symbol = lexer.GetCurrentToken().m_symbol;
 
-                    lexer.Advance();
+                    lexer.NextToken();
 
                     auto const applier = std::get<UnaryApplier>(symbol->m_operator_applier);
-                    Tensor const operand = TryParseExpression(lexer, i_scope, symbol->m_precedence);
+                    const Tensor operand = ParseExpression(i_context, symbol->m_precedence);
                     return applier(operand);
                 }
 
-                // context-sensitive unary-to-binary promotion
+                /* context-sensitive unary-to-binary promotion: binary operator occurrence (respecting 
+                    the white symmetry rule) are promoted to unary operators if thhere is np left operand. */
                 else if (lexer.TryAccept(SymbolId::BinaryMinus))
-                    return -TryParseExpression(lexer, i_scope, FindSymbol(SymbolId::UnaryMinus).m_precedence);
+                    return -ParseExpression(i_context, FindSymbol(SymbolId::UnaryMinus).m_precedence);
                 else if (lexer.TryAccept(SymbolId::BinaryPlus))
-                    return TryParseExpression(lexer, i_scope, FindSymbol(SymbolId::UnaryPlus).m_precedence);
+                    return ParseExpression(i_context, FindSymbol(SymbolId::UnaryPlus).m_precedence);
 
-                else if (lexer.GetCurrentToken().m_symbol_id == SymbolId::Name)
+                else if (std::optional<Token> name_token = lexer.TryAccept(SymbolId::Name))
                 {
-                    auto const member = i_scope->TryLookup(lexer.GetCurrentToken().m_source_chars);
-                    if(auto const op_ptr = std::get_if<std::reference_wrapper<const Operator>>(&member))
-                    {
-                        lexer.NextToken();
-                        return ParseInvokeOperator(lexer, i_scope, op_ptr->get());
-                    }
-                    else if(auto tensor_ptr = std::get_if<Tensor>(&member))
-                    {
-                        lexer.NextToken();
-                        return *tensor_ptr;
-                    }
+                    if(lexer.TryAccept(SymbolId::LeftParenthesis))
+                        return MakeExpression(name_token->m_source_chars, ParseExpressionList(i_context, SymbolId::RightParenthesis));
                     else
-                        return {};
-                }*/
+                        return MakeExpression(name_token->m_source_chars, {});
+                }
 
                 return {};
             }
@@ -235,7 +241,8 @@ namespace djup
             }
 
             /* given a left operand, tries to parse a binary expression ignoring operators
-                whoose precedence is less than i_min_precedence */
+                whoose precedence is less than i_min_precedence. The operator cannot be 
+                preceded by a line_break. */
             static Tensor CombineWithOperator(ParsingContext & i_context,
                 const Tensor & i_left_operand, int32_t i_min_precedence)
             {
@@ -243,7 +250,8 @@ namespace djup
 
                 Tensor result = i_left_operand;
 
-                while (lexer.GetCurrentToken().IsBinaryOperator()
+                while (!lexer.GetCurrentToken().m_follows_line_break
+                    && lexer.GetCurrentToken().IsBinaryOperator()
                     && lexer.GetCurrentToken().m_symbol->m_precedence >= i_min_precedence)
                 {
                     /* now we have the left-hand operatand and the operator.
@@ -272,42 +280,72 @@ namespace djup
             }
 
             // parse a complete expression
-            static Tensor TryParseExpression(ParsingContext & i_context, int32_t i_min_precedence)
+            static Tensor TryParseExpression(ParsingContext & i_context, int32_t i_min_precedence = 0)
             {
                 Tensor result = ParseLeftExpression(i_context);
                 if(!result.IsEmpty())
                 {
                     // try to combine with a binary operator
-                    return CombineWithOperator(i_context, result, i_min_precedence);
+                    result = CombineWithOperator(i_context, result, i_min_precedence);
+
+                    // if the expression has no name, and a name follows, it is promoted to a type
+                    if(result.GetExpression()->GetName().IsEmpty())
+                    {
+                        if(std::optional<Token> name_token = i_context.m_lexer.TryAccept(SymbolId::Name))
+                        {
+                            ExpressionData data = result.GetExpression()->GetExpressionData();
+                            data.m_name = name_token->m_source_chars;
+                            result = MakeExpression(std::move(data));
+                        }
+                    }
+
+                    return result;
                 }
                 else
                     return {};
             }
 
-            static Tensor ParseExpression(ParsingContext & i_context)
+            static Tensor TryParseExpressionOrAxiom(ParsingContext & i_context)
             {
-                Tensor expression = TryParseExpression(i_context, 0);                
+                Tensor expression = TryParseExpression(i_context, 0);
+                if(expression.IsEmpty())
+                    return {};
+
+                /* if the expression has a name, and it's not followed by line break, it may 
+                   be a replacement axiom */
+                if(!expression.GetExpression()->GetName().IsEmpty() &&
+                    !i_context.m_lexer.GetCurrentToken().m_follows_line_break)
+                {
+                    Tensor when;
+                    if(i_context.m_lexer.TryAccept(SymbolId::When))
+                        when = ParseExpression(i_context);
+
+                    if(i_context.m_lexer.TryAccept(SymbolId::SubstitutionAxiom))
+                    {
+                        Tensor right_hand_side = ParseExpression(i_context);
+                        expression = SubstitutionAxiom(expression, when, right_hand_side);
+                    }
+                    else if(!when.IsEmpty())
+                        Error("'when' clause without axiom");
+                }
+
+                return expression;
+            }
+
+            static Tensor ParseExpression(ParsingContext & i_context, int32_t i_min_precedence = 0)
+            {
+                Tensor expression = TryParseExpression(i_context, i_min_precedence);
                 if(expression.IsEmpty())
                     Error("expected an expression");
 
-                if(expression.GetExpression()->GetName().IsEmpty())
-                {
-                    if(std::optional<Token> name_token = i_context.m_lexer.TryAccept(SymbolId::Name))
-                    {
-                        expression = MakeExpression(name_token->m_source_chars, 
-                            expression.GetExpression()->GetType(), expression.GetExpression()->GetArguments());
-                    }
-                }
+                return expression;
+            }
 
-                if(!expression.GetExpression()->GetName().IsEmpty() &&
-                    i_context.m_lexer.TryAccept(SymbolId::Assignment))
-                {
-                    Tensor right_hand_side = TryParseExpression(i_context, 0);
-                    if(right_hand_side.IsEmpty())
-                        Error("expected an expression after =");
-
-                    expression = Assign(expression, right_hand_side);
-                }
+            static Tensor ParseExpressionOrAxiom(ParsingContext & i_context)
+            {
+                Tensor expression = TryParseExpressionOrAxiom(i_context);
+                if(expression.IsEmpty())
+                    Error("expected an expression or an axiom");
 
                 return expression;
             }
@@ -319,17 +357,19 @@ namespace djup
         const std::shared_ptr<const Scope> & i_parent_scope)
     {
         Lexer lexer(i_source);
+        if(lexer.IsSourceOver())
+            return {};
+
         try
         {
             auto scope = std::make_shared<Scope>(i_parent_scope);
 
             ParsingContext context{lexer, *scope};
-            Tensor result = ParserImpl::ParseExpression(context);
+            Tensor result = ParserImpl::ParseExpressionOrAxiom(context);
 
             // all the source must be consumed
             if(!lexer.IsSourceOver())
-                Error("expected end of source, ",
-                    GetSymbolChars(lexer.GetCurrentToken().m_symbol_id), " found");
+                Error("expected end of source, ", GetSymbolChars(lexer.GetCurrentToken().m_symbol_id), " found");
 
             return result;
         }

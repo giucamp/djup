@@ -21,8 +21,9 @@ namespace djup
         constexpr ConstexprName Less("Less");
         constexpr ConstexprName Stack("Stack");
         constexpr ConstexprName Is("Is");
+        constexpr ConstexprName If("If");
         constexpr ConstexprName Scope("Scope");
         constexpr ConstexprName Tuple("Tuple");
-        constexpr ConstexprName Assign("Assign");
+        constexpr ConstexprName SubstitutionAxiom("SubstitutionAxiom");
     }
 }

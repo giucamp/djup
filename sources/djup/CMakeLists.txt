@@ -11,6 +11,7 @@ add_library(djup STATIC
 	private/discrimination_network.h
 	private/domain.cpp
 	private/domain.h
+	private/diagnostic.h
 	private/expression.cpp
 	private/expression.h
 	private/expression_to_string.cpp

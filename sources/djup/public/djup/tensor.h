@@ -62,6 +62,11 @@ namespace djup
         std::shared_ptr<const Expression> m_expression;
     };
 
+    inline Tensor operator ""_t(const char * i_source, size_t i_length)
+    {
+        return Tensor(std::string_view(i_source, i_length));
+    }
+
     Tensor Rank(const Tensor & i_tensor);
 
     Tensor Shape(const Tensor & i_tensor);
@@ -130,7 +135,7 @@ namespace djup
     
     Tensor Less(const Tensor & i_first, const Tensor & i_second);
 
-    Tensor Assign(const Tensor & i_left_hand_size, const Tensor & i_right_hand_side);
+    Tensor SubstitutionAxiom(const Tensor & i_what, const Tensor & i_when, const Tensor & i_with);
 
     Tensor operator + (const Tensor & i_operand);
     Tensor operator - (const Tensor & i_operand);
@@ -164,6 +169,8 @@ namespace djup
     Tensor Cos(const Tensor & i_operand);
 
     Tensor Stack(Span<Tensor const> i_tensors);
+
+    Tensor Tuple(Span<Tensor const> i_arguments);
 
     Tensor Is(const Tensor & i_tensor, const Tensor & i_pattern);
 

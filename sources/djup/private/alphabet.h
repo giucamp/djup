@@ -39,7 +39,11 @@ namespace djup
         
         BeginTuple,         EndTuple,
 
-        Assignment,
+        // pattern matching
+        SubstitutionAxiom, When,
+        RepetitionsWeakEllipsis,
+        RepetitionsEllipsis,
+        QuestionMark,
 
         // if
         If, Then, Elif, Else,
@@ -133,8 +137,8 @@ namespace djup
         { "-",          SymbolId::UnaryMinus,        (UnaryApplier)operator -,      700 },
 
         // brackets
-        { "((",         SymbolId::BeginTuple                                            },
-        { "))",         SymbolId::EndTuple                                              },
+        { "{{",         SymbolId::BeginTuple                                            },
+        { "}}",         SymbolId::EndTuple                                              },
         { "(",          SymbolId::LeftParenthesis                                       },
         { ")",          SymbolId::RightParenthesis                                      },
         { "[",          SymbolId::LeftBracket                                           },
@@ -142,7 +146,12 @@ namespace djup
         { "{",          SymbolId::LeftBrace                                             },
         { "}",          SymbolId::RightBrace                                            },
 
-        { "=",          SymbolId::Assignment                                            },
+        // pattern matching
+        { "=",          SymbolId::SubstitutionAxiom                                     },
+        { "when",       SymbolId::When                                                  },
+        { "...",        SymbolId::RepetitionsEllipsis                                   },
+        { "..",         SymbolId::RepetitionsWeakEllipsis                               },
+        { "?",          SymbolId::QuestionMark                                          },
 
         // if
         { "if",         SymbolId::If                                                    },
