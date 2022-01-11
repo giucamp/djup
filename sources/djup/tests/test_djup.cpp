@@ -13,7 +13,6 @@ namespace djup
         void Lexer();
         void TensorToString();
         void Parse();
-        void Type();
         void Pattern();
 
         void Djup()
@@ -23,7 +22,6 @@ namespace djup
             Lexer();
             TensorToString();
             Parse();
-            Type();
             Pattern();
 
             PrintLn("successful");

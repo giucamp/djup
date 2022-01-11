@@ -7,7 +7,7 @@
 #pragma once
 #include <core/diagnostic.h>
 #include <core/flags.h>
-#include <private/domain.h>
+#include <private/scalar_type.h>
 #include <djup/tensor.h>
 
 namespace djup
@@ -69,7 +69,7 @@ namespace djup
 
     using BinaryApplier = Tensor (*)(const Tensor & i_left, const Tensor & i_right);
     using UnaryApplier = Tensor (*)(const Tensor & i_operand);
-    using OperatorApplier = std::variant<std::monostate, UnaryApplier, BinaryApplier, Domain>;
+    using OperatorApplier = std::variant<std::monostate, UnaryApplier, BinaryApplier, ScalarType>;
 
     // element of the alphabet
     struct Symbol
@@ -103,14 +103,12 @@ namespace djup
     constexpr Symbol g_alphabet[] = 
     {
         // numeric types
-        { "any",        SymbolId::Any,               Domain::Any         },
-        { "tuple",      SymbolId::Tuple,             Domain::Tuple       },
-        { "number",     SymbolId::Number,            Domain::Number      },
-        { "bool",       SymbolId::Bool,              Domain::Bool        },
-        { "complex",    SymbolId::Complex,           Domain::Complex     },
-        { "real",       SymbolId::Real,              Domain::Real        },
-        { "rational",   SymbolId::Rational,          Domain::Integer     },
-        { "natural",    SymbolId::Natural,           Domain::Natural     },
+        { "any",        SymbolId::Any,               ScalarType::Any         },
+        { "bool",       SymbolId::Bool,              ScalarType::Bool        },
+        { "number",     SymbolId::Number,            ScalarType::Number      },
+        { "complex",    SymbolId::Complex,           ScalarType::Complex     },
+        { "real",       SymbolId::Real,              ScalarType::Real        },
+        { "int",        SymbolId::Integer,           ScalarType::Integer     },
 
         // comparison
         { "==",         SymbolId::Equal,             Equal,           100 },

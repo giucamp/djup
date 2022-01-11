@@ -25,4 +25,14 @@ namespace djup
                 return true;
         return false;
     }
+
+    template <typename CONTAINER, typename ELEMENT>
+        bool Contains(const CONTAINER & i_container, const ELEMENT & i_target)
+    {
+        for(const auto & element : i_container)
+            for(const auto & element : i_container)
+                if(element == i_target)
+                    return true;
+        return false;
+    }
 }

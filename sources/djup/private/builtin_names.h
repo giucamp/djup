@@ -11,6 +11,16 @@ namespace djup
 {
     namespace builtin_names
     {
+        constexpr ConstexprName Type("Type");
+        constexpr ConstexprName Identifier("Identifier");
+        constexpr ConstexprName Literal("Literal");
+        constexpr ConstexprName Stack("Stack");
+        constexpr ConstexprName Tuple("Tuple");
+        constexpr ConstexprName Scope("Scope");
+        constexpr ConstexprName SubstitutionAxiom("SubstitutionAxiom");
+        constexpr ConstexprName Is("Is");
+
+        constexpr ConstexprName If("If");
         constexpr ConstexprName Add("Add");
         constexpr ConstexprName Mul("Mul");
         constexpr ConstexprName Pow("Pow");
@@ -19,11 +29,5 @@ namespace djup
         constexpr ConstexprName Not("Not");
         constexpr ConstexprName Equal("Equal");
         constexpr ConstexprName Less("Less");
-        constexpr ConstexprName Stack("Stack");
-        constexpr ConstexprName Is("Is");
-        constexpr ConstexprName If("If");
-        constexpr ConstexprName Scope("Scope");
-        constexpr ConstexprName Tuple("Tuple");
-        constexpr ConstexprName SubstitutionAxiom("SubstitutionAxiom");
     }
 }

@@ -37,14 +37,8 @@ namespace djup
 
     private:
 
-        enum class EdgeKind
-        {
-            Constant, Variable, Name
-        };
-
         struct Edge
         {
-            EdgeKind m_kind;
             bool m_begin_arguments = false;
             bool m_end_arguments = false;
             bool m_is_terminal = false;

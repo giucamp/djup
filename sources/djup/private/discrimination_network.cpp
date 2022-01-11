@@ -5,6 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/discrimination_network.h>
+#include <private/builtin_names.h>
 #include <vector>
 
 namespace djup
@@ -26,7 +27,7 @@ namespace djup
             return m_tokens.size();
         }
 
-        const Expression & GetToken(size_t i_index) const
+        const Tensor & GetToken(size_t i_index) const
         {
             return m_tokens[i_index].m_expr;
         }
@@ -45,7 +46,7 @@ namespace djup
 
         void Linearize(const Tensor & i_target)
         {
-            m_tokens.push_back(Token{*i_target.GetExpression()});
+            m_tokens.push_back(Token{i_target});
 
             if(!i_target.GetExpression()->GetArguments().empty())
             {
@@ -61,7 +62,7 @@ namespace djup
 
         struct Token
         {
-            Expression m_expr;
+            Tensor m_expr;
             bool m_begin_arguments = false;
             bool m_end_arguments = false;
         };
@@ -83,20 +84,13 @@ namespace djup
 
         for(size_t token_index = 0; token_index < pattern_length; token_index++)
         {
-            const Expression & token = pattern.GetToken(token_index);
+            const Tensor & token = pattern.GetToken(token_index);
 
             Edge edge;
-            if(token.IsConstant())
-                edge.m_kind = EdgeKind::Constant;
-            else if(token.IsVariable())
-                edge.m_kind = EdgeKind::Variable;
-            else
-                edge.m_kind = EdgeKind::Name;
-
             edge.m_begin_arguments = pattern.BeginsArguments(token_index);
             edge.m_end_arguments = pattern.EndsArguments(token_index);
             edge.m_is_terminal = token_index + 1 >= pattern_length;
-            edge.m_expr = token;
+            edge.m_expr = *token.GetExpression();
 
             size_t dest_node = m_next_node_index++;
             edge.m_dest_node = dest_node;
@@ -121,7 +115,7 @@ namespace djup
         std::vector<WalkingHead> & io_heads,
         const WalkingHead & i_curr_head, const LinearizedExpression & i_target) const
     {
-        const Expression & token = i_target.GetToken(i_curr_head.m_current_token);
+        const Tensor & token = i_target.GetToken(i_curr_head.m_current_token);
 
         auto edges = m_edges.equal_range(i_curr_head.m_source_node);
         for(auto it = edges.first; it != edges.second; ++it)
@@ -129,30 +123,19 @@ namespace djup
             const Edge & edge = it->second;
             bool matching = false;
 
-            switch(edge.m_kind)
-            {
-            case EdgeKind::Constant:
-                matching = AlwaysEqual(token, edge.m_expr);
-                break;
-
-            case EdgeKind::Name:
-                matching = token.GetName() == edge.m_expr.GetName();
-                break;
-
-            case EdgeKind::Variable:
-                matching = TypeMatches(token.GetType(), edge.m_expr.GetType());
-                break;
-
-            default:
-                Error("DiscriminationNetwork: unrecognized edge kind");
-            }
+            if(edge.m_expr.IsConstant())
+                matching = AlwaysEqual(*token.GetExpression(), edge.m_expr);
+            else if(edge.m_expr.GetName() == builtin_names::Identifier)
+                matching = Is(token, edge.m_expr.GetType());
+            else
+                matching = token.GetExpression()->GetName() == edge.m_expr.GetName();
 
             if(matching)
             {
                 WalkingHead new_head = i_curr_head;
-                if(edge.m_kind == EdgeKind::Variable)
+                if(edge.m_expr.GetName() == builtin_names::Identifier)
                 {
-                    new_head.m_substitutions.emplace_back(Substitution{edge.m_expr, token});
+                    new_head.m_substitutions.emplace_back(Substitution{edge.m_expr, *token.GetExpression()});
                 }
                 
                 if(edge.m_is_terminal)

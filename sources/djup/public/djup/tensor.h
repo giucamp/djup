@@ -67,6 +67,10 @@ namespace djup
         return Tensor(std::string_view(i_source, i_length));
     }
 
+    Tensor Type(Tensor i_scalar_type, Tensor i_shape);
+
+    Tensor Identifier(Tensor i_type, Tensor i_name, Span<const Tensor> i_arguments);
+
     Tensor Rank(const Tensor & i_tensor);
 
     Tensor Shape(const Tensor & i_tensor);
@@ -75,7 +79,7 @@ namespace djup
 
     bool IsType(const Tensor & i_tensor);
 
-    bool IsVariable(const Tensor & i_tensor);
+    bool IsIdentifier(const Tensor & i_tensor);
 
     bool Always(const Tensor & i_bool_tensor);
 
@@ -172,7 +176,7 @@ namespace djup
 
     Tensor Tuple(Span<Tensor const> i_arguments);
 
-    Tensor Is(const Tensor & i_tensor, const Tensor & i_pattern);
+    bool Is(const Tensor & i_tensor, const Tensor & i_pattern);
 
     // to implement
     Tensor Substitute(const Tensor & i_where, const Tensor & i_what,

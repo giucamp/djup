@@ -28,7 +28,7 @@
     <ClInclude Include="..\private\builtin_names.h" />
     <ClInclude Include="..\private\diagnostic.h" />
     <ClInclude Include="..\private\discrimination_network.h" />
-    <ClInclude Include="..\private\domain.h" />
+    <ClInclude Include="..\private\scalar_type.h" />
     <ClInclude Include="..\private\expression.h" />
     <ClInclude Include="..\private\constant_shape.h" />
     <ClInclude Include="..\private\indices.h" />
@@ -37,12 +37,11 @@
     <ClInclude Include="..\private\parser.h" />
     <ClInclude Include="..\private\scope.h" />
     <ClInclude Include="..\private\substitute_by_predicate.h" />
-    <ClInclude Include="..\private\type.h" />
     <ClInclude Include="..\public\djup\tensor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\discrimination_network.cpp" />
-    <ClCompile Include="..\private\domain.cpp" />
+    <ClCompile Include="..\private\scalar_type.cpp" />
     <ClCompile Include="..\private\expression.cpp" />
     <ClCompile Include="..\private\constant_shape.cpp" />
     <ClCompile Include="..\private\indices.cpp" />
@@ -50,15 +49,14 @@
     <ClCompile Include="..\private\name.cpp" />
     <ClCompile Include="..\private\parser.cpp" />
     <ClCompile Include="..\private\scope.cpp" />
+    <ClCompile Include="..\private\standard_scope.cpp" />
     <ClCompile Include="..\private\tensor.cpp" />
     <ClCompile Include="..\private\expression_to_string.cpp" />
-    <ClCompile Include="..\private\type.cpp" />
     <ClCompile Include="..\tests\test_djup.cpp" />
     <ClCompile Include="..\tests\test_lexer.cpp" />
     <ClCompile Include="..\tests\test_parse.cpp" />
     <ClCompile Include="..\tests\test_pattern.cpp" />
     <ClCompile Include="..\tests\test_tensor_to_string.cpp" />
-    <ClCompile Include="..\tests\test_type.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -44,6 +44,9 @@ namespace djup
 
         Name(std::string i_name);
 
+        Name(const char * i_name)
+            : Name(std::string(i_name)) {}
+
         Name(std::string_view i_name)
             : Name(std::string(i_name)) { }
 

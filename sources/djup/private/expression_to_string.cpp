@@ -24,14 +24,6 @@ namespace djup
         {
             const Expression & expr = *i_source.GetExpression();
 
-            if(expr.IsVariable())
-            {
-                size_t size = i_dest.GetSize();
-                i_dest << expr.GetType();
-                if(size != i_dest.GetSize())
-                    i_dest << ' ';
-            }
-
             i_dest << expr.GetName();
 
             auto arguments = Span(expr.GetArguments());

@@ -20,13 +20,13 @@ namespace djup
     }*/
 
     Tensor::Tensor(ScalarConst, int64_t i_scalar)
-        : m_expression(MakeConstant(i_scalar).StealExpression())
+        : m_expression(MakeLiteral(i_scalar).StealExpression())
     {
 
     }
 
     Tensor::Tensor(ScalarConst, bool i_scalar)
-        : m_expression(MakeConstant(i_scalar).StealExpression())
+        : m_expression(MakeLiteral(i_scalar).StealExpression())
     {
 
     }
@@ -51,6 +51,22 @@ namespace djup
             return std::move(m_expression);
         else
             Error("Trying to steal the expression from an empty tensor");
+    }
+
+    Tensor Type(Tensor i_scalar_type, Tensor i_shape)
+    {
+        return MakeExpression(builtin_names::Type, {i_scalar_type, i_shape});
+    }
+
+    Tensor Identifier(Tensor i_type, Tensor i_name, Span<const Tensor> i_arguments)
+    {
+        std::vector<Tensor> arguments;
+        arguments.reserve(i_arguments.size() + 2);
+        arguments.push_back(std::move(i_type));
+        arguments.push_back(std::move(i_name));
+        for(const Tensor & argument : i_arguments)
+            arguments.push_back(argument);
+        return MakeExpression(builtin_names::Identifier, arguments);
     }
 
     Tensor operator + (const Tensor & i_operand)
@@ -90,7 +106,7 @@ namespace djup
 
     Tensor operator / (const Tensor & i_dividend, const Tensor & i_divisor)
     {
-        return i_dividend * Pow(i_divisor, MakeConstant<-1>());
+        return i_dividend * Pow(i_divisor, MakeLiteral<-1>());
     }
 
     Tensor & operator *= (Tensor & i_first, const Tensor & i_second)
@@ -198,11 +214,6 @@ namespace djup
         return MakeExpression(builtin_names::Tuple, i_arguments);
     }
 
-    Tensor Is(const Tensor & i_tensor, const Tensor & i_pattern)
-    {
-        return MakeExpression(builtin_names::Is, {i_tensor, i_pattern});
-    }
-
     Tensor If(Span<Tensor const> i_operands)
     {
         return MakeExpression(builtin_names::If, i_operands);
@@ -231,21 +242,14 @@ namespace djup
         return !i_tensor.IsEmpty() && i_tensor.GetExpression()->IsConstant();
     }
 
-    bool IsVariable(const Tensor & i_tensor)
+    bool IsIdentifier(const Tensor & i_tensor)
     {
-        return !i_tensor.IsEmpty() && i_tensor.GetExpression()->IsVariable();
+        return NameIs(i_tensor, builtin_names::Identifier);
     }
 
     bool IsType(const Tensor & i_tensor)
     {
-        const Name & name = i_tensor.GetExpression()->GetName();
-
-        if(name.IsEmpty())
-            return true;
-        else if(name == builtin_names::Tuple)
-            return AllOf(i_tensor.GetExpression()->GetArguments(), IsType );
-
-        return false;
+        return NameIs(i_tensor, builtin_names::Type);
     }
 
     std::string ToSimplifiedStringForm(const Tensor & i_source)

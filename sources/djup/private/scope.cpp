@@ -6,6 +6,7 @@
 
 #include <private/scope.h>
 #include <private/substitute_by_predicate.h>
+#include <core/algorithms.h>
 
 namespace djup
 {
@@ -18,6 +19,55 @@ namespace djup
     Scope::Scope(const std::shared_ptr<const Scope> & i_parent)
         : m_parent(i_parent)
     {
+    }
+
+    void Scope::AddScalarType(Name i_name, Span<const Name> i_subsets)
+    {
+        ScalarType type;
+        type.m_name = std::move(i_name);
+        for(const Name & subset : i_subsets)
+        {
+            if(!Contains(type.m_subsets, subset))
+                type.m_subsets.push_back(subset);
+            AppendScalarTypeSubsets(subset, type.m_subsets);
+        }
+        m_scalar_types.push_back(std::move(type));
+    }
+
+    void Scope::AppendScalarTypeSubsets(const Name & i_name, std::vector<Name> io_subsets)
+    {
+        const Scope * scope = this;
+        do {
+
+            for(const ScalarType & type : scope->m_scalar_types)
+            {
+                if(type.m_name == i_name)
+                {
+                    for(const Name & subset : type.m_subsets)
+                    {
+                        if(!Contains(io_subsets, subset))
+                            io_subsets.push_back(subset);
+                    }
+                }
+            }
+
+            scope = scope->m_parent.get();
+        } while(scope != nullptr);
+    }
+
+    bool Scope::IsScalarType(const Name & i_name) const
+    {
+        const Scope * scope = this;
+        do {
+
+            for(const ScalarType & scalar_type : scope->m_scalar_types)
+                if(scalar_type.m_name == i_name)
+                    return true;
+
+            scope = scope->m_parent.get();
+        } while(scope != nullptr);
+
+        return false;
     }
 
     void Scope::AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when)
@@ -45,7 +95,7 @@ namespace djup
                     if(AlwaysEqual(substitution.m_variable, *i_candidate.GetExpression()))
                     {
                         return MakeExpression(substitution.m_value.GetName(), 
-                            substitution.m_value.GetType(), substitution.m_value.GetArguments());
+                            substitution.m_value.GetArguments());
                     }
                 }
                 return i_candidate;
@@ -66,5 +116,32 @@ namespace djup
         }
         else
             return i_source;
+    }
+
+    namespace
+    {
+        thread_local std::shared_ptr<Scope> g_active_scope = GetDefaultScope();
+
+        std::shared_ptr<Scope> MakeDefaultScope()
+        {
+            std::shared_ptr<Scope> scope = std::make_shared<Scope>(GetStandardScope());
+            return scope;
+        }
+    }
+
+    std::shared_ptr<Scope> GetDefaultScope()
+    {
+        static thread_local std::shared_ptr<Scope> default_scope = MakeDefaultScope();
+        return default_scope;
+    }
+
+    void SetActiveScope(std::shared_ptr<Scope> i_scope)
+    {
+        g_active_scope = std::move(i_scope);
+    }
+
+    std::shared_ptr<Scope> GetActiveScope()
+    {
+        return g_active_scope;
     }
 }

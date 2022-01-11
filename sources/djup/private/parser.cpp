@@ -10,9 +10,8 @@
 #include <private/parser.h>
 #include <private/lexer.h>
 #include <private/alphabet.h>
-#include <private/domain.h>
+#include <private/scalar_type.h>
 #include <private/expression.h>
-#include <private/type.h>
 #include <private/scope.h>
 #include <djup/tensor.h>
 
@@ -107,16 +106,27 @@ namespace djup
                 return MakeScope(statements);
             }
 
-            static TensorType ParseTensorType(ParsingContext & i_context)
+            static Tensor ParseIdentifier(ParsingContext & i_context)
             {
                 Lexer & lexer = i_context.m_lexer;
 
-                Domain domain = std::get<Domain>(lexer.GetCurrentToken().m_symbol->m_operator_applier);
-                lexer.NextToken();
+                Name scalar_type = lexer.GetCurrentToken().m_source_chars;
+
                 Tensor shape;
                 if(lexer.TryAccept(SymbolId::LeftBracket))
                     shape = Stack(ParseExpressionList(i_context, SymbolId::RightBracket));
-                return TensorType{domain, std::move(shape)};
+
+                Name name;
+                if(auto name_token = lexer.TryAccept(SymbolId::Name))
+                    name = name_token->m_source_chars;
+
+                std::vector<Tensor> arguments;
+                if(lexer.TryAccept(SymbolId::LeftParenthesis))
+                    arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
+
+                return Identifier(
+                    Type(MakeExpression(std::move(scalar_type)), std::move(shape)), 
+                    MakeExpression(std::move(name)), arguments);
             }
 
             // parses an expression that may be the left-hand-side of a binary operator
@@ -124,23 +134,7 @@ namespace djup
             {
                 Lexer & lexer = i_context.m_lexer;
 
-                if(lexer.GetCurrentToken().m_symbol_id >= SymbolId::FirstScalarType &&
-                    lexer.GetCurrentToken().m_symbol_id <= SymbolId::LastScalarType)
-                {
-                    ExpressionData data;
-                    data.m_is_variable = true;
-
-                    data.m_type = ParseTensorType(i_context);
-                    
-                    if(auto name_token = lexer.TryAccept(SymbolId::Name))
-                        data.m_name = Name(name_token->m_source_chars);
-                    
-                    if(lexer.TryAccept(SymbolId::LeftParenthesis))
-                        data.m_arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
-                    
-                    return MakeExpression(std::move(data));
-                }
-                else if(std::optional<Token> token = lexer.TryAccept(SymbolId::NumericLiteral))
+                if(std::optional<Token> token = lexer.TryAccept(SymbolId::NumericLiteral))
                 {
                     int64_t exponent = 0;
                     std::string value_chars = AcceptNumericLiteral(token->m_source_chars, &exponent);
@@ -154,9 +148,9 @@ namespace djup
                 else if(std::optional<Token> token = lexer.TryAccept(SymbolId::BoolLiteral))
                 {
                     if(token->m_source_chars == "true")
-                        return MakeConstant<true>();
+                        return MakeLiteral<true>();
                     else if(token->m_source_chars == "false")
-                        return MakeConstant<false>();
+                        return MakeLiteral<false>();
                     else
                         Error("Unrecognized bool literal: ", token->m_source_chars);
                 }
@@ -220,10 +214,16 @@ namespace djup
 
                 else if (std::optional<Token> name_token = lexer.TryAccept(SymbolId::Name))
                 {
+                    Name name = name_token->m_source_chars;
+                    
+                    if(i_context.m_scope.IsScalarType(name))
+                        return ParseIdentifier(i_context);
+
+                    std::vector<Tensor> arguments;
                     if(lexer.TryAccept(SymbolId::LeftParenthesis))
-                        return MakeExpression(name_token->m_source_chars, ParseExpressionList(i_context, SymbolId::RightParenthesis));
-                    else
-                        return MakeExpression(name_token->m_source_chars, {});
+                        arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
+
+                    return MakeExpression(name_token->m_source_chars, arguments);
                 }
 
                 return {};

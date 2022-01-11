@@ -30,16 +30,13 @@
     <ClInclude Include="..\private\alphabet.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\domain.h">
+    <ClInclude Include="..\private\scalar_type.h">
       <Filter>private</Filter>
     </ClInclude>
     <ClInclude Include="..\private\lexer.h">
       <Filter>private</Filter>
     </ClInclude>
     <ClInclude Include="..\private\parser.h">
-      <Filter>private</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\type.h">
       <Filter>private</Filter>
     </ClInclude>
     <ClInclude Include="..\private\indices.h">
@@ -72,16 +69,13 @@
     <ClCompile Include="..\private\tensor.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\domain.cpp">
+    <ClCompile Include="..\private\scalar_type.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\lexer.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\parser.cpp">
-      <Filter>private</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\type.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\constant_shape.cpp">
@@ -96,9 +90,6 @@
     <ClCompile Include="..\tests\test_djup.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\tests\test_type.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
     <ClCompile Include="..\tests\test_pattern.cpp">
       <Filter>tests</Filter>
     </ClCompile>
@@ -110,6 +101,9 @@
     </ClCompile>
     <ClCompile Include="..\tests\test_tensor_to_string.cpp">
       <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\standard_scope.cpp">
+      <Filter>private</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
