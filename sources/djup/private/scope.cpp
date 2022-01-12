@@ -104,8 +104,7 @@ namespace djup
                 {
                     if(AlwaysEqual(substitution.m_variable, *i_candidate.GetExpression()))
                     {
-                        return MakeExpression(substitution.m_value.GetName(), 
-                            substitution.m_value.GetArguments());
+                        return MakeExpression(substitution.m_value.GetName(), {}, substitution.m_value.GetArguments());
                     }
                 }
                 return i_candidate;

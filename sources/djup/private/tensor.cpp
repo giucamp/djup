@@ -55,7 +55,7 @@ namespace djup
 
     Tensor TensorType(Tensor i_scalar_type, Tensor i_shape)
     {
-        return MakeExpression(builtin_names::TensorType, {i_scalar_type, i_shape});
+        return MakeExpression(builtin_names::TensorType, {}, {i_scalar_type, i_shape});
     }
 
     Tensor Identifier(Tensor i_type, Tensor i_name, Span<const Tensor> i_arguments)
@@ -66,7 +66,7 @@ namespace djup
         arguments.push_back(std::move(i_name));
         for(const Tensor & argument : i_arguments)
             arguments.push_back(argument);
-        return MakeExpression(builtin_names::Identifier, arguments);
+        return MakeExpression(builtin_names::Identifier, {}, arguments);
     }
 
     Tensor operator + (const Tensor & i_operand)
@@ -166,62 +166,62 @@ namespace djup
 
     Tensor Add(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Add, i_arguments);
+        return MakeExpression(builtin_names::Add, {}, i_arguments);
     }
 
     Tensor Mul(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Mul, i_arguments);
+        return MakeExpression(builtin_names::Mul, {}, i_arguments);
     }
 
     Tensor Pow(Tensor const & i_base, Tensor const & i_exp)
     {
-        return MakeExpression(builtin_names::Pow, {i_base, i_exp});
+        return MakeExpression(builtin_names::Pow, {}, {i_base, i_exp});
     }
 
     Tensor And(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::And, i_arguments);
+        return MakeExpression(builtin_names::And, {}, i_arguments);
     }
 
     Tensor Or(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Or, i_arguments);
+        return MakeExpression(builtin_names::Or, {}, i_arguments);
     }
 
     Tensor Not(const Tensor & i_argument)
     {
-        return MakeExpression(builtin_names::Not, {i_argument});
+        return MakeExpression(builtin_names::Not, {}, {i_argument});
     }
 
     Tensor Equal(const Tensor & i_first, const Tensor & i_second)
     {
-        return MakeExpression(builtin_names::Equal, {i_first, i_second});
+        return MakeExpression(builtin_names::Equal, {}, {i_first, i_second});
     }
 
     Tensor Less(const Tensor & i_first, const Tensor & i_second)
     {
-        return MakeExpression(builtin_names::Less, {i_first, i_second});
+        return MakeExpression(builtin_names::Less, {}, {i_first, i_second});
     }
 
     Tensor Stack(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Stack, i_arguments);
+        return MakeExpression(builtin_names::Stack, {}, i_arguments);
     }
 
     Tensor Tuple(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Tuple, i_arguments);
+        return MakeExpression(builtin_names::Tuple, {}, i_arguments);
     }
 
     Tensor If(Span<Tensor const> i_operands)
     {
-        return MakeExpression(builtin_names::If, i_operands);
+        return MakeExpression(builtin_names::If, {}, i_operands);
     }
 
     Tensor MakeScope(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Scope, i_arguments);
+        return MakeExpression(builtin_names::Scope, {}, i_arguments);
     }
 
     bool AlwaysEqual(const Tensor & i_first, const Tensor & i_second)
@@ -234,7 +234,7 @@ namespace djup
 
     Tensor SubstitutionAxiom(const Tensor & i_what, const Tensor & i_when, const Tensor & i_with)
     {
-        return MakeExpression(builtin_names::SubstitutionAxiom, {i_what, i_when, i_with});
+        return MakeExpression(builtin_names::SubstitutionAxiom, {}, {i_what, i_when, i_with});
     }
 
     bool IsConstant(const Tensor & i_tensor)

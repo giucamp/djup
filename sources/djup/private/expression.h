@@ -73,11 +73,7 @@ namespace djup
 
     [[nodiscard]] Tensor MakeExpression(ExpressionData && i_data);
    
-    [[nodiscard]] Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments = {});
-
     [[nodiscard]] Tensor MakeExpression(Name i_name, Tensor i_type, Span<const Tensor> i_arguments = {});
-
-    [[nodiscard]] Tensor MakeConstantExpression(Name i_name, Span<const Tensor> i_arguments = {});
 
     [[nodiscard]] Tensor MakeConstantExpression(Name i_name, Tensor i_type, Span<const Tensor> i_arguments = {});
 

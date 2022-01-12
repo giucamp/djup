@@ -105,11 +105,9 @@ namespace djup
                 return MakeScope(statements);
             }
 
-            static Tensor ParseIdentifier(ParsingContext & i_context)
+            static Tensor ParseIdentifier(Name i_scalar_type, ParsingContext & i_context)
             {
                 Lexer & lexer = i_context.m_lexer;
-
-                Name scalar_type = lexer.GetCurrentToken().m_source_chars;
 
                 Tensor shape;
                 if(lexer.TryAccept(SymbolId::LeftBracket))
@@ -124,8 +122,8 @@ namespace djup
                     arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
 
                 return Identifier(
-                    TensorType(MakeExpression(std::move(scalar_type)), std::move(shape)), 
-                    MakeExpression(std::move(name)), arguments);
+                    TensorType(MakeExpression(std::move(i_scalar_type), {}), std::move(shape)), 
+                    MakeExpression(std::move(name), {}), arguments);
             }
 
             // parses an expression that may be the left-hand-side of a binary operator
@@ -138,13 +136,13 @@ namespace djup
                     Name name = name_token->m_source_chars;
 
                     if(i_context.m_scope.IsScalarType(name))
-                        return ParseIdentifier(i_context);
+                        return ParseIdentifier(std::move(name), i_context);
 
                     std::vector<Tensor> arguments;
                     if(lexer.TryAccept(SymbolId::LeftParenthesis))
                         arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
 
-                    return MakeExpression(name_token->m_source_chars, arguments);
+                    return MakeExpression(name_token->m_source_chars, {}, arguments);
                 }
                 else if(std::optional<Token> token = lexer.TryAccept(SymbolId::NumericLiteral))
                 {
