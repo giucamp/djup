@@ -37,7 +37,7 @@ namespace djup
         m_scalar_types.push_back(std::move(type));
     }
 
-    void Scope::AppendScalarTypeSubsets(const Name & i_name, std::vector<Name> io_subsets)
+    void Scope::AppendScalarTypeSubsets(const Name & i_name, std::vector<Name> & io_subsets)
     {
         if(const ScalarType * type = FindScalarType(i_name))
         {

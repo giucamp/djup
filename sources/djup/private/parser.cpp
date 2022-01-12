@@ -133,7 +133,20 @@ namespace djup
             {
                 Lexer & lexer = i_context.m_lexer;
 
-                if(std::optional<Token> token = lexer.TryAccept(SymbolId::NumericLiteral))
+                if (std::optional<Token> name_token = lexer.TryAccept(SymbolId::Name))
+                {
+                    Name name = name_token->m_source_chars;
+
+                    if(i_context.m_scope.IsScalarType(name))
+                        return ParseIdentifier(i_context);
+
+                    std::vector<Tensor> arguments;
+                    if(lexer.TryAccept(SymbolId::LeftParenthesis))
+                        arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
+
+                    return MakeExpression(name_token->m_source_chars, arguments);
+                }
+                else if(std::optional<Token> token = lexer.TryAccept(SymbolId::NumericLiteral))
                 {
                     int64_t exponent = 0;
                     std::string value_chars = AcceptNumericLiteral(token->m_source_chars, &exponent);
@@ -210,20 +223,6 @@ namespace djup
                     return -ParseExpression(i_context, FindSymbol(SymbolId::UnaryMinus).m_precedence);
                 else if (lexer.TryAccept(SymbolId::BinaryPlus))
                     return ParseExpression(i_context, FindSymbol(SymbolId::UnaryPlus).m_precedence);
-
-                else if (std::optional<Token> name_token = lexer.TryAccept(SymbolId::Name))
-                {
-                    Name name = name_token->m_source_chars;
-                    
-                    if(i_context.m_scope.IsScalarType(name))
-                        return ParseIdentifier(i_context);
-
-                    std::vector<Tensor> arguments;
-                    if(lexer.TryAccept(SymbolId::LeftParenthesis))
-                        arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
-
-                    return MakeExpression(name_token->m_source_chars, arguments);
-                }
 
                 return {};
             }
@@ -352,8 +351,7 @@ namespace djup
 
     } // namespace
 
-    Tensor ParseExpression(std::string_view i_source,
-        const std::shared_ptr<const Scope> & i_parent_scope)
+    Tensor ParseExpression(std::string_view i_source)
     {
         Lexer lexer(i_source);
         if(lexer.IsSourceOver())
@@ -361,9 +359,8 @@ namespace djup
 
         try
         {
-            auto scope = std::make_shared<Scope>(i_parent_scope);
-
-            ParsingContext context{lexer, *scope};
+            std::shared_ptr<Scope> active_scope = GetActiveScope();
+            ParsingContext context{lexer, *active_scope};
             Tensor result = ParserImpl::ParseExpressionOrAxiom(context);
 
             // all the source must be consumed

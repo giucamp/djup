@@ -54,7 +54,7 @@ namespace djup
 
     private:
 
-        void AppendScalarTypeSubsets(const Name & i_name, std::vector<Name> io_subsets);
+        void AppendScalarTypeSubsets(const Name & i_name, std::vector<Name> & io_subsets);
         
         const ScalarType * FindScalarType(const Name & i_name) const;
     };

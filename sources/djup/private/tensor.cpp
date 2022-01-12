@@ -32,7 +32,7 @@ namespace djup
     }
 
     Tensor::Tensor(std::string_view i_expression)
-        : Tensor(ParseExpression(i_expression, Scope::Root()))
+        : Tensor(ParseExpression(i_expression))
     {
 
     }

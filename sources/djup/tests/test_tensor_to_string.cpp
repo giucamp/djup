@@ -15,7 +15,8 @@ namespace djup
         {
             Print("Test: djup - TensorToString...");
 
-            Tensor a("real a"), b("real b");
+            Tensor a("real a");
+            Tensor b("real b");
             DJUP_EXPECTS_EQ(ToSimplifiedStringForm(a + b * 2), "Add(real a, Mul(real b, 2))");
 
             PrintLn("successful");

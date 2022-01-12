@@ -20,6 +20,31 @@ namespace djup
 
         constexpr Hash() = default;
 
+        constexpr Hash(const Hash &) = default;
+
+        constexpr Hash & operator = (const Hash &) = default;
+
+        constexpr Hash(Hash && i_source) noexcept
+            : m_value(i_source.m_value)
+        {
+            i_source.m_value = s_empty_value;
+        }
+
+        constexpr Hash & operator = (Hash && i_source) noexcept
+        {
+            assert(this != &i_source); // self move-assignment not allowed
+            m_value = i_source.m_value;
+            i_source.m_value = s_empty_value;
+            return *this;
+        }
+
+        friend void swap(Hash & i_first, Hash & i_second)
+        {
+            const auto tmp = i_first.m_value;
+            i_first.m_value = i_second.m_value;
+            i_second.m_value = tmp;
+        }
+
         // Hash(values...)
         template <typename... TYPE>
             constexpr explicit Hash(const TYPE & ... i_object)
@@ -55,16 +80,15 @@ namespace djup
         constexpr bool operator >= (const Hash & i_right) const
             { return m_value >= i_right.m_value; }
 
-        using Word = uint64_t;
-
     private:
-        Word m_value = 5381;
+        static constexpr uint64_t s_empty_value = 5381;
+        uint64_t m_value = s_empty_value;
     };
 
     template <typename... PARAMATERS>
-        Hash::Word ComputeHash(PARAMATERS && ... i_parameters)
+        Hash ComputeHash(PARAMATERS && ... i_parameters)
     {
-        return Hash(std::forward<PARAMATERS...>(i_parameters...)).GetValue();
+        return Hash(std::forward<PARAMATERS...>(i_parameters...));
     }
 
     template <typename TYPE, typename = std::enable_if_t<
