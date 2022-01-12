@@ -29,6 +29,8 @@ namespace djup
 
         bool IsScalarType(const Name & i_name) const;
 
+        bool ScalarTypeBelongsTo(const Name & i_target_type, const Name & i_set) const;
+
         void AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when = {});
 
         void AddSubstitutionAxiom(std::string_view i_what, std::string_view i_with, std::string_view i_when = {});
@@ -36,9 +38,6 @@ namespace djup
         void AddTypeAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when);
 
         Tensor Canonicalize(const Tensor & i_source) const;
-
-    private:
-        void AppendScalarTypeSubsets(const Name & i_name, std::vector<Name> io_subsets);
     
     private:
         std::shared_ptr<const Scope> const m_parent;
@@ -52,6 +51,12 @@ namespace djup
 
         DiscriminationNetwork m_canonicalization_axioms_patterns;
         std::vector<Tensor> m_canonicalization_axioms_replacements;
+
+    private:
+
+        void AppendScalarTypeSubsets(const Name & i_name, std::vector<Name> io_subsets);
+        
+        const ScalarType * FindScalarType(const Name & i_name) const;
     };
 
     std::shared_ptr<const Scope> GetStandardScope();

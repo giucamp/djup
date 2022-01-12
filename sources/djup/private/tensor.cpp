@@ -53,9 +53,9 @@ namespace djup
             Error("Trying to steal the expression from an empty tensor");
     }
 
-    Tensor Type(Tensor i_scalar_type, Tensor i_shape)
+    Tensor TensorType(Tensor i_scalar_type, Tensor i_shape)
     {
-        return MakeExpression(builtin_names::Type, {i_scalar_type, i_shape});
+        return MakeExpression(builtin_names::TensorType, {i_scalar_type, i_shape});
     }
 
     Tensor Identifier(Tensor i_type, Tensor i_name, Span<const Tensor> i_arguments)
@@ -247,9 +247,9 @@ namespace djup
         return NameIs(i_tensor, builtin_names::Identifier);
     }
 
-    bool IsType(const Tensor & i_tensor)
+    bool IsTensorType(const Tensor & i_tensor)
     {
-        return NameIs(i_tensor, builtin_names::Type);
+        return NameIs(i_tensor, builtin_names::TensorType);
     }
 
     std::string ToSimplifiedStringForm(const Tensor & i_source)

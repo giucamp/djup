@@ -23,6 +23,9 @@ namespace djup
 
     void Scope::AddScalarType(Name i_name, Span<const Name> i_subsets)
     {
+        if(IsScalarType(i_name))
+            Error("Scalar type ", i_name, " already defined");
+
         ScalarType type;
         type.m_name = std::move(i_name);
         for(const Name & subset : i_subsets)
@@ -36,38 +39,45 @@ namespace djup
 
     void Scope::AppendScalarTypeSubsets(const Name & i_name, std::vector<Name> io_subsets)
     {
-        const Scope * scope = this;
-        do {
-
-            for(const ScalarType & type : scope->m_scalar_types)
+        if(const ScalarType * type = FindScalarType(i_name))
+        {
+            for(const Name & subset : type->m_subsets)
             {
-                if(type.m_name == i_name)
-                {
-                    for(const Name & subset : type.m_subsets)
-                    {
-                        if(!Contains(io_subsets, subset))
-                            io_subsets.push_back(subset);
-                    }
-                }
+                if(!Contains(io_subsets, subset))
+                    io_subsets.push_back(subset);
             }
-
-            scope = scope->m_parent.get();
-        } while(scope != nullptr);
+        }
     }
 
     bool Scope::IsScalarType(const Name & i_name) const
+    {
+        return FindScalarType(i_name) != nullptr;
+    }
+
+    bool Scope::ScalarTypeBelongsTo(const Name & i_target_type, const Name & i_set) const
+    {
+        if(i_target_type == i_set)
+            return true;
+
+        if(const ScalarType * type = FindScalarType(i_set))
+            return Contains(type->m_subsets, i_target_type);
+        
+        return false;
+    }
+
+    const Scope::ScalarType * Scope::FindScalarType(const Name & i_name) const
     {
         const Scope * scope = this;
         do {
 
             for(const ScalarType & scalar_type : scope->m_scalar_types)
                 if(scalar_type.m_name == i_name)
-                    return true;
+                    return &scalar_type;
 
             scope = scope->m_parent.get();
         } while(scope != nullptr);
 
-        return false;
+        return nullptr;
     }
 
     void Scope::AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when)

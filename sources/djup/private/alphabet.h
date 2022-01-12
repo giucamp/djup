@@ -7,7 +7,6 @@
 #pragma once
 #include <core/diagnostic.h>
 #include <core/flags.h>
-#include <private/scalar_type.h>
 #include <djup/tensor.h>
 
 namespace djup
@@ -69,7 +68,7 @@ namespace djup
 
     using BinaryApplier = Tensor (*)(const Tensor & i_left, const Tensor & i_right);
     using UnaryApplier = Tensor (*)(const Tensor & i_operand);
-    using OperatorApplier = std::variant<std::monostate, UnaryApplier, BinaryApplier, ScalarType>;
+    using OperatorApplier = std::variant<std::monostate, UnaryApplier, BinaryApplier>;
 
     // element of the alphabet
     struct Symbol
@@ -102,14 +101,6 @@ namespace djup
         the former would always shadow the latter. */
     constexpr Symbol g_alphabet[] = 
     {
-        // numeric types
-        { "any",        SymbolId::Any,               ScalarType::Any         },
-        { "bool",       SymbolId::Bool,              ScalarType::Bool        },
-        { "number",     SymbolId::Number,            ScalarType::Number      },
-        { "complex",    SymbolId::Complex,           ScalarType::Complex     },
-        { "real",       SymbolId::Real,              ScalarType::Real        },
-        { "int",        SymbolId::Integer,           ScalarType::Integer     },
-
         // comparison
         { "==",         SymbolId::Equal,             Equal,           100 },
         { "!=",         SymbolId::NotEqual,          NotEqual,        100 },

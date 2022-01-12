@@ -30,9 +30,6 @@
     <ClInclude Include="..\private\alphabet.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\scalar_type.h">
-      <Filter>private</Filter>
-    </ClInclude>
     <ClInclude Include="..\private\lexer.h">
       <Filter>private</Filter>
     </ClInclude>
@@ -69,9 +66,6 @@
     <ClCompile Include="..\private\tensor.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\scalar_type.cpp">
-      <Filter>private</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\lexer.cpp">
       <Filter>private</Filter>
     </ClCompile>
@@ -103,6 +97,9 @@
       <Filter>tests</Filter>
     </ClCompile>
     <ClCompile Include="..\private\standard_scope.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\is.cpp">
       <Filter>private</Filter>
     </ClCompile>
   </ItemGroup>

@@ -28,7 +28,6 @@
     <ClInclude Include="..\private\builtin_names.h" />
     <ClInclude Include="..\private\diagnostic.h" />
     <ClInclude Include="..\private\discrimination_network.h" />
-    <ClInclude Include="..\private\scalar_type.h" />
     <ClInclude Include="..\private\expression.h" />
     <ClInclude Include="..\private\constant_shape.h" />
     <ClInclude Include="..\private\indices.h" />
@@ -41,7 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\discrimination_network.cpp" />
-    <ClCompile Include="..\private\scalar_type.cpp" />
+    <ClCompile Include="..\private\is.cpp" />
     <ClCompile Include="..\private\expression.cpp" />
     <ClCompile Include="..\private\constant_shape.cpp" />
     <ClCompile Include="..\private\indices.cpp" />

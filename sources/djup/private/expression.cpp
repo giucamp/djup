@@ -35,24 +35,6 @@ namespace djup
         return i_dest;
     }
 
-    Tensor MakeLiteral(bool i_bool_value)
-    {
-        ExpressionData data;
-        char buffer[8];
-        Name name = ToCharsView(buffer, i_bool_value);
-
-        return MakeConstantExpression(builtin_names::Literal, { MakeConstantExpression(std::move(name)) });
-    }
-
-    Tensor MakeLiteral(int64_t i_integer_value)
-    {
-        ExpressionData data;
-        char buffer[std::numeric_limits<int64_t>::max_digits10 + 4];
-        Name name = ToCharsView(buffer, i_integer_value);
-
-        return MakeConstantExpression(builtin_names::Literal, { MakeConstantExpression(std::move(name)) });
-    }
-
     Tensor MakeExpression(ExpressionData && i_data)
     {
         return {std::make_shared<Expression>(std::move(i_data))};
@@ -66,6 +48,15 @@ namespace djup
         return {std::make_shared<Expression>(std::move(data))};
     }
 
+    Tensor MakeExpression(Name i_name, Tensor i_type, Span<const Tensor> i_arguments)
+    {
+        ExpressionData data;
+        data.m_name = std::move(i_name);
+        data.m_type = std::move(i_type);
+        data.m_arguments = {i_arguments.begin(), i_arguments.end()};
+        return {std::make_shared<Expression>(std::move(data))};
+    }
+
     Tensor MakeConstantExpression(Name i_name, Span<const Tensor> i_arguments)
     {
         ExpressionData data;
@@ -73,6 +64,42 @@ namespace djup
         data.m_is_constant = true;
         data.m_arguments = {i_arguments.begin(), i_arguments.end()};
         return {std::make_shared<Expression>(std::move(data))};
+    }
+
+    Tensor MakeConstantExpression(Name i_name, Tensor i_type, Span<const Tensor> i_arguments)
+    {
+        ExpressionData data;
+        data.m_name = std::move(i_name);
+        data.m_type = std::move(i_type);
+        data.m_is_constant = true;
+        data.m_arguments = {i_arguments.begin(), i_arguments.end()};
+        return {std::make_shared<Expression>(std::move(data))};
+    }
+
+    Tensor MakeLiteral(bool i_bool_value)
+    {
+        ExpressionData data;
+        char buffer[8];
+        Name name = ToCharsView(buffer, i_bool_value);
+
+        Tensor type = TensorType(builtin_names::Bool, {});
+        return MakeConstantExpression(builtin_names::Literal, type, { MakeConstantExpression(std::move(name)) });
+    }
+
+    Tensor MakeLiteral(int64_t i_integer_value)
+    {
+        ExpressionData data;
+        char buffer[std::numeric_limits<int64_t>::max_digits10 + 4];
+        Name name = ToCharsView(buffer, i_integer_value);
+
+        Tensor type = TensorType(builtin_names::Int, {});
+        return MakeConstantExpression(builtin_names::Literal, { MakeConstantExpression(std::move(name)) });
+    }
+
+    Tensor TensorType(Name i_scalar_type, Tensor i_shape_vector)
+    {
+        return MakeConstantExpression(builtin_names::TensorType, 
+            { MakeConstantExpression(i_scalar_type), std::move(i_shape_vector) });
     }
 
     bool NameIs(const Tensor & i_tensor, const Name & i_name)

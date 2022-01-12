@@ -11,7 +11,7 @@ namespace djup
 {
     namespace builtin_names
     {
-        constexpr ConstexprName Type("Type");
+        constexpr ConstexprName TensorType("TensorType");
         constexpr ConstexprName Identifier("Identifier");
         constexpr ConstexprName Literal("Literal");
         constexpr ConstexprName Stack("Stack");
@@ -19,7 +19,11 @@ namespace djup
         constexpr ConstexprName Scope("Scope");
         constexpr ConstexprName SubstitutionAxiom("SubstitutionAxiom");
         constexpr ConstexprName Is("Is");
-
+        
+        constexpr ConstexprName Any("any");
+        constexpr ConstexprName Bool("bool");
+        constexpr ConstexprName Int("int");
+        
         constexpr ConstexprName If("If");
         constexpr ConstexprName Add("Add");
         constexpr ConstexprName Mul("Mul");

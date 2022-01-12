@@ -67,7 +67,7 @@ namespace djup
         return Tensor(std::string_view(i_source, i_length));
     }
 
-    Tensor Type(Tensor i_scalar_type, Tensor i_shape);
+    Tensor TensorType(Tensor i_scalar_type, Tensor i_shape);
 
     Tensor Identifier(Tensor i_type, Tensor i_name, Span<const Tensor> i_arguments);
 
@@ -77,7 +77,7 @@ namespace djup
 
     bool IsConstant(const Tensor & i_tensor);
 
-    bool IsType(const Tensor & i_tensor);
+    bool IsTensorType(const Tensor & i_tensor);
 
     bool IsIdentifier(const Tensor & i_tensor);
 

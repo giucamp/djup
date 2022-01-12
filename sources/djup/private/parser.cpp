@@ -10,7 +10,6 @@
 #include <private/parser.h>
 #include <private/lexer.h>
 #include <private/alphabet.h>
-#include <private/scalar_type.h>
 #include <private/expression.h>
 #include <private/scope.h>
 #include <djup/tensor.h>
@@ -125,7 +124,7 @@ namespace djup
                     arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
 
                 return Identifier(
-                    Type(MakeExpression(std::move(scalar_type)), std::move(shape)), 
+                    TensorType(MakeExpression(std::move(scalar_type)), std::move(shape)), 
                     MakeExpression(std::move(name)), arguments);
             }
 

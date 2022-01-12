@@ -75,7 +75,15 @@ namespace djup
    
     [[nodiscard]] Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments = {});
 
+    [[nodiscard]] Tensor MakeExpression(Name i_name, Tensor i_type, Span<const Tensor> i_arguments = {});
+
     [[nodiscard]] Tensor MakeConstantExpression(Name i_name, Span<const Tensor> i_arguments = {});
+
+    [[nodiscard]] Tensor MakeConstantExpression(Name i_name, Tensor i_type, Span<const Tensor> i_arguments = {});
+
+    [[nodiscard]] Tensor TensorType(Name i_scalar_type, Tensor i_shape_vector);
+
+    [[nodiscard]] Tensor Identifier(Name i_scalar_type, Tensor i_shape_vector, Tensor i_name, Span<const Tensor> i_arguments);
 
     [[nodiscard]] Tensor MakeLiteral(bool i_bool_value);
 
