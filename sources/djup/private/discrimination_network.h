@@ -23,8 +23,8 @@ namespace djup
 
         struct Substitution
         {
-            Expression m_variable;
-            Expression m_value;
+            Tensor m_variable;
+            Tensor m_value;
         };
 
         struct Match
@@ -42,7 +42,7 @@ namespace djup
             bool m_begin_arguments = false;
             bool m_end_arguments = false;
             bool m_is_terminal = false;
-            Expression m_expr;
+            Tensor m_expr;
             size_t m_dest_node;
         };
 

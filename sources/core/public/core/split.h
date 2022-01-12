@@ -101,4 +101,4 @@ namespace djup
 
     constexpr Split::end_marker_t Split::end_marker;
 
-} // namespace edi
+} // namespace djup

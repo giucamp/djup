@@ -20,7 +20,7 @@ namespace djup
 
     void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source)
     {
-        if(!i_source.IsEmpty())
+        if(!IsEmpty(i_source))
         {
             const Expression & expr = *i_source.GetExpression();
 

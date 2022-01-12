@@ -15,6 +15,8 @@ namespace djup
         {
             Print("Test: djup - Pattern Matching...");
 
+            auto s = ToSimplifiedStringForm("0 * real"_t);
+
             Scope scope(Scope::Root());
             scope.AddSubstitutionAxiom("2+3",           "5");
             scope.AddSubstitutionAxiom("0 * real",      "0");

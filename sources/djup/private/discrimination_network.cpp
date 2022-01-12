@@ -90,7 +90,7 @@ namespace djup
             edge.m_begin_arguments = pattern.BeginsArguments(token_index);
             edge.m_end_arguments = pattern.EndsArguments(token_index);
             edge.m_is_terminal = token_index + 1 >= pattern_length;
-            edge.m_expr = *token.GetExpression();
+            edge.m_expr = token;
 
             size_t dest_node = m_next_node_index++;
             edge.m_dest_node = dest_node;
@@ -123,19 +123,19 @@ namespace djup
             const Edge & edge = it->second;
             bool matching = false;
 
-            if(edge.m_expr.IsConstant())
-                matching = AlwaysEqual(*token.GetExpression(), edge.m_expr);
-            else if(edge.m_expr.GetName() == builtin_names::Identifier)
-                matching = Is(token, edge.m_expr.GetType());
+            if(IsConstant(edge.m_expr))
+                matching = AlwaysEqual(token, edge.m_expr);
+            else if(NameIs(edge.m_expr, builtin_names::Identifier))
+                matching = Is(token, edge.m_expr);
             else
-                matching = token.GetExpression()->GetName() == edge.m_expr.GetName();
+                matching = token.GetExpression()->GetName() == edge.m_expr.GetExpression()->GetName();
 
             if(matching)
             {
                 WalkingHead new_head = i_curr_head;
-                if(edge.m_expr.GetName() == builtin_names::Identifier)
+                if(NameIs(edge.m_expr, builtin_names::Identifier))
                 {
-                    new_head.m_substitutions.emplace_back(Substitution{edge.m_expr, *token.GetExpression()});
+                    new_head.m_substitutions.emplace_back(Substitution{edge.m_expr, token});
                 }
                 
                 if(edge.m_is_terminal)

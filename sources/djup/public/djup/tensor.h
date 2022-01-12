@@ -17,7 +17,12 @@ namespace djup
     {
     public:
 
-        Tensor() = default;
+        Tensor();
+        Tensor(const Tensor &);
+        Tensor(Tensor &&) noexcept;
+
+        Tensor & operator = (const Tensor &);
+        Tensor & operator = (Tensor &&) noexcept;
 
         /** Construct a tensor from an integer, floating point or bool scalar constant */
         template <typename SCALAR, typename = std::enable_if_t<std::is_integral_v<SCALAR> || std::is_floating_point_v<SCALAR>>>
@@ -25,8 +30,6 @@ namespace djup
                 : Tensor(ScalarConst{}, CanonicalizeScalar(i_scalar)) { }
 
         Tensor(std::string_view i_expression);
-        
-        bool IsEmpty() const noexcept { return m_expression.get() == nullptr; }
 
     public:
 
@@ -43,6 +46,7 @@ namespace djup
     private:
 
         enum class ScalarConst {};
+        Tensor(nullptr_t) {}
         Tensor(ScalarConst, double i_scalar);
         Tensor(ScalarConst, int64_t i_scalar);
         Tensor(ScalarConst, bool i_scalar);
@@ -74,6 +78,8 @@ namespace djup
     Tensor Rank(const Tensor & i_tensor);
 
     Tensor Shape(const Tensor & i_tensor);
+
+    bool IsEmpty(const Tensor & i_tensor);
 
     bool IsConstant(const Tensor & i_tensor);
 

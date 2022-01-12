@@ -15,24 +15,26 @@
 namespace djup
 {
     Expression::Expression(ExpressionData && i_data)
+        : m_data(std::move(i_data))
     {
-        m_data = std::move(i_data);
-
         if(AllOf(m_data.m_arguments, djup::IsConstant))
             m_data.m_is_constant = true;
 
         m_hash << m_data.m_name;
         m_hash << m_data.m_arguments;
-        m_hash << m_data.m_all_flags;
+    }
+
+    Tensor Expression::GetType() const
+    { 
+        if(m_data.m_type)
+            return m_data.m_type; 
+        else
+            return {};
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src)
     {
-        if(!i_src.IsEmpty())
-            return i_dest << i_src.GetExpression()->GetHash();
-        else
-            i_dest << 1;
-        return i_dest;
+        return i_dest << i_src.GetExpression()->GetHash();
     }
 
     Tensor MakeExpression(ExpressionData && i_data)
@@ -44,7 +46,7 @@ namespace djup
     {
         ExpressionData data;
         data.m_name = std::move(i_name);
-        data.m_type = std::move(i_type);
+        data.m_type = i_type.StealExpression();
         data.m_arguments = {i_arguments.begin(), i_arguments.end()};
         return {std::make_shared<Expression>(std::move(data))};
     }
@@ -53,7 +55,7 @@ namespace djup
     {
         ExpressionData data;
         data.m_name = std::move(i_name);
-        data.m_type = std::move(i_type);
+        data.m_type = i_type.StealExpression();
         data.m_is_constant = true;
         data.m_arguments = {i_arguments.begin(), i_arguments.end()};
         return {std::make_shared<Expression>(std::move(data))};
@@ -87,12 +89,12 @@ namespace djup
 
     bool NameIs(const Tensor & i_tensor, const Name & i_name)
     {
-        return !i_tensor.IsEmpty() && i_tensor.GetExpression()->GetName() == i_name;
+        return i_tensor.GetExpression()->GetName() == i_name;
     }
 
     bool NameIs(const Tensor & i_tensor, const ConstexprName & i_name)
     {
-        return !i_tensor.IsEmpty() && i_tensor.GetExpression()->GetName() == i_name;
+        return i_tensor.GetExpression()->GetName() == i_name;
     }
 
     bool AlwaysEqual(const Expression & i_first, const Expression & i_second)
@@ -101,9 +103,6 @@ namespace djup
             return false;
 
         if(i_first.GetName() != i_second.GetName())
-            return false;
-
-        if(i_first.GetAllFlags() != i_second.GetAllFlags())
             return false;
 
         const size_t argument_count = i_first.GetArguments().size();

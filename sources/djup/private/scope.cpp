@@ -102,9 +102,9 @@ namespace djup
             {
                 for(const DiscriminationNetwork::Substitution & substitution : m_match.m_substitutions)
                 {
-                    if(AlwaysEqual(substitution.m_variable, *i_candidate.GetExpression()))
+                    if(AlwaysEqual(substitution.m_variable, i_candidate))
                     {
-                        return MakeExpression(substitution.m_value.GetName(), {}, substitution.m_value.GetArguments());
+                        return substitution.m_value;
                     }
                 }
                 return i_candidate;

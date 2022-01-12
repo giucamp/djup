@@ -75,19 +75,8 @@ namespace djup
                 std::vector<Tensor> result;
                 while(!lexer.TryAccept(i_terminator_symbol))
                 {
-                    Tensor element = TryParseExpression(i_context);
-                    result.push_back(std::move(element));
-                    if(!result.back().IsEmpty())
-                    {
-                        lexer.TryAccept(SymbolId::Comma);
-                    }
-                    else if(!lexer.TryAccept(SymbolId::Comma))
-                    {
-                        if(lexer.GetCurrentToken().m_symbol_id != i_terminator_symbol)
-                        {
-                            Error("Expected expression, comma, or end of list");
-                        }
-                    }
+                    result.push_back(TryParseExpression(i_context));
+                    lexer.TryAccept(SymbolId::Comma);
                 }
                 return result;
             }
@@ -153,7 +142,7 @@ namespace djup
                     if(exponent == 0)
                         return Tensor(Parse<int64_t>(value_chars));
                     else
-                        return Tensor(Parse<int64_t>(value_chars)) / Pow(Tensor(10), Tensor(exponent));
+                        return Tensor(Parse<int64_t>(value_chars)) * Pow(Tensor(10), Tensor(exponent));
                 }
                 else if(std::optional<Token> token = lexer.TryAccept(SymbolId::BoolLiteral))
                 {
@@ -258,7 +247,7 @@ namespace djup
                     lexer.NextToken();
 
                     Tensor right = ParseLeftExpression(i_context);
-                    if(right.IsEmpty())
+                    if(IsEmpty(right))
                         Error("expected right operand for ", GetSymbolChars(operator_token.m_symbol_id));
 
                     while (ShouldParseDeeper(lexer.GetCurrentToken(), operator_token))
@@ -279,7 +268,7 @@ namespace djup
             static Tensor TryParseExpression(ParsingContext & i_context, int32_t i_min_precedence = 0)
             {
                 Tensor result = ParseLeftExpression(i_context);
-                if(!result.IsEmpty())
+                if(!IsEmpty(result))
                 {
                     // try to combine with a binary operator
                     result = CombineWithOperator(i_context, result, i_min_precedence);
@@ -304,7 +293,7 @@ namespace djup
             static Tensor TryParseExpressionOrAxiom(ParsingContext & i_context)
             {
                 Tensor expression = TryParseExpression(i_context, 0);
-                if(expression.IsEmpty())
+                if(IsEmpty(expression))
                     return {};
 
                 /* if the expression has a name, and it's not followed by line break, it may 
@@ -321,7 +310,7 @@ namespace djup
                         Tensor right_hand_side = ParseExpression(i_context);
                         expression = SubstitutionAxiom(expression, when, right_hand_side);
                     }
-                    else if(!when.IsEmpty())
+                    else if(!IsEmpty(when))
                         Error("'when' clause without axiom");
                 }
 
@@ -331,7 +320,7 @@ namespace djup
             static Tensor ParseExpression(ParsingContext & i_context, int32_t i_min_precedence = 0)
             {
                 Tensor expression = TryParseExpression(i_context, i_min_precedence);
-                if(expression.IsEmpty())
+                if(IsEmpty(expression))
                     Error("expected an expression");
 
                 return expression;
@@ -340,7 +329,7 @@ namespace djup
             static Tensor ParseExpressionOrAxiom(ParsingContext & i_context)
             {
                 Tensor expression = TryParseExpressionOrAxiom(i_context);
-                if(expression.IsEmpty())
+                if(IsEmpty(expression))
                     Error("expected an expression or an axiom");
 
                 return expression;

@@ -23,16 +23,8 @@ namespace djup
     {
         Name m_name;
         std::vector<Tensor> m_arguments;
-        Tensor m_type;
-
-        union
-        {
-            struct
-            {
-                bool m_is_constant;
-            };
-            uint32_t m_all_flags = 0;
-        };
+        std::shared_ptr<const Expression> m_type;
+        bool m_is_constant = false;
     };
 
     class Expression
@@ -49,15 +41,15 @@ namespace djup
 
         bool IsConstant() const { return m_data.m_is_constant; }
 
-        auto GetAllFlags() const { return m_data.m_all_flags; }
-
         const Tensor & GetArgument(size_t i_index) const { return m_data.m_arguments[i_index]; }
 
         const std::vector<Tensor> & GetArguments() const { return m_data.m_arguments; }
 
-        const Tensor & GetType() const { return m_data.m_type; }
+        Tensor GetType() const;
 
         const ExpressionData & GetExpressionData() const { return m_data; }
+
+        ExpressionData & EditExpressionData() { return m_data; }
 
     private:
         Hash m_hash;

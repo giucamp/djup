@@ -13,11 +13,42 @@
 
 namespace djup
 {
-    /*Tensor::Tensor(ScalarConst, double i_scalar)
-        : m_expression(std::make_shared<Expression>(i_scalar))
+    namespace
+    {
+        const std::shared_ptr<const Expression> & GetEmptyExpression()
+        {
+            static std::shared_ptr<const Expression> expr = std::make_shared<Expression>(ExpressionData{});
+            return expr;
+        }
+    }
+
+    Tensor::Tensor()
+        : m_expression(GetEmptyExpression())
     {
 
-    }*/
+    }
+
+    Tensor::Tensor(Tensor && i_source) noexcept
+        : m_expression(std::move(i_source.m_expression))
+    {
+        i_source.m_expression = GetEmptyExpression();
+    }
+
+    Tensor & Tensor::operator = (Tensor && i_source) noexcept
+    {
+        m_expression = std::move(i_source.m_expression);
+        i_source.m_expression = GetEmptyExpression();
+        return *this;
+    }
+
+    Tensor::Tensor(const Tensor &) = default;
+    
+    Tensor & Tensor::operator = (const Tensor &) = default;
+
+    bool IsEmpty(const Tensor & i_tensor)
+    {
+        return i_tensor.GetExpression() == GetEmptyExpression();
+    }
 
     Tensor::Tensor(ScalarConst, int64_t i_scalar)
         : m_expression(MakeLiteral(i_scalar).StealExpression())
@@ -226,9 +257,6 @@ namespace djup
 
     bool AlwaysEqual(const Tensor & i_first, const Tensor & i_second)
     {
-        if(i_first.IsEmpty() || i_second.IsEmpty())
-            return i_first.IsEmpty() == i_second.IsEmpty();
-
         return AlwaysEqual(*i_first.GetExpression(), *i_second.GetExpression());
     }
 
@@ -239,7 +267,7 @@ namespace djup
 
     bool IsConstant(const Tensor & i_tensor)
     {
-        return !i_tensor.IsEmpty() && i_tensor.GetExpression()->IsConstant();
+        return i_tensor.GetExpression()->IsConstant();
     }
 
     bool IsIdentifier(const Tensor & i_tensor)

@@ -22,15 +22,10 @@ namespace djup
 
     bool Is(const Tensor & i_tensor, const Tensor & i_pattern)
     {
-        if(i_tensor.IsEmpty() || i_pattern.IsEmpty())
-            return false;
-
         if(IsAny(i_pattern))
             return true;
 
         const Tensor & target_type = i_tensor.GetExpression()->GetType();
-        if(target_type.IsEmpty())
-            return false;
 
         if(target_type.GetExpression()->GetName() == builtin_names::TensorType &&
             i_pattern.GetExpression()->GetName() == builtin_names::TensorType)
