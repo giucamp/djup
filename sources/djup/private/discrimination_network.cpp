@@ -48,7 +48,8 @@ namespace djup
         {
             m_tokens.push_back(Token{i_target});
 
-            if(!i_target.GetExpression()->GetArguments().empty())
+            if(NameIs(i_target, builtin_names::Identifier)
+                && !i_target.GetExpression()->GetArguments().empty())
             {
                 m_tokens.back().m_begin_arguments = true;
 

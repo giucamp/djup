@@ -46,7 +46,6 @@ namespace djup
     private:
 
         enum class ScalarConst {};
-        Tensor(nullptr_t) {}
         Tensor(ScalarConst, double i_scalar);
         Tensor(ScalarConst, int64_t i_scalar);
         Tensor(ScalarConst, bool i_scalar);

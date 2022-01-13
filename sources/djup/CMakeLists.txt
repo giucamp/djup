@@ -7,16 +7,15 @@ add_library(djup STATIC
 	private/builtin_names.h
 	private/constant_shape.cpp
 	private/constant_shape.h
+	private/diagnostic.h
 	private/discrimination_network.cpp
 	private/discrimination_network.h
-	private/domain.cpp
-	private/domain.h
-	private/diagnostic.h
 	private/expression.cpp
 	private/expression.h
 	private/expression_to_string.cpp
 	private/indices.cpp
 	private/indices.h
+	private/is.cpp
 	private/lexer.cpp
 	private/lexer.h
 	private/name.cpp
@@ -25,17 +24,16 @@ add_library(djup STATIC
 	private/parser.h
 	private/scope.cpp
 	private/scope.h
+	private/standard_scope.cpp
+	private/standard_scope.h
 	private/substitute_by_predicate.h
 	private/tensor.cpp
-	private/type.cpp
-	private/type.h
 	public/djup/tensor.h
 	tests/test_djup.cpp
 	tests/test_lexer.cpp
-	tests/test_tensor_to_string.cpp
 	tests/test_parse.cpp
 	tests/test_pattern.cpp
-	tests/test_type.cpp
+	tests/test_tensor_to_string.cpp
 )
 
 target_include_directories(djup PUBLIC public)

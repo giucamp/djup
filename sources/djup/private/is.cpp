@@ -28,10 +28,11 @@ namespace djup
         const Tensor & target_type = i_tensor.GetExpression()->GetType();
 
         if(target_type.GetExpression()->GetName() == builtin_names::TensorType &&
-            i_pattern.GetExpression()->GetName() == builtin_names::TensorType)
+            i_pattern.GetExpression()->GetName() == builtin_names::Identifier)
         {
+            const Tensor & pattern_type = i_pattern.GetExpression()->GetArgument(0);
             const Name & target_scalar = target_type.GetExpression()->GetArgument(0).GetExpression()->GetName();
-            const Name & pattern_scalar = i_pattern.GetExpression()->GetArgument(0).GetExpression()->GetName();
+            const Name & pattern_scalar = pattern_type.GetExpression()->GetArgument(0).GetExpression()->GetName();
 
             if(!GetActiveScope()->ScalarTypeBelongsTo(target_scalar, pattern_scalar))
                 return false;

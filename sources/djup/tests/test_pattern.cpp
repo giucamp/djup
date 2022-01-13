@@ -17,6 +17,16 @@ namespace djup
 
             auto s = ToSimplifiedStringForm("0 * real"_t);
 
+            R"(
+                a = 4 + 6
+            )"_t;
+
+            DJUP_EXPECTS(Is("0"_t, "int"_t));
+            DJUP_EXPECTS(Is("0"_t, "real"_t));
+            DJUP_EXPECTS(!Is("true"_t, "int"_t));
+            DJUP_EXPECTS(!Is("true"_t, "real"_t));
+            DJUP_EXPECTS(!Is("1.2"_t, "int"_t));
+
             Scope scope(Scope::Root());
             scope.AddSubstitutionAxiom("2+3",           "5");
             scope.AddSubstitutionAxiom("0 * real",      "0");

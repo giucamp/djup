@@ -17,7 +17,8 @@ namespace djup
     Expression::Expression(ExpressionData && i_data)
         : m_data(std::move(i_data))
     {
-        if(AllOf(m_data.m_arguments, djup::IsConstant))
+        if(m_data.m_name != builtin_names::Identifier 
+                && AllOf(m_data.m_arguments, djup::IsConstant))
             m_data.m_is_constant = true;
 
         m_hash << m_data.m_name;

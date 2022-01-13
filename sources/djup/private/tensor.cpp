@@ -93,11 +93,11 @@ namespace djup
     {
         std::vector<Tensor> arguments;
         arguments.reserve(i_arguments.size() + 2);
-        arguments.push_back(std::move(i_type));
+        arguments.push_back(i_type);
         arguments.push_back(std::move(i_name));
         for(const Tensor & argument : i_arguments)
             arguments.push_back(argument);
-        return MakeExpression(builtin_names::Identifier, {}, arguments);
+        return MakeExpression(builtin_names::Identifier, std::move(i_type), arguments);
     }
 
     Tensor operator + (const Tensor & i_operand)
