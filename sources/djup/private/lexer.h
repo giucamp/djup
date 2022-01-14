@@ -15,13 +15,17 @@ namespace djup
         outside the lifetime of the Lexer that returned it causes undefined behaviour. */
     struct Token
     {
-        SymbolId m_symbol_id = SymbolId::EndOfSource; /* describe the category of the token (see SymbolId). 
-            If m_symbol is non-null then m_symbol->m_id == m_symbol_id. */ 
+                                                                                        // [64-bit block]
+        SymbolId m_symbol_id = SymbolId::EndOfSource; /* describe the category of the token (see SymbolId). */ 
         bool m_follows_line_break = false; /** wheter the spaces before this token include any '/n' */
+
+                                                                                        // [64-bit block]
         const Symbol * m_symbol = nullptr; /** if non-null contains detail about char-representation, precedence, 
             associativity and applier of the token. Usually this pointer is null for tokens with no fixed
             char-representation, like literals and names, and also for SymbolId::EndOfSource. */
-        std::string_view m_source_chars; /** the portion of soitce that compose the token, excluding 
+
+                                                                                        // [64-bit block * 2]
+        std::string_view m_source_chars; /** the portion of source that compose the token, excluding 
             any heading or tailing space. */
 
         Token() = default;
@@ -56,21 +60,21 @@ namespace djup
         const Token & GetCurrentToken() const { return m_curr_token; }
 
         /** If after skipping spaces the current token matches the provided symbol id,
-            accepets and returns it. Otherwise the return value is empty. The heading 
+            accepts and returns it. Otherwise the return value is empty. The heading 
             spaces can contain line-breaks. */
         std::optional<Token> TryAccept(SymbolId i_symbol_id);
 
         /** If after skipping spaces the current token matches the provided symbol id,
-            accepets and returns it. Otherwise an exception is thrown. The heading spaces 
+            accepts and returns it. Otherwise an exception is thrown. The heading spaces 
             can contain line-breaks. */
         Token Accept(SymbolId i_symbol_id);
 
         /** If after skipping spaces the current token matches the provided symbol id,
-            accepets and returns it. The heading spaces cannot contain line-breaks. */
+            accepts and returns it. The heading spaces cannot contain line-breaks. */
         std::optional<Token> TryAcceptInline(SymbolId i_symbol_id);
 
         /** If after skipping spaces the current token matches the provided symbol id,
-            accepets and returns it. The heading spaces cannot contain line-breaks. */
+            accepts and returns it. The heading spaces cannot contain line-breaks. */
         Token AcceptInline(SymbolId i_symbol_id);
 
         /** Moves to the next token, and returns it. Heading spaces are ignored. 

@@ -11,8 +11,6 @@
 
 namespace djup
 {
-    class Scope;
-
     Tensor ParseExpression(std::string_view i_source);
 
 } // namespace djup

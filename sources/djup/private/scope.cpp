@@ -87,20 +87,15 @@ namespace djup
         m_canonicalization_axioms_patterns.AddPattern(pattern_id, i_what, i_when);
     }
 
-    void Scope::AddSubstitutionAxiom(std::string_view i_what, std::string_view i_with, std::string_view i_when)
-    {
-        AddSubstitutionAxiom(Tensor(i_what), Tensor(i_with), Tensor(i_when));
-    }
-
     namespace
     {
         struct ApplySubstitutions
         {
-            const DiscriminationNetwork::Match & m_match;
+            const DiscriminationNet::Match & m_match;
 
             Tensor operator () (const Tensor & i_candidate) const
             {
-                for(const DiscriminationNetwork::Substitution & substitution : m_match.m_substitutions)
+                for(const DiscriminationNet::Substitution & substitution : m_match.m_substitutions)
                 {
                     if(AlwaysEqual(substitution.m_variable, i_candidate))
                     {
@@ -114,11 +109,11 @@ namespace djup
 
     Tensor Scope::Canonicalize(const Tensor & i_source) const
     {
-        std::vector<DiscriminationNetwork::Match> matches;
+        std::vector<DiscriminationNet::Match> matches;
         m_canonicalization_axioms_patterns.FindMatches(i_source, matches);
         if(!matches.empty())
         {
-            const DiscriminationNetwork::Match & match = matches[0];
+            const DiscriminationNet::Match & match = matches[0];
             const Tensor & replacement = m_canonicalization_axioms_replacements[match.m_pattern_id];
             // if(match.m_substitutions.empty())
             return SubstituteByPredicate(replacement, ApplySubstitutions{match});

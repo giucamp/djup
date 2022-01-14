@@ -6,7 +6,7 @@
 
 #pragma once
 #include <memory>
-#include <private/discrimination_network.h>
+#include <private/discrimination_net.h>
 
 namespace djup
 {
@@ -33,8 +33,6 @@ namespace djup
 
         void AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when = {});
 
-        void AddSubstitutionAxiom(std::string_view i_what, std::string_view i_with, std::string_view i_when = {});
-
         void AddTypeAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when);
 
         Tensor Canonicalize(const Tensor & i_source) const;
@@ -49,7 +47,7 @@ namespace djup
         };
         std::vector<ScalarType> m_scalar_types;
 
-        DiscriminationNetwork m_canonicalization_axioms_patterns;
+        DiscriminationNet m_canonicalization_axioms_patterns;
         std::vector<Tensor> m_canonicalization_axioms_replacements;
 
     private:

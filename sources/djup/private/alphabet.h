@@ -15,10 +15,6 @@ namespace djup
         (i.e. dynamic symbols and special symbols) have no matching alphabet symbol. */
     enum class SymbolId : uint32_t
     {
-        // types
-        Any, Tuple, Number, Bool, Complex, Real, Rational, Integer, Natural,
-        FirstScalarType = Any, LastScalarType = Natural,
-
         // arithmetic unary operators
         UnaryPlus, UnaryMinus,
 
@@ -40,9 +36,9 @@ namespace djup
 
         // pattern matching
         SubstitutionAxiom, When,
-        RepetitionsWeakEllipsis,
-        RepetitionsEllipsis,
-        QuestionMark,
+        RepetitionsOneToMany,
+        RepetitionsZeroToMany,
+        RepetitionsZeroToOne,
 
         // if
         If, Then, Elif, Else,
@@ -138,9 +134,9 @@ namespace djup
         // pattern matching
         { "=",          SymbolId::SubstitutionAxiom                                     },
         { "when",       SymbolId::When                                                  },
-        { "...",        SymbolId::RepetitionsEllipsis                                   },
-        { "..",         SymbolId::RepetitionsWeakEllipsis                               },
-        { "?",          SymbolId::QuestionMark                                          },
+        { "...",        SymbolId::RepetitionsZeroToMany                                 },
+        { "..",         SymbolId::RepetitionsOneToMany                                  },
+        { "?",          SymbolId::RepetitionsZeroToOne                                  },
 
         // if
         { "if",         SymbolId::If                                                    },

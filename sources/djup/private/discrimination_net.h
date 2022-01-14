@@ -13,11 +13,11 @@
 
 namespace djup
 {
-    class DiscriminationNetwork
+    class DiscriminationNet
     {
     public:
 
-        DiscriminationNetwork();
+        DiscriminationNet();
 
         void AddPattern(size_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
 

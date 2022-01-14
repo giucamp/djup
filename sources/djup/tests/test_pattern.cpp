@@ -15,24 +15,26 @@ namespace djup
         {
             Print("Test: djup - Pattern Matching...");
 
-            auto s = ToSimplifiedStringForm("0 * real"_t);
+            Tensor t = "1";
+
+            auto s = ToSimplifiedStringForm("0 * real");
 
             R"(
                 a = 4 + 6
             )"_t;
 
-            DJUP_EXPECTS(Is("0"_t, "int"_t));
-            DJUP_EXPECTS(Is("0"_t, "real"_t));
-            DJUP_EXPECTS(!Is("true"_t, "int"_t));
-            DJUP_EXPECTS(!Is("true"_t, "real"_t));
-            DJUP_EXPECTS(!Is("1.2"_t, "int"_t));
+            DJUP_EXPECTS(Is("0", "int"));
+            DJUP_EXPECTS(Is("0", "real"));
+            DJUP_EXPECTS(!Is("true", "int"));
+            DJUP_EXPECTS(!Is("true", "real"));
+            DJUP_EXPECTS(!Is("1.2", "int"));
 
             Scope scope(Scope::Root());
-            scope.AddSubstitutionAxiom("2+3",           "5");
+            //scope.AddSubstitutionAxiom("2+3",           "5");
             scope.AddSubstitutionAxiom("0 * real",      "0");
 
-            DJUP_EXPECTS(AlwaysEqual(scope.Canonicalize(Tensor("2+3")), Tensor("5")));
-            DJUP_EXPECTS(AlwaysEqual(scope.Canonicalize(Tensor("0*7")), Tensor("0")));
+            //DJUP_EXPECTS(AlwaysEqual(scope.Canonicalize(Tensor("2+3")), Tensor("5")));
+            DJUP_EXPECTS(AlwaysEqual(scope.Canonicalize("0*7"), "0"));
 
             PrintLn("successful");
         }

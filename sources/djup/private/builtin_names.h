@@ -23,6 +23,10 @@ namespace djup
         constexpr ConstexprName Any("any");
         constexpr ConstexprName Bool("bool");
         constexpr ConstexprName Int("int");
+
+        constexpr ConstexprName RepetitionsZeroToMany("RepetitionsZeroToMany");
+        constexpr ConstexprName RepetitionsOneToMany("RepetitionsOneToMany");
+        constexpr ConstexprName RepetitionsZeroToOne("RepetitionsZeroToOne");
         
         constexpr ConstexprName If("If");
         constexpr ConstexprName Add("Add");

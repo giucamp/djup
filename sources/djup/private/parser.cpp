@@ -204,8 +204,8 @@ namespace djup
                     return applier(operand);
                 }
 
-                /* context-sensitive unary-to-binary promotion: binary operator occurrence (respecting 
-                    the white symmetry rule) are promoted to unary operators if thhere is np left operand. */
+                /* context-sensitive unary-to-binary promotion: binary operator occurrences (respecting 
+                    the white symmetry rule) are promoted to unary operators if thhere is no left operand. */
                 else if (lexer.TryAccept(SymbolId::BinaryMinus))
                     return -ParseExpression(i_context, FindSymbol(SymbolId::UnaryMinus).m_precedence);
                 else if (lexer.TryAccept(SymbolId::BinaryPlus))
@@ -272,6 +272,14 @@ namespace djup
                 {
                     // try to combine with a binary operator
                     result = CombineWithOperator(i_context, result, i_min_precedence);
+
+                    // repetition operators
+                    if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsZeroToOne))
+                        result = RepetitionsZeroToOne(result);
+                    else if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsOneToMany))
+                        result = RepetitionsOneToMany(result);
+                    else if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsZeroToMany))
+                        result = RepetitionsZeroToMany(result);
 
                     // if the expression has no name, and a name follows, it is promoted to a type
                     if(result.GetExpression()->GetName().IsEmpty())

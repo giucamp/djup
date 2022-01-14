@@ -4,7 +4,7 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <private/discrimination_network.h>
+#include <private/discrimination_net.h>
 #include <private/builtin_names.h>
 #include <vector>
 
@@ -13,7 +13,7 @@ namespace djup
     /** Immutable flat representation of an expression.
         An expression is a directed acyclic graph. The construction of a flat representation 
         adds an overhead cost, but it greatly simplifies the pattern matching algorithms. */
-    class DiscriminationNetwork::LinearizedExpression
+    class DiscriminationNet::LinearizedExpression
     {
     public:
 
@@ -48,7 +48,7 @@ namespace djup
         {
             m_tokens.push_back(Token{i_target});
 
-            if(NameIs(i_target, builtin_names::Identifier)
+            if(!NameIs(i_target, builtin_names::Identifier)
                 && !i_target.GetExpression()->GetArguments().empty())
             {
                 m_tokens.back().m_begin_arguments = true;
@@ -70,12 +70,12 @@ namespace djup
         std::vector<Token> m_tokens;
     };
 
-    DiscriminationNetwork::DiscriminationNetwork()
+    DiscriminationNet::DiscriminationNet()
     {
 
     }
 
-    void DiscriminationNetwork::AddPattern(size_t i_pattern_id, 
+    void DiscriminationNet::AddPattern(size_t i_pattern_id, 
         const Tensor & i_pattern, const Tensor & i_condition)
     {
         LinearizedExpression pattern(i_pattern);
@@ -103,7 +103,7 @@ namespace djup
         m_terminal_states.insert(std::make_pair(prev_node, i_pattern_id));
     }
 
-    struct DiscriminationNetwork::WalkingHead
+    struct DiscriminationNet::WalkingHead
     {
         size_t m_source_node = 0;
         size_t m_current_token = 0;
@@ -111,7 +111,7 @@ namespace djup
         std::vector<Substitution> m_substitutions;
     };
 
-    void DiscriminationNetwork::MatchToken(
+    void DiscriminationNet::MatchToken(
         std::vector<Match> & o_matches,
         std::vector<WalkingHead> & io_heads,
         const WalkingHead & i_curr_head, const LinearizedExpression & i_target) const
@@ -127,9 +127,18 @@ namespace djup
             if(IsConstant(edge.m_expr))
                 matching = AlwaysEqual(token, edge.m_expr);
             else if(NameIs(edge.m_expr, builtin_names::Identifier))
+            {
                 matching = Is(token, edge.m_expr);
+                if(matching)
+                {
+                    // skip this sub-expression in the target
+                    
+                }
+            }
             else
+            {
                 matching = token.GetExpression()->GetName() == edge.m_expr.GetExpression()->GetName();
+            }
 
             if(matching)
             {
@@ -143,7 +152,7 @@ namespace djup
                 {
                     auto it = m_terminal_states.find(edge.m_dest_node);
                     if(it == m_terminal_states.end())
-                        Error("DiscriminationNetwork: terminal state not found");
+                        Error("DiscriminationNet: terminal state not found");
                     o_matches.push_back({it->second, i_curr_head.m_substitutions});
                 }
                 else
@@ -156,7 +165,7 @@ namespace djup
         }
     }
 
-    void DiscriminationNetwork::FindMatches(const Tensor & i_target, std::vector<Match> & o_matches) const
+    void DiscriminationNet::FindMatches(const Tensor & i_target, std::vector<Match> & o_matches) const
     {
         LinearizedExpression target(i_target);
 

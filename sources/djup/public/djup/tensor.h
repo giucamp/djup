@@ -29,6 +29,7 @@ namespace djup
             Tensor(const SCALAR & i_scalar)
                 : Tensor(ScalarConst{}, CanonicalizeScalar(i_scalar)) { }
 
+        Tensor(const char * i_expression) : Tensor(std::string_view(i_expression)) {}
         Tensor(std::string_view i_expression);
 
     public:
@@ -182,6 +183,10 @@ namespace djup
     Tensor Tuple(Span<Tensor const> i_arguments);
 
     bool Is(const Tensor & i_tensor, const Tensor & i_pattern);
+
+    Tensor RepetitionsZeroToMany(Tensor i_tensor);
+    Tensor RepetitionsOneToMany(Tensor i_tensor);
+    Tensor RepetitionsZeroToOne(Tensor i_tensor);
 
     // to implement
     Tensor Substitute(const Tensor & i_where, const Tensor & i_what,

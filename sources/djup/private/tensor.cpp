@@ -280,6 +280,21 @@ namespace djup
         return NameIs(i_tensor, builtin_names::TensorType);
     }
 
+    Tensor RepetitionsZeroToMany(Tensor i_tensor)
+    {
+        return MakeExpression(builtin_names::RepetitionsZeroToMany, {}, {i_tensor});
+    }
+
+    Tensor RepetitionsOneToMany(Tensor i_tensor)
+    {
+        return MakeExpression(builtin_names::RepetitionsOneToMany, {}, {i_tensor});
+    }
+
+    Tensor RepetitionsZeroToOne(Tensor i_tensor)
+    {
+        return MakeExpression(builtin_names::RepetitionsZeroToOne, {}, {i_tensor});
+    }
+
     std::string ToSimplifiedStringForm(const Tensor & i_source)
     {
         StringBuilder builder;
