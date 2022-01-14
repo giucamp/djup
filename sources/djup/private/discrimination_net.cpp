@@ -6,6 +6,7 @@
 
 #include <private/discrimination_net.h>
 #include <private/builtin_names.h>
+#include <core/flags.h>
 #include <vector>
 
 namespace djup
@@ -17,9 +18,15 @@ namespace djup
     {
     public:
 
-        LinearizedExpression(const Tensor & i_target)
+        enum Flags
         {
-            Linearize(i_target);
+            None = 0,
+            GroupConstantExpression = 1 << 0, /** The arguments of constant expression are not expanded */
+        };
+
+        LinearizedExpression(const Tensor & i_target, Flags i_flags)
+        {
+            Linearize(i_target, i_flags);
         }
 
         size_t GetLength() const
@@ -30,6 +37,11 @@ namespace djup
         const Tensor & GetToken(size_t i_index) const
         {
             return m_tokens[i_index].m_expr;
+        }
+
+        uint32_t GetSibilingOffset(size_t i_index) const
+        {
+            return m_tokens[i_index].m_sibling_offset;
         }
 
         bool BeginsArguments(size_t i_index) const
@@ -44,26 +56,35 @@ namespace djup
 
     private:
 
-        void Linearize(const Tensor & i_target)
+        void Linearize(const Tensor & i_target, Flags i_flags)
         {
+            const size_t token_index = m_tokens.size();
             m_tokens.push_back(Token{i_target});
 
-            if(!NameIs(i_target, builtin_names::Identifier)
-                && !i_target.GetExpression()->GetArguments().empty())
+            bool expand = !NameIs(i_target, builtin_names::Identifier)
+                && !i_target.GetExpression()->GetArguments().empty();
+
+            if(IsConstant(i_target) && HasFlag(i_flags, Flags::GroupConstantExpression))
+                expand = false;
+
+            if(expand)
             {
                 m_tokens.back().m_begin_arguments = true;
 
                 for(const Tensor & argument : i_target.GetExpression()->GetArguments())
-                    Linearize(argument);
+                    Linearize(argument, i_flags);
 
                 m_tokens.emplace_back();
                 m_tokens.back().m_end_arguments = true;
             }
+
+            m_tokens[token_index].m_sibling_offset = NumericCast<uint32_t>(m_tokens.size() - token_index);
         }
 
         struct Token
         {
             Tensor m_expr;
+            uint32_t m_sibling_offset = 0;
             bool m_begin_arguments = false;
             bool m_end_arguments = false;
         };
@@ -78,7 +99,7 @@ namespace djup
     void DiscriminationNet::AddPattern(size_t i_pattern_id, 
         const Tensor & i_pattern, const Tensor & i_condition)
     {
-        LinearizedExpression pattern(i_pattern);
+        LinearizedExpression pattern(i_pattern, LinearizedExpression::Flags::GroupConstantExpression);
 
         const size_t pattern_length = pattern.GetLength();
         size_t prev_node = 0;
@@ -125,15 +146,12 @@ namespace djup
             bool matching = false;
 
             if(IsConstant(edge.m_expr))
+            {
                 matching = AlwaysEqual(token, edge.m_expr);
+            }
             else if(NameIs(edge.m_expr, builtin_names::Identifier))
             {
                 matching = Is(token, edge.m_expr);
-                if(matching)
-                {
-                    // skip this sub-expression in the target
-                    
-                }
             }
             else
             {
@@ -157,7 +175,10 @@ namespace djup
                 }
                 else
                 {
-                    new_head.m_current_token++;
+                    if(NameIs(edge.m_expr, builtin_names::Identifier) || IsConstant(edge.m_expr))
+                        new_head.m_current_token += i_target.GetSibilingOffset(i_curr_head.m_current_token);
+                    else
+                        new_head.m_current_token++;
                     new_head.m_source_node = edge.m_dest_node;
                     io_heads.push_back(std::move(new_head));
                 }
@@ -167,7 +188,7 @@ namespace djup
 
     void DiscriminationNet::FindMatches(const Tensor & i_target, std::vector<Match> & o_matches) const
     {
-        LinearizedExpression target(i_target);
+        LinearizedExpression target(i_target, LinearizedExpression::Flags::None);
 
         std::vector<WalkingHead> heads;
         heads.emplace_back(WalkingHead{0, 0, i_target});
