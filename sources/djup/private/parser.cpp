@@ -23,7 +23,7 @@ namespace djup
         struct ParsingContext
         {
             Lexer & m_lexer;
-            Namespace & m_scope;
+            Namespace & m_namespace;
         };
 
         struct ParserImpl
@@ -124,7 +124,7 @@ namespace djup
                 {
                     Name name = name_token->m_source_chars;
 
-                    if(i_context.m_scope.IsScalarType(name))
+                    if(i_context.m_namespace.IsScalarType(name))
                         return ParseIdentifier(std::move(name), i_context);
 
                     std::vector<Tensor> arguments;
@@ -172,7 +172,7 @@ namespace djup
                 }
                 else if(lexer.TryAccept(SymbolId::LeftBrace))
                 {
-                    // scope operator {}
+                    // namespace operator {}
                     return ParseNamespace(i_context);
                 }
                 else if(lexer.TryAccept(SymbolId::If))
@@ -354,8 +354,8 @@ namespace djup
 
         try
         {
-            std::shared_ptr<Namespace> active_scope = GetActiveNamespace();
-            ParsingContext context{lexer, *active_scope};
+            std::shared_ptr<Namespace> active_namespace = GetActiveNamespace();
+            ParsingContext context{lexer, *active_namespace};
             Tensor result = ParserImpl::ParseExpressionOrAxiom(context);
 
             // all the source must be consumed

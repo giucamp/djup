@@ -20,7 +20,7 @@ namespace djup
         Namespace(const Namespace &) = delete;
         Namespace & operator = (const Namespace &) = delete;
 
-        /* Returns the root scope, which is always empty and unmodifiable */
+        /* Returns the root namespace, which is always unmodifiable */
         static const std::shared_ptr<const Namespace> & Root();
 
         std::shared_ptr<const Namespace> const & GetParent() const { return m_parent; }

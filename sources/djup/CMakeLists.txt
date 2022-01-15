@@ -24,8 +24,7 @@ add_library(djup STATIC
 	private/parser.h
 	private/namespace.cpp
 	private/namespace.h
-	private/standard_scope.cpp
-	private/standard_scope.h
+	private/standard_namespace.cpp
 	private/substitute_by_predicate.h
 	private/tensor.cpp
 	public/djup/tensor.h

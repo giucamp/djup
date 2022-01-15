@@ -48,7 +48,7 @@
     <ClCompile Include="..\private\name.cpp" />
     <ClCompile Include="..\private\parser.cpp" />
     <ClCompile Include="..\private\namespace.cpp" />
-    <ClCompile Include="..\private\standard_scope.cpp" />
+    <ClCompile Include="..\private\standard_namespace.cpp" />
     <ClCompile Include="..\private\tensor.cpp" />
     <ClCompile Include="..\private\expression_to_string.cpp" />
     <ClCompile Include="..\tests\test_djup.cpp" />

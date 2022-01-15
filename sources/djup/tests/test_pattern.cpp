@@ -29,12 +29,12 @@ namespace djup
             DJUP_EXPECTS(!Is("true", "real"));
             DJUP_EXPECTS(!Is("1.2", "int"));
 
-            Namespace scope("Test", Namespace::Root());
-            //scope.AddSubstitutionAxiom("2+3",           "5");
-            scope.AddSubstitutionAxiom("0 * real",      "0");
+            Namespace text_namespace("Test", Namespace::Root());
+            //text_namespace.AddSubstitutionAxiom("2+3",           "5");
+            text_namespace.AddSubstitutionAxiom("0 * real",      "0");
 
-            //DJUP_EXPECTS(AlwaysEqual(scope.Canonicalize(Tensor("2+3")), Tensor("5")));
-            DJUP_EXPECTS(AlwaysEqual(scope.Canonicalize("0*7"), "0"));
+            //DJUP_EXPECTS(AlwaysEqual(text_namespace.Canonicalize(Tensor("2+3")), Tensor("5")));
+            DJUP_EXPECTS(AlwaysEqual(text_namespace.Canonicalize("0*7"), "0"));
 
             PrintLn("successful");
         }

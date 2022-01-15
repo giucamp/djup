@@ -67,15 +67,15 @@ namespace djup
 
     const Namespace::ScalarType * Namespace::FindScalarType(const Name & i_name) const
     {
-        const Namespace * scope = this;
+        const Namespace * curr_namespace = this;
         do {
 
-            for(const ScalarType & scalar_type : scope->m_scalar_types)
+            for(const ScalarType & scalar_type : curr_namespace->m_scalar_types)
                 if(scalar_type.m_name == i_name)
                     return &scalar_type;
 
-            scope = scope->m_parent.get();
-        } while(scope != nullptr);
+            curr_namespace = curr_namespace->m_parent.get();
+        } while(curr_namespace != nullptr);
 
         return nullptr;
     }
@@ -156,6 +156,7 @@ namespace djup
             const Tensor & pattern_type = m_type_inference_axioms_rhss[match.m_pattern_id];
             Tensor type = SubstituteByPredicate(pattern_type, ApplySubstitutions{match});
             ExpressionData data = i_source.GetExpression()->GetExpressionData();
+            // to do: check compatibiloity with the previous type
             data.m_type = type.GetExpression();
             return MakeExpression(std::move(data));
         }
@@ -181,28 +182,28 @@ namespace djup
 
     namespace
     {
-        thread_local std::shared_ptr<Namespace> g_active_scope = GetDefaultNamespace();
+        thread_local std::shared_ptr<Namespace> g_active_namespace = GetDefaultNamespace();
 
         std::shared_ptr<Namespace> MakeDefaultNamespace()
         {
-            std::shared_ptr<Namespace> scope = std::make_shared<Namespace>("Default", GetStandardNamespace());
-            return scope;
+            std::shared_ptr<Namespace> default_namespace = std::make_shared<Namespace>("Default", GetStandardNamespace());
+            return default_namespace;
         }
     }
 
     std::shared_ptr<Namespace> GetDefaultNamespace()
     {
-        static thread_local std::shared_ptr<Namespace> default_scope = MakeDefaultNamespace();
-        return default_scope;
+        static thread_local std::shared_ptr<Namespace> default_namespace = MakeDefaultNamespace();
+        return default_namespace;
     }
 
     void SetActiveNamespace(std::shared_ptr<Namespace> i_namespace)
     {
-        g_active_scope = std::move(i_namespace);
+        g_active_namespace = std::move(i_namespace);
     }
 
     std::shared_ptr<Namespace> GetActiveNamespace()
     {
-        return g_active_scope;
+        return g_active_namespace;
     }
 }

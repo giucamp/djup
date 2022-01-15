@@ -39,7 +39,6 @@
     <ClInclude Include="..\private\indices.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\constant_shape.h" />
     <ClInclude Include="..\private\builtin_names.h">
       <Filter>private</Filter>
     </ClInclude>
@@ -47,6 +46,9 @@
       <Filter>private</Filter>
     </ClInclude>
     <ClInclude Include="..\private\diagnostic.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\constant_shape.h">
       <Filter>private</Filter>
     </ClInclude>
   </ItemGroup>
@@ -96,7 +98,7 @@
     <ClCompile Include="..\tests\test_tensor_to_string.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\standard_scope.cpp">
+    <ClCompile Include="..\private\standard_namespace.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\is.cpp">
