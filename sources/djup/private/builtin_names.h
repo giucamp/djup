@@ -16,7 +16,7 @@ namespace djup
         constexpr ConstexprName Literal("Literal");
         constexpr ConstexprName Stack("Stack");
         constexpr ConstexprName Tuple("Tuple");
-        constexpr ConstexprName Scope("Scope");
+        constexpr ConstexprName Namespace("Namespace");
         constexpr ConstexprName SubstitutionAxiom("SubstitutionAxiom");
         constexpr ConstexprName Is("Is");
         

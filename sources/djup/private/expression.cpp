@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/expression.h>
-#include <private/scope.h>
+#include <private/namespace.h>
 #include <private/builtin_names.h>
 #include <core/algorithms.h>
 #include <core/to_chars.h>

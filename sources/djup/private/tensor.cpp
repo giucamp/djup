@@ -7,7 +7,7 @@
 #include <djup/tensor.h>
 #include <private/expression.h>
 #include <private/parser.h>
-#include <private/scope.h>
+#include <private/namespace.h>
 #include <private/builtin_names.h>
 #include <core/algorithms.h>
 
@@ -250,9 +250,9 @@ namespace djup
         return MakeExpression(builtin_names::If, {}, i_operands);
     }
 
-    Tensor MakeScope(Span<Tensor const> i_arguments)
+    Tensor MakeNamespace(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Scope, {}, i_arguments);
+        return MakeExpression(builtin_names::Namespace, {}, i_arguments);
     }
 
     bool AlwaysEqual(const Tensor & i_first, const Tensor & i_second)

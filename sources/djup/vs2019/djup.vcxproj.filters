@@ -18,10 +18,10 @@
     <ClInclude Include="..\private\name.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\discrimination_network.h">
+    <ClInclude Include="..\private\discrimination_net.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\scope.h">
+    <ClInclude Include="..\private\namespace.h">
       <Filter>private</Filter>
     </ClInclude>
     <ClInclude Include="..\public\djup\tensor.h">
@@ -57,10 +57,10 @@
     <ClCompile Include="..\private\name.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\discrimination_network.cpp">
+    <ClCompile Include="..\private\discrimination_net.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\scope.cpp">
+    <ClCompile Include="..\private\namespace.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\tensor.cpp">
@@ -102,5 +102,10 @@
     <ClCompile Include="..\private\is.cpp">
       <Filter>private</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="NatvisFile.natvis">
+      <Filter>private</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

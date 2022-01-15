@@ -4,15 +4,15 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <private/scope.h>
+#include <private/namespace.h>
 
 namespace djup
 {
     namespace
     {
-        std::shared_ptr<const Scope> MakeStandardScope()
+        std::shared_ptr<const Namespace> MakeStandardNamespace()
         {
-            std::shared_ptr<Scope> scope = std::make_shared<Scope>(nullptr);
+            std::shared_ptr<Namespace> scope = std::make_shared<Namespace>("Standard", nullptr);
             scope->AddScalarType("bool", {});
             scope->AddScalarType("int", {});
             scope->AddScalarType("rational", {"int"});
@@ -22,9 +22,9 @@ namespace djup
         }
     }
 
-    std::shared_ptr<const Scope> GetStandardScope()
+    std::shared_ptr<const Namespace> GetStandardNamespace()
     {
-        static std::shared_ptr<const Scope> standard_scope = MakeStandardScope();
+        static std::shared_ptr<const Namespace> standard_scope = MakeStandardNamespace();
         return standard_scope;
     }
 }

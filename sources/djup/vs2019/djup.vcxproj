@@ -27,19 +27,19 @@
     <ClInclude Include="..\private\alphabet.h" />
     <ClInclude Include="..\private\builtin_names.h" />
     <ClInclude Include="..\private\diagnostic.h" />
-    <ClInclude Include="..\private\discrimination_network.h" />
+    <ClInclude Include="..\private\discrimination_net.h" />
     <ClInclude Include="..\private\expression.h" />
     <ClInclude Include="..\private\constant_shape.h" />
     <ClInclude Include="..\private\indices.h" />
     <ClInclude Include="..\private\lexer.h" />
     <ClInclude Include="..\private\name.h" />
     <ClInclude Include="..\private\parser.h" />
-    <ClInclude Include="..\private\scope.h" />
+    <ClInclude Include="..\private\namespace.h" />
     <ClInclude Include="..\private\substitute_by_predicate.h" />
     <ClInclude Include="..\public\djup\tensor.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\private\discrimination_network.cpp" />
+    <ClCompile Include="..\private\discrimination_net.cpp" />
     <ClCompile Include="..\private\is.cpp" />
     <ClCompile Include="..\private\expression.cpp" />
     <ClCompile Include="..\private\constant_shape.cpp" />
@@ -47,7 +47,7 @@
     <ClCompile Include="..\private\lexer.cpp" />
     <ClCompile Include="..\private\name.cpp" />
     <ClCompile Include="..\private\parser.cpp" />
-    <ClCompile Include="..\private\scope.cpp" />
+    <ClCompile Include="..\private\namespace.cpp" />
     <ClCompile Include="..\private\standard_scope.cpp" />
     <ClCompile Include="..\private\tensor.cpp" />
     <ClCompile Include="..\private\expression_to_string.cpp" />
@@ -56,6 +56,9 @@
     <ClCompile Include="..\tests\test_parse.cpp" />
     <ClCompile Include="..\tests\test_pattern.cpp" />
     <ClCompile Include="..\tests\test_tensor_to_string.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="NatvisFile.natvis" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

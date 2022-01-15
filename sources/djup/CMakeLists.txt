@@ -8,8 +8,8 @@ add_library(djup STATIC
 	private/constant_shape.cpp
 	private/constant_shape.h
 	private/diagnostic.h
-	private/discrimination_network.cpp
-	private/discrimination_network.h
+	private/discrimination_net.cpp
+	private/discrimination_net.h
 	private/expression.cpp
 	private/expression.h
 	private/expression_to_string.cpp
@@ -22,8 +22,8 @@ add_library(djup STATIC
 	private/name.h
 	private/parser.cpp
 	private/parser.h
-	private/scope.cpp
-	private/scope.h
+	private/namespace.cpp
+	private/namespace.h
 	private/standard_scope.cpp
 	private/standard_scope.h
 	private/substitute_by_predicate.h

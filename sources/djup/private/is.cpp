@@ -6,7 +6,7 @@
 
 #include <djup/tensor.h>
 #include <private/expression.h>
-#include <private/scope.h>
+#include <private/namespace.h>
 #include <private/builtin_names.h>
 
 namespace djup
@@ -34,7 +34,7 @@ namespace djup
             const Name & target_scalar = target_type.GetExpression()->GetArgument(0).GetExpression()->GetName();
             const Name & pattern_scalar = pattern_type.GetExpression()->GetArgument(0).GetExpression()->GetName();
 
-            if(!GetActiveScope()->ScalarTypeBelongsTo(target_scalar, pattern_scalar))
+            if(!GetActiveNamespace()->ScalarTypeBelongsTo(target_scalar, pattern_scalar))
                 return false;
 
             const Tensor & target_shape = target_type.GetExpression()->GetArgument(1);

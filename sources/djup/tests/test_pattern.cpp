@@ -4,7 +4,7 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <private/scope.h>
+#include <private/namespace.h>
 #include <core/diagnostic.h>
 
 namespace djup
@@ -29,7 +29,7 @@ namespace djup
             DJUP_EXPECTS(!Is("true", "real"));
             DJUP_EXPECTS(!Is("1.2", "int"));
 
-            Scope scope(Scope::Root());
+            Namespace scope("Test", Namespace::Root());
             //scope.AddSubstitutionAxiom("2+3",           "5");
             scope.AddSubstitutionAxiom("0 * real",      "0");
 

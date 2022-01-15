@@ -11,7 +11,7 @@
 #include <private/lexer.h>
 #include <private/alphabet.h>
 #include <private/expression.h>
-#include <private/scope.h>
+#include <private/namespace.h>
 #include <djup/tensor.h>
 
 namespace djup
@@ -23,7 +23,7 @@ namespace djup
         struct ParsingContext
         {
             Lexer & m_lexer;
-            Scope & m_scope;
+            Namespace & m_scope;
         };
 
         struct ParserImpl
@@ -81,7 +81,7 @@ namespace djup
                 return result;
             }
 
-            static Tensor ParseScope(ParsingContext & i_context)
+            static Tensor ParseNamespace(ParsingContext & i_context)
             {
                 Lexer & lexer = i_context.m_lexer;
 
@@ -91,7 +91,7 @@ namespace djup
                     statements.push_back(ParseExpressionOrAxiom(i_context));
                     lexer.TryAccept(SymbolId::Comma);
                 }
-                return MakeScope(statements);
+                return MakeNamespace(statements);
             }
 
             static Tensor ParseIdentifier(Name i_scalar_type, ParsingContext & i_context)
@@ -173,7 +173,7 @@ namespace djup
                 else if(lexer.TryAccept(SymbolId::LeftBrace))
                 {
                     // scope operator {}
-                    return ParseScope(i_context);
+                    return ParseNamespace(i_context);
                 }
                 else if(lexer.TryAccept(SymbolId::If))
                 {
@@ -354,7 +354,7 @@ namespace djup
 
         try
         {
-            std::shared_ptr<Scope> active_scope = GetActiveScope();
+            std::shared_ptr<Namespace> active_scope = GetActiveNamespace();
             ParsingContext context{lexer, *active_scope};
             Tensor result = ParserImpl::ParseExpressionOrAxiom(context);
 

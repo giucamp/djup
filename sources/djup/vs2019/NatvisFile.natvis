@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="djup::Span&lt;*&gt;">
+    <DisplayString>{m_data, [m_size]}</DisplayString>
+    <Expand>
+      <Item Name="[size]" ExcludeView="simple">m_size</Item>
+      <ArrayItems>
+        <Size>m_size</Size>
+        <ValuePointer>m_data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="djup::Name">
+    <DisplayString>{m_name}</DisplayString>
+  </Type>
+  <Type Name="djup::ConstexprName">
+    <DisplayString>{m_name}</DisplayString>
+  </Type>
+  <Type Name="djup::Tensor">
+    <DisplayString>{m_expression._Ptr->m_data.m_name}({m_expression._Ptr->m_data.m_arguments.size()})</DisplayString>
+    <Expand>
+      <Item Name="[args]" ExcludeView="simple">m_expression._Ptr->m_data.m_arguments</Item>
+    </Expand>
+  </Type>
+  <Type Name="djup::Hash">
+    <DisplayString>{m_value}</DisplayString>
+  </Type>
+</AutoVisualizer>
