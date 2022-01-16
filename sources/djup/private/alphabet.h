@@ -32,8 +32,6 @@ namespace djup
         LeftBracket,        RightBracket, 
         LeftBrace,          RightBrace,
         
-        BeginTuple,         EndTuple,
-
         // pattern matching
         SubstitutionAxiom, When,
         RepetitionsOneToMany,
@@ -122,8 +120,6 @@ namespace djup
         { "-",          SymbolId::UnaryMinus,        (UnaryApplier)operator -,      700 },
 
         // brackets
-        { "{{",         SymbolId::BeginTuple                                            },
-        { "}}",         SymbolId::EndTuple                                              },
         { "(",          SymbolId::LeftParenthesis                                       },
         { ")",          SymbolId::RightParenthesis                                      },
         { "[",          SymbolId::LeftBracket                                           },

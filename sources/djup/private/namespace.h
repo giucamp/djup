@@ -55,6 +55,7 @@ namespace djup
         DiscriminationNet m_type_inference_axioms_patterns;
         std::vector<Tensor> m_type_inference_axioms_rhss;
 
+        // namespace data
         std::shared_ptr<const Namespace> const m_parent;
         Name m_name;
 
@@ -78,4 +79,18 @@ namespace djup
     std::shared_ptr<Namespace> GetActiveNamespace();
 
     Tensor MakeNamespace(Span<Tensor const> i_arguments);
+
+    class NamespaceScope
+    {
+    public:
+
+        NamespaceScope(std::shared_ptr<Namespace> i_new_namespace);
+        ~NamespaceScope();
+
+        NamespaceScope(NamespaceScope &&) noexcept;
+        const NamespaceScope & operator = (NamespaceScope &&) noexcept;
+
+    private:
+        std::shared_ptr<Namespace> m_prev_namespace;
+    };
 }

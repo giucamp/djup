@@ -51,6 +51,9 @@
     <ClInclude Include="..\private\constant_shape.h">
       <Filter>private</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\tensor_map.h">
+      <Filter>private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">

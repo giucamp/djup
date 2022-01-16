@@ -155,10 +155,9 @@ namespace djup
             const DiscriminationNet::Match & match = matches[0];
             const Tensor & pattern_type = m_type_inference_axioms_rhss[match.m_pattern_id];
             Tensor type = SubstituteByPredicate(pattern_type, ApplySubstitutions{match});
-            ExpressionData data = i_source.GetExpression()->GetExpressionData();
+            const Expression & source = *i_source.GetExpression();
             // to do: check compatibiloity with the previous type
-            data.m_type = type.GetExpression();
-            return MakeExpression(std::move(data));
+            return MakeExpression(source.GetName(), source.GetArguments(), ExpressionMetadata{type});
         }
         else
             return i_source;
@@ -205,5 +204,30 @@ namespace djup
     std::shared_ptr<Namespace> GetActiveNamespace()
     {
         return g_active_namespace;
+    }
+
+    NamespaceScope::NamespaceScope(std::shared_ptr<Namespace> i_new_namespace)
+        : m_prev_namespace(GetActiveNamespace())
+    {
+        SetActiveNamespace(std::move(i_new_namespace));
+    }
+
+    NamespaceScope::~NamespaceScope()
+    {
+        if(m_prev_namespace)
+            SetActiveNamespace(std::move(m_prev_namespace));
+    }
+
+    NamespaceScope::NamespaceScope(NamespaceScope && i_source) noexcept
+        : m_prev_namespace(i_source.m_prev_namespace)
+    {
+        i_source.m_prev_namespace.reset();
+    }
+
+    const NamespaceScope & NamespaceScope::operator = (NamespaceScope && i_source) noexcept
+    {
+        m_prev_namespace = i_source.m_prev_namespace;
+        i_source.m_prev_namespace.reset();
+        return *this;
     }
 }

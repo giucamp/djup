@@ -14,23 +14,23 @@
 
 namespace djup
 {
-    Expression::Expression(ExpressionData && i_data)
-        : m_data(std::move(i_data))
+    Expression::Expression()
     {
-        if(m_data.m_name != builtin_names::Identifier 
-                && AllOf(m_data.m_arguments, djup::IsConstant))
-            m_data.m_is_constant = true;
-
-        m_hash << m_data.m_name;
-        m_hash << m_data.m_arguments;
+        m_hash << m_name;
+        m_hash << m_arguments;
     }
 
-    Tensor Expression::GetType() const
-    { 
-        if(m_data.m_type)
-            return m_data.m_type; 
-        else
-            return {};
+    Expression::Expression(Name i_name, Span<const Tensor> i_arguments, std::optional<ExpressionMetadata> i_metadata)
+        : m_name(std::move(i_name)),
+          m_arguments(i_arguments.begin(), i_arguments.end()), 
+          m_metadata(std::move(i_metadata))
+    {
+        /*if(m_name != builtin_names::Identifier
+        && AllOf(m_data.m_arguments, djup::IsConstant))
+        m_data.m_is_constant = true; */
+
+        m_hash << m_name;
+        m_hash << m_arguments;
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src)
@@ -38,54 +38,38 @@ namespace djup
         return i_dest << i_src.GetExpression()->GetHash();
     }
 
-    Tensor MakeExpression(ExpressionData && i_data)
+    Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments, 
+        std::optional<ExpressionMetadata> i_metadata)
     {
-        return {std::make_shared<Expression>(std::move(i_data))};
+        return {std::make_shared<Expression>(std::move(i_name), i_arguments, std::move(i_metadata))};
     }
 
-    Tensor MakeExpression(Name i_name, Tensor i_type, Span<const Tensor> i_arguments)
+    Tensor MakeExpression(Expression && i_source)
     {
-        ExpressionData data;
-        data.m_name = std::move(i_name);
-        data.m_type = i_type.StealExpression();
-        data.m_arguments = {i_arguments.begin(), i_arguments.end()};
-        return {std::make_shared<Expression>(std::move(data))};
-    }
-
-    Tensor MakeConstantExpression(Name i_name, Tensor i_type, Span<const Tensor> i_arguments)
-    {
-        ExpressionData data;
-        data.m_name = std::move(i_name);
-        data.m_type = i_type.StealExpression();
-        data.m_is_constant = true;
-        data.m_arguments = {i_arguments.begin(), i_arguments.end()};
-        return {std::make_shared<Expression>(std::move(data))};
+        return {std::make_shared<Expression>(std::move(i_source))};
     }
 
     Tensor MakeLiteral(bool i_bool_value)
     {
-        ExpressionData data;
         char buffer[8];
         Name name = ToCharsView(buffer, i_bool_value);
-
-        Tensor type = TensorType(builtin_names::Bool, {});
-        return MakeConstantExpression(builtin_names::Literal, type, { MakeConstantExpression(std::move(name), {}) });
+        ExpressionMetadata metadata = { TensorType(builtin_names::Bool, {}) };
+        return MakeExpression(builtin_names::Literal, { MakeExpression(std::move(name), {}) }, std::move(metadata));
     }
 
     Tensor MakeLiteral(int64_t i_integer_value)
     {
-        ExpressionData data;
         char buffer[std::numeric_limits<int64_t>::max_digits10 + 4];
         Name name = ToCharsView(buffer, i_integer_value);
-
-        Tensor type = TensorType(builtin_names::Int, {});
-        return MakeConstantExpression(builtin_names::Literal, type, { MakeConstantExpression(std::move(name), {}) });
+        ExpressionMetadata metadata = { TensorType(builtin_names::Int, {}) };
+        return MakeExpression(builtin_names::Literal, { MakeExpression(std::move(name), {}) }, std::move(metadata));
     }
 
     Tensor TensorType(Name i_scalar_type, Tensor i_shape_vector)
     {
-        return MakeConstantExpression(builtin_names::TensorType, {},
-            { MakeConstantExpression(i_scalar_type, {}), std::move(i_shape_vector) });
+        Tensor res = MakeExpression(builtin_names::TensorType,
+            { MakeExpression(i_scalar_type), std::move(i_shape_vector) });
+        return res;
     }
 
     bool NameIs(const Tensor & i_tensor, const Name & i_name)

@@ -131,7 +131,7 @@ namespace djup
                     if(lexer.TryAccept(SymbolId::LeftParenthesis))
                         arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
 
-                    return MakeExpression(name_token->m_source_chars, {}, arguments);
+                    return MakeExpression(name_token->m_source_chars, arguments);
                 }
                 else if(std::optional<Token> token = lexer.TryAccept(SymbolId::NumericLiteral))
                 {
@@ -158,17 +158,9 @@ namespace djup
                     // stack operators [] - create a tensor
                     return Stack(ParseExpressionList(i_context, SymbolId::RightBracket));
                 }
-                else if(lexer.TryAccept(SymbolId::BeginTuple))
-                {
-                    // tuple operators {{ }} - create a tuple
-                    return Tuple(ParseExpressionList(i_context, SymbolId::EndTuple));
-                }
                 else if(lexer.TryAccept(SymbolId::LeftParenthesis))
                 {
-                    Tensor expr = ParseExpression(i_context);
-                    if(lexer.TryAccept(SymbolId::RightParenthesis))
-                        Error("expected ')'");
-                    return expr;
+                    return Tuple(ParseExpressionList(i_context, SymbolId::RightParenthesis));
                 }
                 else if(lexer.TryAccept(SymbolId::LeftBrace))
                 {
@@ -286,9 +278,7 @@ namespace djup
                     {
                         if(std::optional<Token> name_token = i_context.m_lexer.TryAccept(SymbolId::Name))
                         {
-                            ExpressionData data = result.GetExpression()->GetExpressionData();
-                            data.m_name = name_token->m_source_chars;
-                            result = MakeExpression(std::move(data));
+                            result = MakeExpression(Name(name_token->m_source_chars), result.GetExpression()->GetArguments());
                         }
                     }
 

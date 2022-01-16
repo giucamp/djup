@@ -36,6 +36,7 @@
     <ClInclude Include="..\private\parser.h" />
     <ClInclude Include="..\private\namespace.h" />
     <ClInclude Include="..\private\substitute_by_predicate.h" />
+    <ClInclude Include="..\private\tensor_map.h" />
     <ClInclude Include="..\public\djup\tensor.h" />
   </ItemGroup>
   <ItemGroup>

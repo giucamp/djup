@@ -41,9 +41,8 @@ namespace djup
             }
             if(some_operand_replaced)
             {
-                ExpressionData data = replacement.GetExpression()->GetExpressionData();
-                data.m_arguments = new_arguments;
-                replacement = MakeExpression(std::move(data));
+                const Expression & expr = *replacement.GetExpression();
+                replacement = MakeExpression(expr.GetName(), new_arguments, expr.GetMetadata());
             }
 
             if(!i_replacement_map.insert(std::make_pair(

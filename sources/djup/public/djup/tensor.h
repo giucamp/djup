@@ -79,6 +79,8 @@ namespace djup
 
     Tensor Shape(const Tensor & i_tensor);
 
+    const Tensor & EmptyTensor();
+
     bool IsEmpty(const Tensor & i_tensor);
 
     bool IsConstant(const Tensor & i_tensor);
