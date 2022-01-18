@@ -13,6 +13,15 @@
 
 namespace djup
 {
+    struct PatternMatch
+    {
+        size_t m_pattern_id;
+        std::unordered_map<const Expression*, Tensor> m_substitutions;
+        std::unordered_map<const Expression*, size_t> m_expansions;
+    };
+
+    Tensor SubstitutePatternMatch(const Tensor & i_source, const PatternMatch & i_match);
+
     class DiscriminationNet
     {
     public:
@@ -21,19 +30,7 @@ namespace djup
 
         void AddPattern(size_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
 
-        struct Substitution
-        {
-            Tensor m_variable;
-            Tensor m_value;
-        };
-
-        struct Match
-        {
-            size_t m_pattern_id;
-            std::vector<Substitution> m_substitutions;
-        };
-
-        void FindMatches(const Tensor & i_target, std::vector<Match> & o_matches) const;
+        void FindMatches(const Tensor & i_target, std::vector<PatternMatch> & o_matches) const;
 
     private:
 
@@ -57,9 +54,7 @@ namespace djup
 
     private:
 
-        size_t AddSubPattern(size_t i_node_index, size_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
-
-        void MatchToken(std::vector<Match> & o_matches, std::vector<WalkingHead> & io_heads,
+        void MatchToken(std::vector<PatternMatch> & o_matches, std::vector<WalkingHead> & io_heads,
             const WalkingHead & i_curr_head, const LinearizedExpression & i_target) const;
     };
 }

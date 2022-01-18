@@ -301,6 +301,11 @@ namespace djup
         return MakeExpression(builtin_names::RepetitionsZeroToOne, {i_tensor});
     }
 
+    Tensor RepetitionsExpand(Tensor i_tensor)
+    {
+        return MakeExpression(builtin_names::RepetitionsExpand, {i_tensor});
+    }
+
     std::string ToSimplifiedStringForm(const Tensor & i_source)
     {
         StringBuilder builder;

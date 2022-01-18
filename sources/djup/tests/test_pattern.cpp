@@ -19,22 +19,27 @@ namespace djup
 
             auto s = ToSimplifiedStringForm("0 * real");
 
+            auto s1 = ToSimplifiedStringForm("0 * Add(real x?, 4)..");
+
             R"(
                 a = 4 + 6
             )"_t;
 
             DJUP_EXPECTS(Is("0", "int"));
             DJUP_EXPECTS(Is("0", "real"));
+            DJUP_EXPECTS(Is("false", "bool"));
             DJUP_EXPECTS(!Is("true", "int"));
             DJUP_EXPECTS(!Is("true", "real"));
             DJUP_EXPECTS(!Is("1.2", "int"));
 
-            Namespace text_namespace("Test", Namespace::Root());
-            //text_namespace.AddSubstitutionAxiom("2+3",           "5");
-            text_namespace.AddSubstitutionAxiom("0 * real",      "0");
+            Namespace test_namespace("Test", Namespace::Root());
+            test_namespace.AddSubstitutionAxiom("2+3",                  "5");
+            test_namespace.AddSubstitutionAxiom("0 * real",             "0");
+            //test_namespace.AddSubstitutionAxiom("f((5, real a)...)",    "g(...(4, a))");
 
-            //DJUP_EXPECTS(AlwaysEqual(text_namespace.Canonicalize(Tensor("2+3")), Tensor("5")));
-            DJUP_EXPECTS(AlwaysEqual(text_namespace.Canonicalize("0*7"), "0"));
+
+            DJUP_EXPECTS(AlwaysEqual(test_namespace.Canonicalize("2+3"), "5"));
+            DJUP_EXPECTS(AlwaysEqual(test_namespace.Canonicalize("0*7"), "0"));
 
             PrintLn("successful");
         }

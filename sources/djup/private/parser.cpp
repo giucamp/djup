@@ -76,7 +76,13 @@ namespace djup
                 while(!lexer.TryAccept(i_terminator_symbol))
                 {
                     result.push_back(TryParseExpression(i_context));
-                    lexer.TryAccept(SymbolId::Comma);
+                    const bool has_comma = lexer.TryAccept(SymbolId::Comma).has_value();
+                    if(!has_comma 
+                        && lexer.GetCurrentToken().m_symbol_id != i_terminator_symbol
+                        && IsEmpty(result.back()))
+                    {
+                        Error("Expected expression, comma or ", GetSymbolChars(i_terminator_symbol));
+                    }
                 }
                 return result;
             }
@@ -160,7 +166,11 @@ namespace djup
                 }
                 else if(lexer.TryAccept(SymbolId::LeftParenthesis))
                 {
-                    return Tuple(ParseExpressionList(i_context, SymbolId::RightParenthesis));
+                    //return Tuple(ParseExpressionList(i_context, SymbolId::RightParenthesis));
+                    Tensor expr = ParseExpression(i_context);
+                    if(!lexer.TryAccept(SymbolId::RightParenthesis))
+                        Error("expected ')'");
+                    return expr;
                 }
                 else if(lexer.TryAccept(SymbolId::LeftBrace))
                 {
@@ -196,8 +206,14 @@ namespace djup
                     return applier(operand);
                 }
 
+                else if(lexer.TryAccept(SymbolId::RepetitionsZeroToMany))
+                {
+                    // prefix operator ...
+                    return RepetitionsExpand(ParseExpression(i_context));
+                }
+
                 /* context-sensitive unary-to-binary promotion: binary operator occurrences (respecting 
-                    the white symmetry rule) are promoted to unary operators if thhere is no left operand. */
+                    the white symmetry rule) are promoted to unary operators if there is no left operand. */
                 else if (lexer.TryAccept(SymbolId::BinaryMinus))
                     return -ParseExpression(i_context, FindSymbol(SymbolId::UnaryMinus).m_precedence);
                 else if (lexer.TryAccept(SymbolId::BinaryPlus))
@@ -232,7 +248,7 @@ namespace djup
                     && lexer.GetCurrentToken().m_symbol->m_precedence >= i_min_precedence)
                 {
                     /* now we have the left-hand operatand and the operator.
-                    we just need the right-hand operand. */
+                       we just need the right-hand operand. */
                     Token const operator_token = lexer.GetCurrentToken();
 
                     // we have accepted the operator, so we must move to the lext token
@@ -273,7 +289,7 @@ namespace djup
                     else if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsZeroToMany))
                         result = RepetitionsZeroToMany(result);
 
-                    // if the expression has no name, and a name follows, it is promoted to a type
+                    // if the expression has no name, and a name follows, the expression is promoted to a type
                     if(result.GetExpression()->GetName().IsEmpty())
                     {
                         if(std::optional<Token> name_token = i_context.m_lexer.TryAccept(SymbolId::Name))
@@ -332,7 +348,8 @@ namespace djup
 
                 return expression;
             }
-        };
+
+        }; // struct ParserImpl
 
     } // namespace
 

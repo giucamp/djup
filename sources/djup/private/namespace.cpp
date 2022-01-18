@@ -5,7 +5,6 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/namespace.h>
-#include <private/substitute_by_predicate.h>
 #include <core/algorithms.h>
 
 namespace djup
@@ -94,53 +93,15 @@ namespace djup
         m_type_inference_axioms_patterns.AddPattern(pattern_id, i_what, i_when);
     }
 
-    namespace
-    {
-        struct ApplySubstitutions
-        {
-            const DiscriminationNet::Match & m_match;
-
-            Tensor operator () (const Tensor & i_candidate) const
-            {
-                for(const DiscriminationNet::Substitution & substitution : m_match.m_substitutions)
-                {
-                    if(AlwaysEqual(substitution.m_variable, i_candidate))
-                    {
-                        return substitution.m_value;
-                    }
-                }
-                return i_candidate;
-            }
-        };
-
-        struct ApplyType
-        {
-            const DiscriminationNet::Match & m_match;
-
-            Tensor operator () (const Tensor & i_candidate) const
-            {
-                for(const DiscriminationNet::Substitution & substitution : m_match.m_substitutions)
-                {
-                    if(AlwaysEqual(substitution.m_variable, i_candidate))
-                    {
-                        return substitution.m_value;
-                    }
-                }
-                return i_candidate;
-            }
-        };
-    }
-
     Tensor Namespace::ApplySubstitutionAxioms(const Tensor & i_source) const
     {
-        std::vector<DiscriminationNet::Match> matches;
+        std::vector<PatternMatch> matches;
         m_substitution_axioms_patterns.FindMatches(i_source, matches);
         if(!matches.empty())
         {
-            const DiscriminationNet::Match & match = matches[0];
+            const PatternMatch & match = matches[0];
             const Tensor & replacement = m_substitution_axioms_rhss[match.m_pattern_id];
-            // if(match.m_substitutions.empty())
-            return SubstituteByPredicate(replacement, ApplySubstitutions{match});
+            return SubstitutePatternMatch(replacement, match);
         }
         else
             return i_source;
@@ -148,13 +109,13 @@ namespace djup
 
     Tensor Namespace::ApplyTypeInferenceAxioms(const Tensor & i_source) const
     {
-        std::vector<DiscriminationNet::Match> matches;
+        std::vector<PatternMatch> matches;
         m_type_inference_axioms_patterns.FindMatches(i_source, matches);
         if(!matches.empty())
         {
-            const DiscriminationNet::Match & match = matches[0];
+            const PatternMatch & match = matches[0];
             const Tensor & pattern_type = m_type_inference_axioms_rhss[match.m_pattern_id];
-            Tensor type = SubstituteByPredicate(pattern_type, ApplySubstitutions{match});
+            Tensor type = SubstitutePatternMatch(pattern_type, match);
             const Expression & source = *i_source.GetExpression();
             // to do: check compatibiloity with the previous type
             return MakeExpression(source.GetName(), source.GetArguments(), ExpressionMetadata{type});
