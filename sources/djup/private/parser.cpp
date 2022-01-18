@@ -12,6 +12,7 @@
 #include <private/alphabet.h>
 #include <private/expression.h>
 #include <private/namespace.h>
+#include <private/builtin_names.h>
 #include <djup/tensor.h>
 
 namespace djup
@@ -166,11 +167,11 @@ namespace djup
                 }
                 else if(lexer.TryAccept(SymbolId::LeftParenthesis))
                 {
-                    //return Tuple(ParseExpressionList(i_context, SymbolId::RightParenthesis));
-                    Tensor expr = ParseExpression(i_context);
-                    if(!lexer.TryAccept(SymbolId::RightParenthesis))
-                        Error("expected ')'");
-                    return expr;
+                    std::vector<Tensor> arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
+                    if(arguments.size() == 1)
+                        return std::move(arguments.front());
+                    else
+                        return Tuple(arguments);
                 }
                 else if(lexer.TryAccept(SymbolId::LeftBrace))
                 {
@@ -209,7 +210,10 @@ namespace djup
                 else if(lexer.TryAccept(SymbolId::RepetitionsZeroToMany))
                 {
                     // prefix operator ...
-                    return RepetitionsExpand(ParseExpression(i_context));
+                    if(lexer.TryAccept(SymbolId::LeftParenthesis))
+                        return RepetitionsExpand(ParseExpressionList(i_context, SymbolId::RightParenthesis));
+                    else
+                        return RepetitionsExpand({ParseExpression(i_context)});
                 }
 
                 /* context-sensitive unary-to-binary promotion: binary operator occurrences (respecting 
@@ -282,12 +286,21 @@ namespace djup
                     result = CombineWithOperator(i_context, result, i_min_precedence);
 
                     // repetition operators
+                    Tensor (*repetition)(Span<Tensor const>) = nullptr;
                     if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsZeroToOne))
-                        result = RepetitionsZeroToOne(result);
+                        repetition = &RepetitionsZeroToOne;
                     else if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsOneToMany))
-                        result = RepetitionsOneToMany(result);
+                        repetition = &RepetitionsOneToMany;
                     else if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsZeroToMany))
-                        result = RepetitionsZeroToMany(result);
+                        repetition = &RepetitionsZeroToMany;
+                    if(repetition != nullptr)
+                    {
+                        // a tuple as argument of a repetition decays to its arguments
+                        if(NameIs(result, builtin_names::Tuple))
+                            return (*repetition)(result.GetExpression()->GetArguments());
+                        else
+                            return (*repetition)({result});
+                    }
 
                     // if the expression has no name, and a name follows, the expression is promoted to a type
                     if(result.GetExpression()->GetName().IsEmpty())

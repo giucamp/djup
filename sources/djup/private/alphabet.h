@@ -33,7 +33,8 @@ namespace djup
         LeftBrace,          RightBrace,
         
         // pattern matching
-        SubstitutionAxiom, When,
+        SubstitutionAxiom,
+        When,
         RepetitionsOneToMany,
         RepetitionsZeroToMany,
         RepetitionsZeroToOne,

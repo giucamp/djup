@@ -286,24 +286,24 @@ namespace djup
         return NameIs(i_tensor, builtin_names::TensorType);
     }
 
-    Tensor RepetitionsZeroToMany(Tensor i_tensor)
+    Tensor RepetitionsZeroToMany(Span<Tensor const> i_tensors)
     {
-        return MakeExpression(builtin_names::RepetitionsZeroToMany, {i_tensor});
+        return MakeExpression(builtin_names::RepetitionsZeroToMany, i_tensors);
     }
 
-    Tensor RepetitionsOneToMany(Tensor i_tensor)
+    Tensor RepetitionsOneToMany(Span<Tensor const> i_tensors)
     {
-        return MakeExpression(builtin_names::RepetitionsOneToMany, {i_tensor});
+        return MakeExpression(builtin_names::RepetitionsOneToMany, i_tensors);
     }
 
-    Tensor RepetitionsZeroToOne(Tensor i_tensor)
+    Tensor RepetitionsZeroToOne(Span<Tensor const> i_tensors)
     {
-        return MakeExpression(builtin_names::RepetitionsZeroToOne, {i_tensor});
+        return MakeExpression(builtin_names::RepetitionsZeroToOne, i_tensors);
     }
 
-    Tensor RepetitionsExpand(Tensor i_tensor)
+    Tensor RepetitionsExpand(Span<Tensor const> i_tensors)
     {
-        return MakeExpression(builtin_names::RepetitionsExpand, {i_tensor});
+        return MakeExpression(builtin_names::RepetitionsExpand, i_tensors);
     }
 
     std::string ToSimplifiedStringForm(const Tensor & i_source)

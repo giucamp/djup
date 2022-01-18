@@ -127,10 +127,7 @@ namespace djup
         std::vector<Token> m_tokens;
     };
 
-    DiscriminationNet::DiscriminationNet()
-    {
-
-    }
+    DiscriminationNet::DiscriminationNet() = default;
 
     void DiscriminationNet::AddPattern(size_t i_pattern_id, 
         const Tensor & i_pattern, const Tensor & i_condition)

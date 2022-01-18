@@ -186,11 +186,11 @@ namespace djup
 
     bool Is(const Tensor & i_tensor, const Tensor & i_pattern);
 
-    Tensor RepetitionsZeroToMany(Tensor i_tensor);
-    Tensor RepetitionsOneToMany(Tensor i_tensor);
-    Tensor RepetitionsZeroToOne(Tensor i_tensor);
+    Tensor RepetitionsZeroToMany(Span<Tensor const> i_tensors);
+    Tensor RepetitionsOneToMany(Span<Tensor const> i_tensors);
+    Tensor RepetitionsZeroToOne(Span<Tensor const> i_tensors);
 
-    Tensor RepetitionsExpand(Tensor i_tensor);
+    Tensor RepetitionsExpand(Span<Tensor const> i_tensors);
 
     // to implement
     Tensor Substitute(const Tensor & i_where, const Tensor & i_what,

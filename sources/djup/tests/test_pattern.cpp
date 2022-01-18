@@ -21,6 +21,10 @@ namespace djup
 
             auto s1 = ToSimplifiedStringForm("0 * Add(real x?, 4)..");
 
+            auto s2 = ToSimplifiedStringForm("f((5, real a)...)");
+
+            auto s3 = ToSimplifiedStringForm("g(...(4, a))");
+
             R"(
                 a = 4 + 6
             )"_t;
@@ -35,7 +39,7 @@ namespace djup
             Namespace test_namespace("Test", Namespace::Root());
             test_namespace.AddSubstitutionAxiom("2+3",                  "5");
             test_namespace.AddSubstitutionAxiom("0 * real",             "0");
-            //test_namespace.AddSubstitutionAxiom("f((5, real a)...)",    "g(...(4, a))");
+            test_namespace.AddSubstitutionAxiom("f((5, real a)...)",    "g(...(4, a))");
 
 
             DJUP_EXPECTS(AlwaysEqual(test_namespace.Canonicalize("2+3"), "5"));
