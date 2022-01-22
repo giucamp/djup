@@ -165,6 +165,138 @@ namespace djup
         std::unordered_map<const Expression*, size_t> m_expansions;
     };
 
+    struct Candidate
+    {
+        Span<const Tensor> m_pattern_arguments;
+        Span<const Tensor> m_target_arguments;
+        size_t m_variadic_arguments_count = {};
+        size_t m_repetitions = {};
+        std::unordered_map<const Expression*, Tensor> m_substitutions;
+        std::unordered_map<const Expression*, size_t> m_expansions;
+    };
+
+    struct MatchingContext
+    {
+        std::vector<Candidate> m_candidates;
+        std::vector<PatternMatch> m_matches;
+    };
+
+    bool AddSubstitution(Candidate & i_dest, const Tensor & i_pattern_var, const Tensor & i_value);
+    std::vector<PatternMatch> Match(const Tensor & i_target, const Tensor & i_pattern);
+    bool MatchArguments(MatchingContext & i_context, Candidate i_candidate);
+
+    bool AddSubstitution(Candidate & i_dest, const Tensor & i_pattern_var, const Tensor & i_value)
+    {
+        auto res = i_dest.m_substitutions.insert({i_pattern_var.GetExpression().get(), i_value});
+        if(res.second)
+            return true;
+
+        // already present, enforce coherence
+        return AlwaysEqual(i_value, res.first->second);
+    }
+
+    std::vector<PatternMatch> Match(const Tensor & i_target, const Tensor & i_pattern)
+    {
+        MatchingContext context;
+        Candidate candidate;
+        candidate.m_pattern_arguments = {&i_pattern, 1};
+        candidate.m_target_arguments = {&i_target, 1};
+        candidate.m_repetitions = 1;
+        MatchArguments(context, candidate);
+        return std::move(context.m_matches);
+    }
+
+    /** */
+    bool MatchArguments(
+        MatchingContext & i_context,
+        Candidate i_candidate)
+    {
+        size_t target_arg_index = 0;
+
+        for(size_t repetition_index = 0; repetition_index < i_candidate.m_repetitions; repetition_index++)
+            for(size_t arg_index = 0; arg_index < i_candidate.m_pattern_arguments.size(); target_arg_index++, arg_index++)
+        {
+            const Tensor & pattern_arg = i_candidate.m_pattern_arguments[arg_index];
+            const Tensor & target_arg = i_candidate.m_target_arguments[target_arg_index];
+            
+            if(IsConstant(pattern_arg))
+            {
+                if(!AlwaysEqual(pattern_arg, target_arg))
+                    return false;
+            }
+            else if(NameIs(pattern_arg, builtin_names::Identifier))
+            {
+                if(!Is(target_arg, pattern_arg))
+                    return false; // type mismatch
+                
+                if(!AddSubstitution(i_candidate, pattern_arg, target_arg))
+                    return false; // incompatible substitution
+            }
+            else if(NameIs(pattern_arg, builtin_names::RepetitionsZeroToMany))
+            {
+                size_t min_rep = 0;
+                size_t max_rep = i_candidate.m_variadic_arguments_count / pattern_arg.GetExpression()->GetArguments().size();
+
+                for(size_t rep = min_rep; rep < max_rep; rep++)
+                {
+                    Candidate new_candidate = i_candidate;
+                    new_candidate.m_repetitions = rep;
+                    new_candidate.m_variadic_arguments_count -= (rep - min_rep);
+                    new_candidate.m_pattern_arguments = pattern_arg.GetExpression()->GetArguments();
+                    new_candidate.m_target_arguments = i_candidate.m_pattern_arguments.subspan(arg_index + 1);
+                    i_context.m_candidates.push_back(std::move(new_candidate));
+                }
+
+                return false;
+            }
+            else if(NameIs(pattern_arg, builtin_names::RepetitionsZeroToOne))
+            {
+
+            }
+            else if(NameIs(pattern_arg, builtin_names::RepetitionsOneToMany))
+            {
+
+            }
+            else
+            {
+                if(pattern_arg.GetExpression()->GetName() != target_arg.GetExpression()->GetName())
+                    return false;
+
+                size_t non_variadic_symbols = 0;
+                for(const Tensor & arg : pattern_arg.GetExpression()->GetArguments())
+                {
+                    if(NameIs(arg, builtin_names::RepetitionsZeroToMany))
+                        ;
+                    else if(NameIs(arg, builtin_names::RepetitionsZeroToOne))
+                        ;
+                    else if(NameIs(arg, builtin_names::RepetitionsOneToMany))
+                        non_variadic_symbols++;
+                    else
+                        non_variadic_symbols++;
+                }
+
+                // is the target does not have enough arguments, early reject
+                size_t target_arguments = target_arg.GetExpression()->GetArguments().size();
+                if(non_variadic_symbols <= target_arguments)
+                {
+                    // total number of arguments that can be distributed to variadic expressions
+                    size_t variadic_arguments_count = target_arguments - non_variadic_symbols;
+
+                    Candidate new_candidate = i_candidate;
+                    new_candidate.m_pattern_arguments = pattern_arg.GetExpression()->GetArguments();
+                    new_candidate.m_target_arguments = target_arg.GetExpression()->GetArguments();
+                    new_candidate.m_repetitions = 1;
+                    new_candidate.m_variadic_arguments_count = variadic_arguments_count;
+                    MatchArguments(i_context, std::move(new_candidate));
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+
     void DiscriminationNet::FindMatches(const Tensor & i_target, std::vector<PatternMatch> & o_matches) const
     {
         LinearizedExpression target(i_target, LinearizedExpression::Flags::None);

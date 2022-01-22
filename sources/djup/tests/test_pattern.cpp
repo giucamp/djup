@@ -15,15 +15,17 @@ namespace djup
         {
             Print("Test: djup - Pattern Matching...");
 
+            Match("5"_t, "real x"_t);
+
             Tensor t = "1";
 
             auto s = ToSimplifiedStringForm("0 * real");
 
             auto s1 = ToSimplifiedStringForm("0 * Add(real x?, 4)..");
 
-            auto s2 = ToSimplifiedStringForm("f((5, real a)...)");
+            auto s2 = ToSimplifiedStringForm("f((5 real a)...)");
 
-            auto s3 = ToSimplifiedStringForm("g(...(4, a))");
+            auto s3 = ToSimplifiedStringForm("g(...(4 a))");
 
             R"(
                 a = 4 + 6

@@ -20,6 +20,8 @@ namespace djup
         std::unordered_map<const Expression*, size_t> m_expansions;
     };
 
+    std::vector<PatternMatch> Match(const Tensor & i_target, const Tensor & i_pattern);
+
     Tensor SubstitutePatternMatch(const Tensor & i_source, const PatternMatch & i_match);
 
     class DiscriminationNet

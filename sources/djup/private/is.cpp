@@ -38,7 +38,7 @@ namespace djup
                 return false;
 
             const Tensor & target_shape = target_type.GetExpression()->GetArgument(1);
-            const Tensor & pattern_shape = i_pattern.GetExpression()->GetArgument(1);
+            const Tensor & pattern_shape = pattern_type.GetExpression()->GetArgument(1);
             if(!AlwaysEqual(target_shape, pattern_shape))
                 return false;
 
