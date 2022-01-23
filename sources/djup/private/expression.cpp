@@ -54,6 +54,7 @@ namespace djup
         char buffer[8];
         Name name = ToCharsView(buffer, i_bool_value);
         ExpressionMetadata metadata = { TensorType(builtin_names::Bool, {}) };
+        metadata.m_is_constant = true;
         return MakeExpression(builtin_names::Literal, { MakeExpression(std::move(name), {}) }, std::move(metadata));
     }
 
@@ -62,6 +63,7 @@ namespace djup
         char buffer[std::numeric_limits<int64_t>::max_digits10 + 4];
         Name name = ToCharsView(buffer, i_integer_value);
         ExpressionMetadata metadata = { TensorType(builtin_names::Int, {}) };
+        metadata.m_is_constant = true;
         return MakeExpression(builtin_names::Literal, { MakeExpression(std::move(name), {}) }, std::move(metadata));
     }
 

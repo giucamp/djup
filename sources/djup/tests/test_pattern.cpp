@@ -15,7 +15,12 @@ namespace djup
         {
             Print("Test: djup - Pattern Matching...");
 
-            Match("5"_t, "real x"_t);
+            // Match("5"_t, "real x"_t);
+
+            // auto m1 = Match("f(1, 2, 3, 4, 5, 6, 7, 8)"_t, "f(1, 2, real x..., 6, 7, 8)"_t);
+
+            auto m1 = Match("f(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)"_t, 
+                "f(1, 2, real x..., 6, 7, 8, real y..., 12, 13, 14, 15)"_t);
 
             Tensor t = "1";
 
