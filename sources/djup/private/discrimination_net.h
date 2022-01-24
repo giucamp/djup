@@ -9,21 +9,10 @@
 #include <vector>
 #include <unordered_map>
 #include <djup/tensor.h>
-#include <private/expression.h>
+#include <private/pattern_match.h>
 
 namespace djup
 {
-    struct PatternMatch
-    {
-        size_t m_pattern_id;
-        std::unordered_map<const Expression*, Tensor> m_substitutions;
-        std::unordered_map<const Expression*, size_t> m_expansions;
-    };
-
-    std::vector<PatternMatch> Match(const Tensor & i_target, const Tensor & i_pattern);
-
-    Tensor SubstitutePatternMatch(const Tensor & i_source, const PatternMatch & i_match);
-
     class DiscriminationNet
     {
     public:

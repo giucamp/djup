@@ -35,6 +35,7 @@
     <ClInclude Include="..\private\name.h" />
     <ClInclude Include="..\private\parser.h" />
     <ClInclude Include="..\private\namespace.h" />
+    <ClInclude Include="..\private\pattern_match.h" />
     <ClInclude Include="..\private\substitute_by_predicate.h" />
     <ClInclude Include="..\private\tensor_map.h" />
     <ClInclude Include="..\public\djup\tensor.h" />
@@ -49,6 +50,7 @@
     <ClCompile Include="..\private\name.cpp" />
     <ClCompile Include="..\private\parser.cpp" />
     <ClCompile Include="..\private\namespace.cpp" />
+    <ClCompile Include="..\private\pattern_match.cpp" />
     <ClCompile Include="..\private\standard_namespace.cpp" />
     <ClCompile Include="..\private\tensor.cpp" />
     <ClCompile Include="..\private\expression_to_string.cpp" />

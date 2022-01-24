@@ -6,6 +6,7 @@
 
 #pragma once
 #include "djup/tensor.h"
+#include <private/expression.h>
 #include <unordered_map>
 
 namespace djup

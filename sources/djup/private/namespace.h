@@ -7,6 +7,7 @@
 #pragma once
 #include <memory>
 #include <private/discrimination_net.h>
+#include <private/name.h>
 
 namespace djup
 {

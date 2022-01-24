@@ -10,6 +10,8 @@ add_library(djup STATIC
 	private/diagnostic.h
 	private/discrimination_net.cpp
 	private/discrimination_net.h
+	private/pattern_match.cpp
+	private/pattern_match.h
 	private/expression.cpp
 	private/expression.h
 	private/expression_to_string.cpp

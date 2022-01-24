@@ -5,6 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/namespace.h>
+#include <private/expression.h>
 #include <core/algorithms.h>
 
 namespace djup
