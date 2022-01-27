@@ -104,7 +104,7 @@ namespace std
 {
     template <> struct hash<djup::Name>
     {
-        size_t operator()(const djup::Name & i_source)
+        size_t operator()(const djup::Name & i_source) const
         {
             return std::hash<decltype(i_source.GetHash().GetValue())>{}(i_source.GetHash().GetValue());
         }

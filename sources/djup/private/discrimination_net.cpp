@@ -129,7 +129,7 @@ namespace djup
     {
         size_t m_source_node = 0;
         size_t m_current_token = 0;
-        std::unordered_map<const Expression*, Tensor> m_substitutions;
+        std::unordered_map<SubstitutionTarget, Tensor, SubstitutionTargetHash> m_substitutions;
         std::unordered_map<const Expression*, size_t> m_expansions;
     };
 
@@ -166,7 +166,8 @@ namespace djup
                     if(!Is(token, edge.m_expr))
                         continue;
                     
-                    curr_head.m_substitutions.emplace(std::pair{edge.m_expr.GetExpression().get(), token});
+                    SubstitutionTarget substitution{edge.m_expr.GetExpression().get(), 0};
+                    curr_head.m_substitutions.emplace(std::pair{substitution, token});
                     curr_head.m_current_token += target.GetSibilingOffset(curr_head.m_current_token);
                 }
                 else
