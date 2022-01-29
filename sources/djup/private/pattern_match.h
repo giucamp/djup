@@ -8,28 +8,19 @@
 #include <djup/tensor.h>
 #include <private/name.h>
 #include <private/expression.h>
+#include <variant>
 
 namespace djup
 {
-    struct SubstitutionTarget
-    {
-        const Expression* m_expr{};
-        size_t m_sequence_index{};
-        bool operator == (const SubstitutionTarget & i_other) const
-            { return m_expr == i_other.m_expr && m_sequence_index == i_other.m_sequence_index; }
-    };
-
-    struct SubstitutionTargetHash
-    {
-        size_t operator ()(const SubstitutionTarget & i_source) const
-            { return i_source.m_expr->GetHash().ToSizeT() + i_source.m_sequence_index; }
-    };
-
     struct PatternMatch
     {
+        struct VariableValue
+        {
+            std::variant<std::monostate, Tensor, std::vector<VariableValue>> m_value;
+        };
+
         size_t m_pattern_id;
-        std::unordered_map<SubstitutionTarget, Tensor, SubstitutionTargetHash> m_substitutions;
-        std::unordered_map<const Expression*, size_t> m_expansions;
+        std::unordered_map<Name, VariableValue> m_substitutions;
     };
 
     std::vector<PatternMatch> Match(const Tensor & i_target, const Tensor & i_pattern);

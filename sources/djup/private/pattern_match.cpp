@@ -24,8 +24,8 @@ namespace djup
             Tensor operator () (const Tensor & i_candidate) const
             {
                 // substitution
-                {
-                    auto it = m_match.m_substitutions.find({i_candidate.GetExpression().get(), 0});
+                /*{
+                    auto it = m_match.m_substitutions.find({i_candidate.GetExpression()->GetName(), 0});
                     if(it != m_match.m_substitutions.end())
                         return it->second;
                 }
@@ -39,7 +39,7 @@ namespace djup
                     {
                         
                     }
-                }
+                }*/
                 return i_candidate;
             }
         };
@@ -147,16 +147,18 @@ namespace djup
 
     struct MathingState
     {
-        std::unordered_map<SubstitutionTarget, Tensor, SubstitutionTargetHash> m_substitutions;
-        std::unordered_map<const Expression *, size_t> m_expansions;
+        std::unordered_map<Name, PatternMatch::VariableValue> m_substitutions;
+        // std::unordered_map<const Expression *, size_t> m_expansions;
     };
 
     struct Candidate
     {
         Span<const Tensor> m_target_arguments;
 
+        std::vector<size_t> m_variadic_indices;
+
         size_t m_pre_pattern_repetitions = 0;
-        
+
         PatternSegment m_pre_pattern;
         
         PatternSegment m_post_pattern;
@@ -183,21 +185,35 @@ namespace djup
         return res.first->second;
     }
 
-    bool AddSubstitution(MathingState & i_dest, const Tensor & i_target, size_t i_variadic_index, const Tensor & i_value)
+    bool AddSubstitution(MathingState & i_dest, const Tensor & i_pattern_variable,
+        Span<const size_t> i_variadic_indices, const Tensor & i_value)
     {
-        auto res = i_dest.m_substitutions.insert({{i_target.GetExpression().get(), i_variadic_index}, i_value});
-        if(res.second)
-            return true;
+        PatternMatch::VariableValue * value = &i_dest.m_substitutions[GetIdentifierName(i_pattern_variable)];
 
-        // already present, enforce coherence
-        return AlwaysEqual(i_value, res.first->second);
+        for(size_t index : i_variadic_indices)
+        {
+            if(std::holds_alternative<std::monostate>(value->m_value))
+                value->m_value = std::vector<PatternMatch::VariableValue>{};
+
+            auto & values = std::get<std::vector<PatternMatch::VariableValue>>(value->m_value);
+            if(index >= values.size())
+                values.resize(index + 1);
+
+            values[index] = PatternMatch::VariableValue{};
+            value = &values[index];
+        }
+
+        if(!std::holds_alternative<std::monostate>(value->m_value))
+            return AlwaysEqual(std::get<Tensor>(value->m_value), i_value);
+        
+        return true;
     }
 
     bool MatchFlatSeq(
         Span<const Tensor> i_targets,
         PatternSegment i_patterns,
         size_t & io_target_index,
-        size_t i_variadic_index,
+        const std::vector<size_t> & i_variadic_indices,
         MathingState & i_state,
         MatchingContext & i_context
         )
@@ -218,7 +234,7 @@ namespace djup
                 if(!Is(target, pattern))
                     return false; // type mismatch
 
-                if(!AddSubstitution(i_state, target, i_variadic_index, target))
+                if(!AddSubstitution(i_state, pattern, i_variadic_indices, target))
                     return false; // incompatible substitution
             }
             else if(NameIs(pattern, builtin_names::RepetitionsZeroToMany) ||
@@ -252,8 +268,9 @@ namespace djup
                 {
                     Candidate new_candidate;
                     new_candidate.m_state = i_state;
-                    new_candidate.m_state.m_expansions.insert({pattern.GetExpression().get(), rep});
+                    // new_candidate.m_state.m_expansions.insert({pattern.GetExpression().get(), rep});
                     new_candidate.m_pre_pattern_repetitions = rep;
+                    new_candidate.m_variadic_indices = i_variadic_indices;
 
                     new_candidate.m_pre_pattern = { pattern.GetExpression()->GetArguments(),
                         pattern_info.m_pattern_arg_ranges,
@@ -285,6 +302,7 @@ namespace djup
                     // total number of arguments that can be distributed to variadic expressions
                     Candidate new_candidate;
                     new_candidate.m_state = i_state;
+                    new_candidate.m_variadic_indices = i_variadic_indices;
                     new_candidate.m_post_pattern = { pattern.GetExpression()->GetArguments(),
                         pattern_info.m_pattern_arg_ranges,
                         pattern_info.m_pattern_arg_reiaming_ranges };
@@ -306,17 +324,20 @@ namespace djup
     {
         size_t target_arg_index = 0;
 
+        std::vector<size_t> new_variadic_indices = i_candidate.m_variadic_indices;
+        new_variadic_indices.emplace_back();
         for(size_t repetition_index = 0; repetition_index < i_candidate.m_pre_pattern_repetitions; repetition_index++)
         {
+            new_variadic_indices.back() = repetition_index;
             if(!MatchFlatSeq(i_candidate.m_target_arguments, i_candidate.m_pre_pattern,
-                target_arg_index, repetition_index, i_candidate.m_state, i_context))
+                target_arg_index, new_variadic_indices, i_candidate.m_state, i_context))
             {
                 return false;
             }
         }
 
         if(!MatchFlatSeq(i_candidate.m_target_arguments, i_candidate.m_post_pattern,
-            target_arg_index, 0, i_candidate.m_state, i_context))
+            target_arg_index, i_candidate.m_variadic_indices, i_candidate.m_state, i_context))
         {
             return false;
         }
@@ -344,8 +365,8 @@ namespace djup
             if(MatchArguments(context, candidate))
             {
                 context.m_matches.push_back(PatternMatch{0,
-                    std::move(candidate.m_state.m_substitutions), 
-                    std::move(candidate.m_state.m_expansions)});
+                    std::move(candidate.m_state.m_substitutions)/*,
+                    std::move(candidate.m_state.m_expansions)*/});
             }
         };
 

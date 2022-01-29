@@ -129,8 +129,8 @@ namespace djup
     {
         size_t m_source_node = 0;
         size_t m_current_token = 0;
-        std::unordered_map<SubstitutionTarget, Tensor, SubstitutionTargetHash> m_substitutions;
-        std::unordered_map<const Expression*, size_t> m_expansions;
+        std::unordered_map<Name, PatternMatch::VariableValue> m_substitutions;
+        // std::unordered_map<const Expression*, size_t> m_expansions;
     };
 
     void DiscriminationNet::FindMatches(const Tensor & i_target, std::vector<PatternMatch> & o_matches) const
@@ -166,8 +166,7 @@ namespace djup
                     if(!Is(token, edge.m_expr))
                         continue;
                     
-                    SubstitutionTarget substitution{edge.m_expr.GetExpression().get(), 0};
-                    curr_head.m_substitutions.emplace(std::pair{substitution, token});
+                    curr_head.m_substitutions.emplace(std::pair{GetIdentifierName(edge.m_expr), PatternMatch::VariableValue{token}});
                     curr_head.m_current_token += target.GetSibilingOffset(curr_head.m_current_token);
                 }
                 else

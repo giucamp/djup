@@ -106,6 +106,15 @@ namespace djup
         return MakeExpression(builtin_names::Identifier, arguments);
     }
 
+    const Name & GetIdentifierName(const Tensor & i_identifier)
+    {
+        if(i_identifier.GetExpression()->GetName() != builtin_names::Identifier)
+            Error("GetIdentifierName - not a identifier");
+
+        const Tensor & name_arg = i_identifier.GetExpression()->GetArguments().at(1);
+        return name_arg.GetExpression()->GetName();
+    }
+
     Tensor operator + (const Tensor & i_operand)
     {
         return i_operand;

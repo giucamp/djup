@@ -63,14 +63,12 @@ namespace djup
 
     [[nodiscard]] Tensor TensorType(Name i_scalar_type, Tensor i_shape_vector);
 
-    [[nodiscard]] Tensor Identifier(Name i_scalar_type, Tensor i_shape_vector, Tensor i_name, Span<const Tensor> i_arguments);
-
+    [[nodiscard]] const Name & GetIdentifierName(const Tensor & i_identifier);
+    
     [[nodiscard]] Tensor MakeLiteral(bool i_bool_value);
 
     [[nodiscard]] Tensor MakeLiteral(int64_t i_integer_value);
 
-    [[nodiscard]] Tensor MakeIdentifier(Tensor type, Name i_name);
-    
     [[nodiscard]] bool AlwaysEqual(const Expression & i_first, const Expression & i_second);
 
     bool NameIs(const Tensor & i_tensor, const Name & i_name);
