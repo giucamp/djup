@@ -16,7 +16,7 @@
 
 namespace djup
 {
-    #define DBG_PATTERN_TRACE 0
+    #define DBG_PATTERN_TRACE 1
 
     namespace
     {
@@ -250,22 +250,8 @@ namespace djup
             for(size_t pattern_index = 0; pattern_index < i_candidate.m_pattern.m_pattern.size(); target_index++, pattern_index++)
             {
                 const Tensor & pattern = i_candidate.m_pattern.m_pattern[pattern_index];
-                const Tensor & target = i_candidate.m_target_arguments[target_index];
 
-                if(IsConstant(pattern))
-                {
-                    if(!AlwaysEqual(pattern, target))
-                        return false;
-                }
-                else if(NameIs(pattern, builtin_names::Identifier))
-                {
-                    if(!Is(target, pattern))
-                        return false; // type mismatch
-
-                    if(!AddSubstitution(i_candidate.m_state, pattern, i_candidate.m_variadic_indices, target))
-                        return false; // incompatible substitution
-                }
-                else if(i_candidate.m_pattern.m_ranges[pattern_index].m_min != i_candidate.m_pattern.m_ranges[pattern_index].m_max)
+                if(i_candidate.m_pattern.m_ranges[pattern_index].m_min != i_candidate.m_pattern.m_ranges[pattern_index].m_max)
                 {
                     assert(NameIs(pattern, builtin_names::RepetitionsZeroToMany) ||
                         NameIs(pattern, builtin_names::RepetitionsZeroToOne) ||
@@ -276,7 +262,7 @@ namespace djup
                     size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
                     assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
-                    // compute usable range
+                                                    // compute usable range
                     size_t max_usable = total_available_targets - i_candidate.m_pattern.m_remaining[pattern_index].m_min;
                     size_t min_usable = i_candidate.m_pattern.m_remaining[pattern_index].m_max == s_max_reps ?
                         0 :
@@ -323,7 +309,26 @@ namespace djup
                     i_candidate.m_inc_parent_index = 0;
                     return false;
                 }
-                else
+
+                if(target_index >= i_candidate.m_target_arguments.size())
+                    return false;
+
+                const Tensor & target = i_candidate.m_target_arguments[target_index];
+
+                if(IsConstant(pattern))
+                {
+                    if(!AlwaysEqual(pattern, target))
+                        return false;
+                }
+                else if(NameIs(pattern, builtin_names::Identifier))
+                {
+                    if(!Is(target, pattern))
+                        return false; // type mismatch
+
+                    if(!AddSubstitution(i_candidate.m_state, pattern, i_candidate.m_variadic_indices, target))
+                        return false; // incompatible substitution
+                }
+                else 
                 {
                     if(pattern.GetExpression()->GetName() != target.GetExpression()->GetName())
                         return false;

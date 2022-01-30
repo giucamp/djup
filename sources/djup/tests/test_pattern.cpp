@@ -16,6 +16,13 @@ namespace djup
             Print("Test: djup - Pattern Matching...");
 
             {
+                auto target =  "f(1 2 3)"_t;
+                auto pattern = "f(real x..., real y...)"_t;
+                std::vector<PatternMatch> matches = Match(target, pattern);
+                DJUP_EXPECTS(matches.size() == 4);
+            }
+
+            {
                 auto target =  "f(1, 2, Sin(1 + Add(4, 3)), Sin(1 + Add(5, 7, 9)), 3)"_t;
                 auto pattern = "f(1, 2, Sin(1 + Add(real y...))...,         3)"_t;
                 auto substitution = "g(1, 2, Add(y...)..., 7)"_t;
