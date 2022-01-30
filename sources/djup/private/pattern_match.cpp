@@ -9,12 +9,15 @@
 #include <private/substitute_by_predicate.h>
 #include <private/expression.h>
 #include <core/flags.h>
+#include <core/diagnostic.h>
 #include <vector>
 #include <limits>
 #include <unordered_map>
 
 namespace djup
 {
+    #define DBG_PATTERN_TRACE 0
+
     namespace
     {
         struct ApplySubstitutions
@@ -43,6 +46,20 @@ namespace djup
                 return i_candidate;
             }
         };
+
+        #if DBG_PATTERN_TRACE
+            std::string TensorListToString(Span<const Tensor> i_tensors)
+            {
+                std::string result;
+                for(size_t i = 0; i < i_tensors.size(); i++)
+                {
+                    if(i)
+                        result += ", ";
+                    result += ToSimplifiedStringForm(i_tensors[i]);
+                }
+                return result;
+            }
+        #endif
     }
 
     Tensor SubstitutePatternMatch(const Tensor & i_source, const PatternMatch & i_match)
@@ -148,7 +165,6 @@ namespace djup
     struct MathingState
     {
         std::unordered_map<Name, PatternMatch::VariableValue> m_substitutions;
-        // std::unordered_map<const Expression *, size_t> m_expansions;
     };
 
     struct Candidate
@@ -157,11 +173,15 @@ namespace djup
 
         std::vector<size_t> m_variadic_indices;
 
-        size_t m_pre_pattern_repetitions = 0;
+        size_t m_repetitions = 1;
+        bool m_add_varadic_index = false;
 
-        PatternSegment m_pre_pattern;
+        // if this candidate fails, also the parent fails. Zero means "Root Candidate", otherwise it's the index incremented
+        // The list of candidates is a stack, so this index can't be invalidated before this Candidate is removed
+        // Anyway this prevents parallelization
+        size_t m_inc_parent_index = 0;
         
-        PatternSegment m_post_pattern;
+        PatternSegment m_pattern;
         
         MathingState m_state;
     };
@@ -188,6 +208,10 @@ namespace djup
     bool AddSubstitution(MathingState & i_dest, const Tensor & i_pattern_variable,
         Span<const size_t> i_variadic_indices, const Tensor & i_value)
     {
+        #if DBG_PATTERN_TRACE
+            PrintLn("AddSubstitution: ", GetIdentifierName(i_pattern_variable), "[", i_variadic_indices, "]");
+        #endif
+        
         PatternMatch::VariableValue * value = &i_dest.m_substitutions[GetIdentifierName(i_pattern_variable)];
 
         for(size_t index : i_variadic_indices)
@@ -209,138 +233,133 @@ namespace djup
         return true;
     }
 
-    bool MatchFlatSeq(
-        Span<const Tensor> i_targets,
-        PatternSegment i_patterns,
-        size_t & io_target_index,
-        const std::vector<size_t> & i_variadic_indices,
-        MathingState & i_state,
-        MatchingContext & i_context
-        )
+    bool MatchArguments(Candidate & i_candidate, MatchingContext & i_context)
     {
-        size_t & target_index = io_target_index;
-        for(size_t pattern_index = 0; pattern_index < i_patterns.m_pattern.size(); target_index++, pattern_index++)
+        #if DBG_PATTERN_TRACE
+            PrintLn("MatchArguments\n\ttarget: ", TensorListToString(i_candidate.m_target_arguments),
+                "\n\tpattern: ", TensorListToString(i_candidate.m_pattern.m_pattern),
+                "\n\trepetitions: ", i_candidate.m_repetitions, ", variadic: ", i_candidate.m_add_varadic_index);
+        #endif
+
+        size_t target_index = 0;
+        for(size_t repetition = 0; repetition < i_candidate.m_repetitions; repetition++)
         {
-            const Tensor & pattern = i_patterns.m_pattern[pattern_index];
-            const Tensor & target = i_targets[target_index];
+            if(i_candidate.m_add_varadic_index)
+                i_candidate.m_variadic_indices.push_back(repetition);
 
-            if(IsConstant(pattern))
+            for(size_t pattern_index = 0; pattern_index < i_candidate.m_pattern.m_pattern.size(); target_index++, pattern_index++)
             {
-                if(!AlwaysEqual(pattern, target))
-                    return false;
-            }
-            else if(NameIs(pattern, builtin_names::Identifier))
-            {
-                if(!Is(target, pattern))
-                    return false; // type mismatch
+                const Tensor & pattern = i_candidate.m_pattern.m_pattern[pattern_index];
+                const Tensor & target = i_candidate.m_target_arguments[target_index];
 
-                if(!AddSubstitution(i_state, pattern, i_variadic_indices, target))
-                    return false; // incompatible substitution
-            }
-            else if(NameIs(pattern, builtin_names::RepetitionsZeroToMany) ||
-                NameIs(pattern, builtin_names::RepetitionsZeroToOne) ||
-                NameIs(pattern, builtin_names::RepetitionsOneToMany))
-            {
-                size_t total_available_targets = i_targets.size() - target_index;
-
-                size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
-                assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
-
-                // compute usable range
-                size_t max_usable = total_available_targets - i_patterns.m_remaining[pattern_index].m_min;
-                size_t min_usable = i_patterns.m_remaining[pattern_index].m_max == s_max_reps ?
-                    0 :
-                    total_available_targets - i_patterns.m_remaining[pattern_index].m_max;
-                if(max_usable > i_patterns.m_ranges[pattern_index].m_max)
-                    max_usable = i_patterns.m_ranges[pattern_index].m_max;
-                if(min_usable < i_patterns.m_ranges[pattern_index].m_min)
-                    min_usable = i_patterns.m_ranges[pattern_index].m_min;
-
-                // align the usable range to be a multiple of sub_pattern_count
-                min_usable += sub_pattern_count - 1;
-                min_usable -= min_usable % sub_pattern_count;
-                max_usable -= max_usable % sub_pattern_count;
-
-                const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
-
-                size_t rep = min_usable / sub_pattern_count;
-                for(size_t used = min_usable; used <= max_usable; used += sub_pattern_count, rep++)
+                if(IsConstant(pattern))
                 {
-                    Candidate new_candidate;
-                    new_candidate.m_state = i_state;
-                    // new_candidate.m_state.m_expansions.insert({pattern.GetExpression().get(), rep});
-                    new_candidate.m_pre_pattern_repetitions = rep;
-                    new_candidate.m_variadic_indices = i_variadic_indices;
-
-                    new_candidate.m_pre_pattern = { pattern.GetExpression()->GetArguments(),
-                        pattern_info.m_pattern_arg_ranges,
-                        pattern_info.m_pattern_arg_reiaming_ranges };
-                    
-                    new_candidate.m_post_pattern = { i_patterns.m_pattern.subspan(pattern_index + 1),
-                        i_patterns.m_ranges.subspan(pattern_index + 1),
-                        i_patterns.m_remaining.subspan(pattern_index + 1) };
-
-                    new_candidate.m_target_arguments = i_targets.subspan(target_index);
-                    i_context.m_candidates.push_back(std::move(new_candidate));
+                    if(!AlwaysEqual(pattern, target))
+                        return false;
                 }
-
-                return false;
-            }
-            else
-            {
-                if(pattern.GetExpression()->GetName() != target.GetExpression()->GetName())
-                    return false;
-
-                // build pattern info
-                const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
-
-                // if the target does not have enough arguments, early reject
-                size_t target_arguments = target.GetExpression()->GetArguments().size();
-                if(target_arguments >= pattern_info.m_min_arguments &&
-                    target_arguments <= pattern_info.m_max_arguments )
+                else if(NameIs(pattern, builtin_names::Identifier))
                 {
-                    // total number of arguments that can be distributed to variadic expressions
-                    Candidate new_candidate;
-                    new_candidate.m_state = i_state;
-                    new_candidate.m_variadic_indices = i_variadic_indices;
-                    new_candidate.m_post_pattern = { pattern.GetExpression()->GetArguments(),
-                        pattern_info.m_pattern_arg_ranges,
-                        pattern_info.m_pattern_arg_reiaming_ranges };
-                    new_candidate.m_target_arguments = target.GetExpression()->GetArguments();
-                    i_context.m_candidates.push_back(new_candidate);
+                    if(!Is(target, pattern))
+                        return false; // type mismatch
+
+                    if(!AddSubstitution(i_candidate.m_state, pattern, i_candidate.m_variadic_indices, target))
+                        return false; // incompatible substitution
                 }
+                else if(i_candidate.m_pattern.m_ranges[pattern_index].m_min != i_candidate.m_pattern.m_ranges[pattern_index].m_max)
+                {
+                    assert(NameIs(pattern, builtin_names::RepetitionsZeroToMany) ||
+                        NameIs(pattern, builtin_names::RepetitionsZeroToOne) ||
+                        NameIs(pattern, builtin_names::RepetitionsOneToMany));
+
+                    size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
+
+                    size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
+                    assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
+
+                    // compute usable range
+                    size_t max_usable = total_available_targets - i_candidate.m_pattern.m_remaining[pattern_index].m_min;
+                    size_t min_usable = i_candidate.m_pattern.m_remaining[pattern_index].m_max == s_max_reps ?
+                        0 :
+                        total_available_targets - i_candidate.m_pattern.m_remaining[pattern_index].m_max;
+                    if(max_usable > i_candidate.m_pattern.m_ranges[pattern_index].m_max)
+                        max_usable = i_candidate.m_pattern.m_ranges[pattern_index].m_max;
+                    if(min_usable < i_candidate.m_pattern.m_ranges[pattern_index].m_min)
+                        min_usable = i_candidate.m_pattern.m_ranges[pattern_index].m_min;
+
+                    // align the usable range to be a multiple of sub_pattern_count
+                    min_usable += sub_pattern_count - 1;
+                    min_usable -= min_usable % sub_pattern_count;
+                    max_usable -= max_usable % sub_pattern_count;
+
+                    const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
+
+                    size_t rep = min_usable / sub_pattern_count;
+                    for(size_t used = min_usable; used <= max_usable; used += sub_pattern_count, rep++)
+                    {
+                        // post-pattern
+                        Candidate new_candidate;
+                        new_candidate.m_state = i_candidate.m_state;
+                        new_candidate.m_inc_parent_index = i_candidate.m_inc_parent_index;
+                        new_candidate.m_pattern = { i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
+                            i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
+                            i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) };
+                        new_candidate.m_variadic_indices = i_candidate.m_variadic_indices;
+                        new_candidate.m_target_arguments = i_candidate.m_target_arguments.subspan(target_index + used);
+                        i_context.m_candidates.push_back(std::move(new_candidate));
+
+                        // pre-pattern
+                        new_candidate.m_state = i_candidate.m_state;
+                        new_candidate.m_inc_parent_index = i_context.m_candidates.size(); // index of the post-pattern (incremented)
+                        new_candidate.m_pattern = { pattern.GetExpression()->GetArguments(),
+                            pattern_info.m_pattern_arg_ranges,
+                            pattern_info.m_pattern_arg_reiaming_ranges };
+                        new_candidate.m_repetitions = rep;
+                        new_candidate.m_add_varadic_index = true;
+                        new_candidate.m_variadic_indices = i_candidate.m_variadic_indices;
+                        new_candidate.m_target_arguments = i_candidate.m_target_arguments.subspan(target_index, used);
+                        i_context.m_candidates.push_back(std::move(new_candidate));
+                    }
+
+                    i_candidate.m_inc_parent_index = 0;
+                    return false;
+                }
+                else
+                {
+                    if(pattern.GetExpression()->GetName() != target.GetExpression()->GetName())
+                        return false;
+
+                    // build pattern info
+                    const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
+
+                    // if the target does not have enough arguments, early reject
+                    size_t target_arguments = target.GetExpression()->GetArguments().size();
+                    if(target_arguments >= pattern_info.m_min_arguments &&
+                        target_arguments <= pattern_info.m_max_arguments )
+                    {
+                        Candidate new_candidate;
+                        new_candidate.m_state = i_candidate.m_state;
+                        new_candidate.m_inc_parent_index = i_candidate.m_inc_parent_index;
+                        new_candidate.m_variadic_indices = i_candidate.m_variadic_indices;
+                        new_candidate.m_pattern = { pattern.GetExpression()->GetArguments(),
+                            pattern_info.m_pattern_arg_ranges,
+                            pattern_info.m_pattern_arg_reiaming_ranges };
+                        new_candidate.m_target_arguments = target.GetExpression()->GetArguments();
+                        i_context.m_candidates.push_back(new_candidate);
+                    }
                 
-                return false;
+                    i_candidate.m_inc_parent_index = 0;
+                    return false;
+                }
             }
+
+            if(i_candidate.m_add_varadic_index)
+                i_candidate.m_variadic_indices.pop_back();
         }
 
-        return true;
-    }
-
-    /** */
-    bool MatchArguments(
-        MatchingContext & i_context,
-        Candidate & i_candidate)
-    {
-        size_t target_arg_index = 0;
-
-        std::vector<size_t> new_variadic_indices = i_candidate.m_variadic_indices;
-        new_variadic_indices.emplace_back();
-        for(size_t repetition_index = 0; repetition_index < i_candidate.m_pre_pattern_repetitions; repetition_index++)
-        {
-            new_variadic_indices.back() = repetition_index;
-            if(!MatchFlatSeq(i_candidate.m_target_arguments, i_candidate.m_pre_pattern,
-                target_arg_index, new_variadic_indices, i_candidate.m_state, i_context))
-            {
-                return false;
-            }
-        }
-
-        if(!MatchFlatSeq(i_candidate.m_target_arguments, i_candidate.m_post_pattern,
-            target_arg_index, i_candidate.m_variadic_indices, i_candidate.m_state, i_context))
-        {
-            return false;
-        }
+        #if DBG_PATTERN_TRACE
+            PrintLn("MATCH:\n\ttarget: ", TensorListToString(i_candidate.m_target_arguments),
+                "\n\tpattern: ", TensorListToString(i_candidate.m_pattern.m_pattern));
+        #endif
 
         return true;
     }
@@ -354,7 +373,7 @@ namespace djup
         {
             Candidate candidate;
             candidate.m_target_arguments = {&i_target, 1};
-            candidate.m_post_pattern = {{&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}};
+            candidate.m_pattern = {{&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}};
             context.m_candidates.push_back(std::move(candidate));
         }
 
@@ -362,11 +381,23 @@ namespace djup
         {
             Candidate candidate = std::move(context.m_candidates.back());
             context.m_candidates.pop_back();
-            if(MatchArguments(context, candidate))
+            if(MatchArguments(candidate, context))
             {
-                context.m_matches.push_back(PatternMatch{0,
-                    std::move(candidate.m_state.m_substitutions)/*,
-                    std::move(candidate.m_state.m_expansions)*/});
+                if(candidate.m_inc_parent_index != 0)
+                {
+                    Candidate & parent = context.m_candidates[candidate.m_inc_parent_index - 1];
+                    for(auto & subst : candidate.m_state.m_substitutions)
+                        parent.m_state.m_substitutions.insert(std::move(subst));
+                }
+                else
+                {
+                    context.m_matches.push_back(PatternMatch{0,
+                        std::move(candidate.m_state.m_substitutions)});
+                }
+            }
+            else if(candidate.m_inc_parent_index != 0)
+            {
+                context.m_candidates.erase(context.m_candidates.begin() + (candidate.m_inc_parent_index - 1));
             }
         };
 
