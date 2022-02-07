@@ -16,10 +16,39 @@ namespace djup
             Print("Test: djup - Pattern Matching...");
 
             {
+                auto target =  "2"_t;
+                auto pattern = "2"_t;
+                std::vector<PatternMatch> matches = Match(target, pattern);
+                DJUP_EXPECTS(matches.size() == 1);
+            }
+
+            {
+                auto target =  "f(1 2 3)"_t;
+                auto pattern = "f(1 2 3)"_t;
+                std::vector<PatternMatch> matches = Match(target, pattern);
+                DJUP_EXPECTS(matches.size() == 1);
+            }
+
+            {
                 auto target =  "f(1 2 3)"_t;
                 auto pattern = "f(real x..., real y...)"_t;
                 std::vector<PatternMatch> matches = Match(target, pattern);
                 DJUP_EXPECTS(matches.size() == 4);
+            }
+
+            /*{
+                auto target =  "f(1, 2, 3,      4)"_t;
+                auto pattern = "f(1, real x..., 5)"_t;
+                auto substitution = "g(1, 2, Add(y...)..., 7)"_t;
+                std::vector<PatternMatch> matches = Match(target, pattern);
+                DJUP_EXPECTS(matches.size() == 0);
+            }
+
+            {
+                auto target =  "f(Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
+                auto pattern = "f(Sin(real x..., real y...)...)"_t;
+                std::vector<PatternMatch> matches = Match(target, pattern);
+                DJUP_EXPECTS(matches.size() == 1);
             }
 
             {
@@ -31,12 +60,12 @@ namespace djup
                 auto res = SubstitutePatternMatch(substitution, matches.front());
                 auto s = ToSimplifiedStringForm(res);
                 auto s1 = s;
-            }
+            }*/
 
             {
-                auto target =  "f(1, 2, Sin(1 + 4), Sin(1 + 5), 3)"_t;
-                auto pattern = "f(1, 2, Sin(1 + real x)...,     3)"_t;
-                auto substitution = "g(1, 2, ...x, 7, ...y)"_t;
+                auto target =  "f(1, 2, Sin(4), Sin(5), 3)"_t;
+                auto pattern = "f(1, 2, Sin(real x)...,     3)"_t;
+                auto substitution = "g(1, 2, x..., 7, y...)"_t;
                 std::vector<PatternMatch> matches = Match(target, pattern);
                 DJUP_EXPECTS(matches.size() == 1);
                 auto res = SubstitutePatternMatch(substitution, matches.front());
@@ -48,7 +77,7 @@ namespace djup
             {
                 auto target = "f(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)"_t;
                 auto pattern = "f(1, 2, real x..., 6, 7, 8, real y..., 12, 13, 14, 15)"_t;
-                auto substitution = "g(1, 2, ...x, 7, ...y)"_t;
+                auto substitution = "g(1, 2, x..., 7, y...)"_t;
                 std::vector<PatternMatch> matches = Match(target, pattern);
                 DJUP_EXPECTS(matches.size() == 1);
                 auto res = SubstitutePatternMatch(substitution, matches.front());
@@ -64,7 +93,7 @@ namespace djup
 
             auto s2 = ToSimplifiedStringForm("f((5 real a)...)");
 
-            auto s3 = ToSimplifiedStringForm("g(...(4 a))");
+            auto s3 = ToSimplifiedStringForm("g((4 a)...)");
 
             R"(
                 a = 4 + 6
@@ -80,7 +109,7 @@ namespace djup
             Namespace test_namespace("Test", Namespace::Root());
             test_namespace.AddSubstitutionAxiom("2+3",                  "5");
             test_namespace.AddSubstitutionAxiom("0 * real",             "0");
-            test_namespace.AddSubstitutionAxiom("f((5, real a)...)",    "g(...(4, a))");
+            test_namespace.AddSubstitutionAxiom("f((5, real a)...)",    "g((4, a)...)");
 
 
             DJUP_EXPECTS(AlwaysEqual(test_namespace.Canonicalize("2+3"), "5"));

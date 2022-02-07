@@ -190,8 +190,6 @@ namespace djup
     Tensor RepetitionsOneToMany(Span<Tensor const> i_tensors);
     Tensor RepetitionsZeroToOne(Span<Tensor const> i_tensors);
 
-    Tensor RepetitionsExpand(Span<Tensor const> i_tensors);
-
     // to implement
     Tensor Substitute(const Tensor & i_where, const Tensor & i_what,
         const Tensor & i_with, const Tensor & i_when = true);

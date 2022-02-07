@@ -6,6 +6,7 @@
 
 #include <djup/tensor.h>
 #include <private/expression.h>
+#include <private/builtin_names.h>
 #include <core/to_string.h>
 
 namespace djup
@@ -24,21 +25,53 @@ namespace djup
         {
             const Expression & expr = *i_source.GetExpression();
 
-            i_dest << expr.GetName();
-
-            auto arguments = Span(expr.GetArguments());
-            if(!arguments.empty())
+            if(expr.GetName() == builtin_names::Identifier)
             {
-                i_dest << '(';
+                const Expression & first_arg = *expr.GetArgument(0).GetExpression();
+                const Expression & second_arg = *expr.GetArgument(1).GetExpression();
+                assert(first_arg.GetName() == builtin_names::TensorType);
+                
+                i_dest << first_arg.GetArgument(0).GetExpression()->GetName();
+                i_dest << ' ';
+                i_dest << second_arg.GetName();
+            }
+            else if(expr.GetName() == builtin_names::Literal)
+            {
+                ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
+            }
+            else if(expr.GetName() == builtin_names::RepetitionsZeroToMany)
+            {
+                ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
+                i_dest << "...";
+            }
+            else if(expr.GetName() == builtin_names::RepetitionsOneToMany)
+            {
+                ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
+                i_dest << "..";
+            }
+            else if(expr.GetName() == builtin_names::RepetitionsZeroToOne)
+            {
+                ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
+                i_dest << "?";
+            }
+            else
+            {
+                i_dest << expr.GetName();
 
-                for (size_t i = 0; i < arguments.size(); i++)
+                auto arguments = Span(expr.GetArguments());
+                if(!arguments.empty())
                 {
-                    if(i != 0)
-                        i_dest << ", ";
-                    ToSimplifiedStringForm(i_dest, arguments[i]);
-                }
+                    i_dest << '(';
 
-                i_dest << ')';
+                    for (size_t i = 0; i < arguments.size(); i++)
+                    {
+                        if(i != 0)
+                            i_dest << ", ";
+                        ToSimplifiedStringForm(i_dest, arguments[i]);
+                    }
+
+                    i_dest << ')';
+                }
             }
         }
     }

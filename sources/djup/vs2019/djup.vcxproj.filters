@@ -57,6 +57,9 @@
     <ClInclude Include="..\private\pattern_match.h">
       <Filter>private</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\substitutions_tree.h">
+      <Filter>private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
@@ -111,6 +114,9 @@
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\pattern_match.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\substitutions_tree.cpp">
       <Filter>private</Filter>
     </ClCompile>
   </ItemGroup>

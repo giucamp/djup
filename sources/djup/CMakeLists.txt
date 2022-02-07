@@ -10,8 +10,6 @@ add_library(djup STATIC
 	private/diagnostic.h
 	private/discrimination_net.cpp
 	private/discrimination_net.h
-	private/pattern_match.cpp
-	private/pattern_match.h
 	private/expression.cpp
 	private/expression.h
 	private/expression_to_string.cpp
@@ -22,13 +20,19 @@ add_library(djup STATIC
 	private/lexer.h
 	private/name.cpp
 	private/name.h
-	private/parser.cpp
-	private/parser.h
 	private/namespace.cpp
 	private/namespace.h
+	private/parser.cpp
+	private/parser.h
+	private/pattern_match.cpp
+	private/pattern_match.h
 	private/standard_namespace.cpp
+	private/standard_scope.h
 	private/substitute_by_predicate.h
+	private/substitutions_tree.cpp
+	private/substitutions_tree.h
 	private/tensor.cpp
+	private/tensor_map.h
 	public/djup/tensor.h
 	tests/test_djup.cpp
 	tests/test_lexer.cpp

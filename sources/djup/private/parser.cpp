@@ -207,15 +207,6 @@ namespace djup
                     return applier(operand);
                 }
 
-                else if(lexer.TryAccept(SymbolId::RepetitionsZeroToMany))
-                {
-                    // prefix operator ...
-                    if(lexer.TryAccept(SymbolId::LeftParenthesis))
-                        return RepetitionsExpand(ParseExpressionList(i_context, SymbolId::RightParenthesis));
-                    else
-                        return RepetitionsExpand({ParseExpression(i_context)});
-                }
-
                 /* context-sensitive unary-to-binary promotion: binary operator occurrences (respecting 
                     the white symmetry rule) are promoted to unary operators if there is no left operand. */
                 else if (lexer.TryAccept(SymbolId::BinaryMinus))
