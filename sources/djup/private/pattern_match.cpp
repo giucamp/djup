@@ -66,6 +66,9 @@ namespace djup
             }
             return result;
         }
+
+        constexpr uint32_t g_start_node_index = 1;
+        constexpr uint32_t g_end_node_index = 0;
     }
 
     Tensor SubstitutePatternMatch(const Tensor & i_source, const PatternMatch & i_match)
@@ -181,9 +184,9 @@ namespace djup
         PatternSegment m_pattern;
         uint32_t m_repetitions = 0;
         uint32_t m_version;
-        bool m_has_repetitions = false;
         bool m_decayed = false;
         std::vector<VariadicIndex> m_variadic_indices;
+        int m_dbg_id{};
     };
 
     StringBuilder & operator << (StringBuilder & i_dest, const Candidate & i_source)
@@ -226,6 +229,7 @@ namespace djup
     {
         uint32_t m_source_index{};
         CandidateRef m_candidate_ref;
+        int m_dbg_id{};
     };
 
     struct MatchingContext
@@ -237,27 +241,12 @@ namespace djup
         uint32_t m_next_candidate_version{};
         #if DBG_CREATE_GRAPHVIZ_SVG
             std::string m_graph_name;
-            std::unordered_map<uint64_t, std::string> m_edge_labels;
         #endif
     };
 
     bool IsCandidateRefValid(const MatchingContext & i_context, CandidateRef i_ref)
     {
         return i_ref.m_index < i_context.m_candidates.size() && i_ref.m_version == i_context.m_candidates[i_ref.m_index].m_version; 
-    }
-
-    uint64_t CombineNodeIndices(uint32_t i_start_node, uint32_t i_dest_node)
-    {
-        return (static_cast<uint64_t>(i_start_node) << 32) | i_dest_node;
-    }
-
-    std::string GetEdgeLabel(const MatchingContext & i_context, uint32_t i_start_node, uint32_t i_dest_node)
-    {
-        auto it = i_context.m_edge_labels.find(CombineNodeIndices(i_start_node, i_dest_node));
-        if(it != i_context.m_edge_labels.end())
-            return it->second;
-        else
-            return "";
     }
 
     StringBuilder & operator << (StringBuilder & i_dest, const MatchingContext & i_source)
@@ -292,24 +281,26 @@ namespace djup
 
         for(const auto & edge : i_source.m_edges)
         {
-            std::string label = GetEdgeLabel(i_source, edge.second.m_source_index, edge.first);
-
-            size_t candidate_count = 0;
-            for(const Candidate & candidate : i_source.m_candidates)
+            if(IsCandidateRefValid(i_source, edge.second.m_candidate_ref))
             {
-                if(candidate.m_start_node == edge.second.m_source_index && 
-                    candidate.m_dest_node == edge.first)
-                        candidate_count++;
-            }
-            //assert(candidate_count <= 1);
+                const Candidate candidate = i_source.m_candidates[edge.second.m_candidate_ref.m_index];
 
-            if(candidate_count > 0)
-            {
+                std::string label;
+                if(!candidate.m_target_arguments.empty() && !candidate.m_pattern.m_pattern.empty())
+                {
+                    label = TensorListToString(candidate.m_target_arguments);
+                    label += "\\nis\\n";
+                    label += TensorListToString(candidate.m_pattern.m_pattern);
+                    if(candidate.m_repetitions != std::numeric_limits<uint32_t>::max())
+                        label += ToString(" (", candidate.m_repetitions, " times)");
+                }
+
                 i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
                     << "[style=\"dashed\", label=\"" << label << "\"]"  << ';';
             }
             else
             {
+                std::string label = "subst";
                 i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
                     << "[label=\"" << label << "\"]"  << ';';
             }
@@ -334,37 +325,25 @@ namespace djup
         return res.first->second;
     }
 
-    void AddCandidate(MatchingContext & i_context,
+    void AddCandidate(MatchingContext & i_context, int i_dbg_id,
         uint32_t i_start_node, uint32_t i_dest_node,
         Span<const Tensor> i_target, PatternSegment i_pattern,
         uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
     {
         assert(i_start_node != i_dest_node);
 
-        #if DBG_CREATE_GRAPHVIZ_SVG
-            if(!i_target.empty() && !i_pattern.m_pattern.empty())
-            {
-                std::string label = TensorListToString(i_target);
-                label += "\\nis\\n";
-                label += TensorListToString(i_pattern.m_pattern);
-                if(i_repetitions != std::numeric_limits<uint32_t>::max())
-                    label += ToString(" (", i_repetitions, " times)");
-                i_context.m_edge_labels[CombineNodeIndices(i_start_node, i_dest_node)] = label;
-            }
-        #endif
-
         Candidate new_candidate;
         new_candidate.m_start_node = i_start_node;
         new_candidate.m_dest_node = i_dest_node;
         new_candidate.m_pattern = i_pattern;
         new_candidate.m_target_arguments = i_target;
-        new_candidate.m_has_repetitions = i_repetitions != std::numeric_limits<uint32_t>::max();
-        new_candidate.m_repetitions = new_candidate.m_has_repetitions ? i_repetitions : 1;
+        new_candidate.m_repetitions = i_repetitions;
         new_candidate.m_version = i_context.m_next_candidate_version++;
-        
+        new_candidate.m_dbg_id = i_dbg_id;
+
         const uint32_t new_candidate_index = NumericCast<uint32_t>(i_context.m_candidates.size());
         CandidateRef candidate_ref{new_candidate_index, new_candidate.m_version};
-        i_context.m_edges.insert({i_dest_node, {i_start_node, candidate_ref }});
+        i_context.m_edges.insert({i_dest_node, {i_start_node, candidate_ref, i_dbg_id }});
         i_context.m_graph_nodes[i_start_node].m_outgoing_edges++;
 
         i_context.m_candidates.push_back(std::move(new_candidate));
@@ -384,9 +363,15 @@ namespace djup
         LinearPath(const LinearPath &) = delete;
         LinearPath & operator = (const LinearPath &) = delete;
 
-        void AddEdge(Span<const Tensor> i_target, PatternSegment i_pattern,
+        void AddEdge(int i_dbg_id, Span<const Tensor> i_target, PatternSegment i_pattern,
             uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
         {
+            /*std::string rep_str;
+            if(i_repetitions != std::numeric_limits<uint32_t>::max())
+                rep_str = ToString(" x", i_repetitions);
+            PrintLn("Pattern: ", TensorListToString(i_pattern.m_pattern), rep_str);
+            PrintLn("Target: ", TensorListToString(i_target));*/
+
             if(!i_target.empty() && !i_pattern.m_pattern.empty() && i_repetitions != 0)
             {
                 if(!m_target.empty() && !m_pattern.m_pattern.empty() && m_repetitions != 0)
@@ -403,6 +388,7 @@ namespace djup
                 m_target = i_target;
                 m_pattern = i_pattern;
                 m_repetitions = i_repetitions;
+                m_dbg_id = i_dbg_id;
             }
         }
 
@@ -415,7 +401,7 @@ namespace djup
 
         void FlushPendingEdge(uint32_t i_dest_node)
         {
-            AddCandidate(m_context, m_start_node, i_dest_node, m_target, m_pattern, m_repetitions);
+            AddCandidate(m_context, m_dbg_id, m_start_node, i_dest_node, m_target, m_pattern, m_repetitions);
         }
 
     private:
@@ -427,6 +413,7 @@ namespace djup
         Span<const Tensor> m_target;
         PatternSegment m_pattern;
         uint32_t m_repetitions{};
+        int m_dbg_id{};
     };
 
     /** Returns false if the matching has failed */
@@ -438,18 +425,12 @@ namespace djup
         PrintLn("Pattern: ", TensorListToString(i_candidate.m_pattern.m_pattern), rep_str);
         PrintLn("Target: ", TensorListToString(i_candidate.m_target_arguments));*/
         
-        const bool nest_index = i_candidate.m_has_repetitions;
+        const bool nest_index = i_candidate.m_repetitions != std::numeric_limits<uint32_t>::max();
         const uint32_t repetitions = nest_index ? i_candidate.m_repetitions : 1;
         
-        if(nest_index)
-            i_candidate.m_variadic_indices.push_back(VariadicIndex{0, repetitions});
-
         size_t target_index = 0;
         for(uint32_t repetition = 0; repetition < repetitions; repetition++)
         {
-            if(nest_index)
-                i_candidate.m_variadic_indices.back().m_index = repetition;
-            
             for(size_t pattern_index = 0; pattern_index < i_candidate.m_pattern.m_pattern.size(); target_index++, pattern_index++)
             {
                 const Tensor & pattern = i_candidate.m_pattern.m_pattern[pattern_index];
@@ -490,14 +471,14 @@ namespace djup
                         LinearPath path(i_context, i_candidate.m_start_node, i_candidate.m_dest_node);
 
                         // pre-pattern
-                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
+                        path.AddEdge(__LINE__, i_candidate.m_target_arguments.subspan(target_index, used),
                             PatternSegment{ pattern.GetExpression()->GetArguments(),
                                 pattern_info.m_pattern_arg_ranges,
                                 pattern_info.m_pattern_arg_reiaming_ranges },
                                 rep );
 
                         // post-pattern
-                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
+                        path.AddEdge(__LINE__, i_candidate.m_target_arguments.subspan(target_index + used),
                             PatternSegment{ i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
@@ -540,7 +521,7 @@ namespace djup
                         LinearPath path(i_context, i_candidate.m_start_node, i_candidate.m_dest_node);
 
                         // match content
-                        path.AddEdge(target.GetExpression()->GetArguments(), 
+                        path.AddEdge(__LINE__, target.GetExpression()->GetArguments(), 
                             PatternSegment{
                                 pattern.GetExpression()->GetArguments(),
                                 pattern_info.m_pattern_arg_ranges,
@@ -548,7 +529,7 @@ namespace djup
 
                         // rest of this repetition
                         const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
-                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
+                        path.AddEdge(__LINE__, i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
                             PatternSegment{
                                 i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1, remaining_in_pattern),
                                 i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1, remaining_in_pattern),
@@ -556,7 +537,7 @@ namespace djup
 
                         // remaining repetitions
                         const size_t target_start = target_index + 1 + remaining_in_pattern;
-                        path.AddEdge( i_candidate.m_target_arguments.subspan(target_start), 
+                        path.AddEdge(__LINE__,  i_candidate.m_target_arguments.subspan(target_start), 
                             i_candidate.m_pattern, repetitions - (repetition + 1) );
                     }
                     return false;
@@ -565,29 +546,6 @@ namespace djup
         }
 
         return true;
-    }
-
-    void FilltMatches(const MatchingContext & i_context, std::vector<PatternMatch> & i_matches)
-    {
-        
-    }
-
-    std::vector<PatternMatch> GetMatches(const MatchingContext & i_context)
-    {
-        std::vector<PatternMatch> result;
-
-        assert(!i_context.m_graph_nodes.empty());
-
-        std::vector<bool> visited_nodes(i_context.m_graph_nodes.size());
-
-        size_t curr_node = 0;
-        //for(;;)
-        {
-            //curr_node
-            
-        }
-
-        return result;
     }
 
     #if DBG_CREATE_GRAPHVIZ_SVG
@@ -608,43 +566,6 @@ namespace djup
 
     void RemoveNode(MatchingContext & i_context, uint32_t i_node_index)
     {
-        /*bool redo;
-        do {
-            
-            redo = false;
-
-            const auto range = i_context.m_edges.equal_range(i_node_index);
-            for(auto it = range.first; it != range.second; it++)
-            {
-                uint32_t start_node = it->second.m_source_index;
-
-                if(IsCandidateRefValid(i_context, it->second.m_candidate_ref))
-                {
-                    Candidate & candidate = i_context.m_candidates[it->second.m_candidate_ref.m_index];
-                    if(candidate.m_start_node == it->second.m_source_index &&
-                        candidate.m_dest_node == it->first)
-                    {
-                        candidate.m_decayed = true;
-                    }
-                    
-                }
-                
-                assert(i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges > 0);
-                i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges--;
-                i_context.m_edges.erase(it);
-                
-                if(i_context.m_graph_nodes[start_node].m_outgoing_edges == 0)
-                {
-                    // we have removed the last outcoming edge for i_start_node, we can erase it
-                    RemoveNode(i_context, start_node);
-                }
-                
-                redo = true;
-                break;
-            }
-
-        } while(redo);*/
-
         std::vector<uint32_t> nodes_to_remove;
         nodes_to_remove.push_back(i_node_index);
 
@@ -712,7 +633,7 @@ namespace djup
         }
     }
 
-    std::vector<PatternMatch> Match(const Tensor & i_target, const Tensor & i_pattern)
+    MatchingContext MakeSubstitutionsGraph(const Tensor & i_target, const Tensor & i_pattern)
     {
         MatchingContext context;
         RepRange single_range = {1, 1};
@@ -721,7 +642,7 @@ namespace djup
         context.m_graph_nodes.emplace_back().m_debug_name = "End"; // the first node is the final target
         context.m_graph_nodes.emplace_back().m_debug_name = "Start";
 
-        AddCandidate(context, 1, 0, {&i_target, 1}, {{&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}});
+        AddCandidate(context, __LINE__,  1, 0, {&i_target, 1}, {{&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}});
 
         #if DBG_CREATE_GRAPHVIZ_SVG
         if(g_enable_graphviz)
@@ -755,7 +676,29 @@ namespace djup
 
         } while(!context.m_candidates.empty());
 
-        std::vector<PatternMatch> matches = GetMatches(context);
-        return matches;
+        return context;
+    }
+
+    /* this function is recursive and slow, but is used only for testing 
+        the correctness of the substitution graph */
+    size_t CountSolutions(const MatchingContext & i_context, uint32_t i_node_index)
+    {
+        size_t solutions = 0;
+        const auto range = i_context.m_edges.equal_range(i_node_index);
+        for(auto it = range.first; it != range.second; it++)
+        {
+            if(it->second.m_source_index == g_start_node_index)
+                ++solutions;
+            else
+                solutions += CountSolutions(i_context, it->second.m_source_index);
+        }
+        return solutions;
+    }
+
+    size_t PatternMatchingCount(const Tensor & i_target, const Tensor & i_pattern)
+    {
+        MatchingContext context = MakeSubstitutionsGraph(i_target, i_pattern);
+        const size_t solutions = CountSolutions(context, g_end_node_index);
+        return solutions;
     }
 }

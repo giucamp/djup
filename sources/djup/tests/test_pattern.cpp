@@ -17,87 +17,84 @@ namespace djup
         {
             Print("Test: djup - Pattern Matching...");
 
-            /*{
+            {
                 auto target =  "2"_t;
                 auto pattern = "2"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 1);
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
             }
 
             {
                 auto target =  "f(1 2 3)"_t;
                 auto pattern = "f(1 2 3)"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 1);
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
             }
 
             {
                 auto target =  "f(1 2 3)"_t;
                 auto pattern = "f(real x..., real y...)"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 4);
-            }*/
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 4);
+            }
 
-            /*{
+            {
                 auto target =  "f(1, 2, 3,      4)"_t;
                 auto pattern = "f(1, real x..., 5)"_t;
                 auto substitution = "g(1, 2, Add(y...)..., 7)"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 0);
-            }*/
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 0);
+            }
 
-            /*{
-                g_enable_graphviz = true;
+            {
                 auto target =  "f(Sin(1, 2, 3))"_t;
                 auto pattern = "f(Sin(real x..., real y..., real z...))"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 10);
-            }*/
-
-            /*{
-                auto target =  "f(Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
-                auto pattern = "f(Sin(real x..., real y...), Sin(real z...))"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 20);
-            }*/
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 10);
+            }
 
             {
-                g_enable_graphviz = true;
+                auto target =  "f(Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
+                auto pattern = "f(Sin(real x..., real y...), Sin(real z..., real w...))"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 20);
+            }
+
+            {
                 auto target =  "Sin(f(1 2), f(4 5 6), f(7 8 9 1), f(11 12 13))"_t;
                 auto pattern = "Sin(f(real x..., real y...)..., f(real z..., real w...)..., f(real u..., real p...)...)"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 0);
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 3600);
             }
 
             {
-                g_enable_graphviz = true;
                 auto target =  "f(Sin(1, 2, 3), Sin(2, 5, 6, 7, 8))"_t;
                 auto pattern = "f(Sin(real x..., 2, real y...)...)"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 0);
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
             }
 
             {
-                
+                auto target =  "f(Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
+                auto pattern = "f(Sin(real x..., 2, real y...)...)"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 0);
+            }
+
+            {
+                // g_enable_graphviz = true;
                 auto target =  "f(1, 2, Sin(1 + Add(4, 3)), Sin(1 + Add(5, 7, 9)), 3)"_t;
                 auto pattern = "f(1, 2, Sin(1 + Add(real y...))...,         3)"_t;
-                auto substitution = "g(1, 2, Add(y...)..., 7)"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 1);
-                auto res = SubstitutePatternMatch(substitution, matches.front());
-                auto s = ToSimplifiedStringForm(res);
-                auto s1 = s;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
             }
 
             {
                 auto target =  "f(1, 2, Sin(4), Sin(5), 3)"_t;
                 auto pattern = "f(1, 2, Sin(real x)...,     3)"_t;
                 auto substitution = "g(1, 2, x..., 7, y...)"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 1);
-                auto res = SubstitutePatternMatch(substitution, matches.front());
-                auto s = ToSimplifiedStringForm(res);
-                auto s1 = s;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
             }
 
 
@@ -105,11 +102,8 @@ namespace djup
                 auto target = "f(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)"_t;
                 auto pattern = "f(1, 2, real x..., 6, 7, 8, real y..., 12, 13, 14, 15)"_t;
                 auto substitution = "g(1, 2, x..., 7, y...)"_t;
-                std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 1);
-                auto res = SubstitutePatternMatch(substitution, matches.front());
-                auto s = ToSimplifiedStringForm(res);
-                auto s1 = s;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
             }
 
             Tensor t = "1";
