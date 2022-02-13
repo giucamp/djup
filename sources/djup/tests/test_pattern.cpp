@@ -7,6 +7,8 @@
 #include <private/namespace.h>
 #include <core/diagnostic.h>
 
+extern bool g_enable_graphviz;
+
 namespace djup
 {
     namespace tests
@@ -15,7 +17,7 @@ namespace djup
         {
             Print("Test: djup - Pattern Matching...");
 
-            {
+            /*{
                 auto target =  "2"_t;
                 auto pattern = "2"_t;
                 std::vector<PatternMatch> matches = Match(target, pattern);
@@ -34,7 +36,7 @@ namespace djup
                 auto pattern = "f(real x..., real y...)"_t;
                 std::vector<PatternMatch> matches = Match(target, pattern);
                 DJUP_EXPECTS(matches.size() == 4);
-            }
+            }*/
 
             /*{
                 auto target =  "f(1, 2, 3,      4)"_t;
@@ -42,16 +44,32 @@ namespace djup
                 auto substitution = "g(1, 2, Add(y...)..., 7)"_t;
                 std::vector<PatternMatch> matches = Match(target, pattern);
                 DJUP_EXPECTS(matches.size() == 0);
-            }
+            }*/
 
-            {
-                auto target =  "f(Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
-                auto pattern = "f(Sin(real x..., real y...)...)"_t;
+            /*{
+                auto target =  "f(Sin(1, 2, 3))"_t;
+                auto pattern = "f(Sin(real x..., real y..., real z...))"_t;
                 std::vector<PatternMatch> matches = Match(target, pattern);
-                DJUP_EXPECTS(matches.size() == 1);
+                DJUP_EXPECTS(matches.size() == 10);
+            }*/
+
+            /*{
+                auto target =  "f(Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
+                auto pattern = "f(Sin(real x..., real y...), Sin(real z...))"_t;
+                std::vector<PatternMatch> matches = Match(target, pattern);
+                DJUP_EXPECTS(matches.size() == 20);
+            }*/
+
+            {
+                g_enable_graphviz = true;
+                auto target =  "f(Sin(1, 2, 3), Sin(2, 5, 6, 7, 8))"_t;
+                auto pattern = "f(Sin(real x..., 2, real y...)...)"_t;
+                std::vector<PatternMatch> matches = Match(target, pattern);
+                DJUP_EXPECTS(matches.size() == 0);
             }
 
             {
+                
                 auto target =  "f(1, 2, Sin(1 + Add(4, 3)), Sin(1 + Add(5, 7, 9)), 3)"_t;
                 auto pattern = "f(1, 2, Sin(1 + Add(real y...))...,         3)"_t;
                 auto substitution = "g(1, 2, Add(y...)..., 7)"_t;
@@ -60,7 +78,7 @@ namespace djup
                 auto res = SubstitutePatternMatch(substitution, matches.front());
                 auto s = ToSimplifiedStringForm(res);
                 auto s1 = s;
-            }*/
+            }
 
             {
                 auto target =  "f(1, 2, Sin(4), Sin(5), 3)"_t;

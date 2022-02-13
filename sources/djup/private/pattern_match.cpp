@@ -8,15 +8,23 @@
 #include <private/builtin_names.h>
 #include <private/substitute_by_predicate.h>
 #include <private/expression.h>
-#include <private/substitutions_tree.h>
 #include <core/flags.h>
 #include <core/diagnostic.h>
 #include <vector>
 #include <unordered_map>
 
+#define DBG_CREATE_GRAPHVIZ_SVG         1
+#define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""
+#define DBG_DEST_DIR                    "C:\\projects\\djup\\test\\"
+
+#if DBG_CREATE_GRAPHVIZ_SVG
+    #include <fstream>
+    bool g_enable_graphviz = false;
+#endif
+
 namespace djup
 {
-    #define DBG_PATTERN_TRACE 0
+
 
     namespace
     {
@@ -160,8 +168,15 @@ namespace djup
         return result;
     }
 
+    struct VariadicIndex
+    {
+        uint32_t m_index, m_count;
+    };
+
     struct Candidate
     {
+        uint32_t m_start_node{};
+        uint32_t m_dest_node{};
         Span<const Tensor> m_target_arguments;
         PatternSegment m_pattern;
         uint32_t m_repetitions = 0;
@@ -179,46 +194,118 @@ namespace djup
         return i_dest;
     }
 
-    struct DisjunctiveTerm
+    struct Substitution
     {
-        std::vector<Candidate> m_candidates;
-        SubstitutionsTree::NodeHandle m_substitution_node;
+        Name m_variable_name;
+        std::vector<VariadicIndex> m_indices;
+        Tensor m_value;
+    };
+
+    struct GraphNode
+    {
+        std::string m_debug_name;
+        std::vector<Substitution> m_substitutions;
+        size_t m_outgoing_edges{};
+
+        bool AddSubstitution(const Name & i_variable_name, Span<VariadicIndex> i_indices, const Tensor & i_value)
+        {
+            m_substitutions.emplace_back(Substitution{i_variable_name, {i_indices.begin(), i_indices.end()}, i_value});
+            return true;
+        }
+    };
+
+    struct Edge
+    {
+        uint32_t m_source_index{};
+        uint32_t m_candidate_index{};
     };
 
     struct MatchingContext
     {
-        std::vector<DisjunctiveTerm> m_disjunctive_terms;
-
-        SubstitutionsTree m_substitutions_tree;
-
+        std::vector<Candidate> m_candidates;
+        std::vector<GraphNode> m_graph_nodes;
+        std::unordered_multimap<uint32_t, Edge> m_edges; // the key is the destination node
         std::unordered_map<const Expression*, PatternInfo> m_pattern_infos;
+        #if DBG_CREATE_GRAPHVIZ_SVG
+            std::string m_graph_name;
+            std::unordered_map<uint64_t, std::string> m_edge_labels;
+        #endif
     };
 
-    void DisjunctiveTermToString(StringBuilder & i_dest, const MatchingContext & i_context, const DisjunctiveTerm & i_source)
+    uint64_t CombineNodeIndices(uint32_t i_start_node, uint32_t i_dest_node)
     {
-        i_dest << "Disjunctive Term: ";
-        if(i_context.m_substitutions_tree.IsValid(i_source.m_substitution_node))
-            i_dest << "Node " << i_source.m_substitution_node.m_index;
-        i_dest.NewLine();
+        return (static_cast<uint64_t>(i_start_node) << 32) | i_dest_node;
+    }
 
-        i_dest.Tab();
-        for(const Candidate & candidate : i_source.m_candidates)
-        {
-            i_dest << candidate;
-            i_dest.NewLine();
-        }
-        i_dest.Untab();
+    std::string GetEdgeLabel(const MatchingContext & i_context, uint32_t i_start_node, uint32_t i_dest_node)
+    {
+        auto it = i_context.m_edge_labels.find(CombineNodeIndices(i_start_node, i_dest_node));
+        if(it != i_context.m_edge_labels.end())
+            return it->second;
+        else
+            return "";
     }
 
     StringBuilder & operator << (StringBuilder & i_dest, const MatchingContext & i_source)
     {
-        i_dest << "-----------------------------";
-        i_dest << i_source.m_substitutions_tree;
+        i_dest << "digraph G";
         i_dest.NewLine();
-        for(const DisjunctiveTerm & term : i_source.m_disjunctive_terms)
+        i_dest << "{";
+        i_dest.NewLine();
+        i_dest.Tab();
+
+        i_dest << "label = \"" << i_source.m_graph_name << "\"";
+        i_dest.NewLine();
+
+        const char escaped_newline[] = "\\n";
+
+        for(size_t i = 0; i < i_source.m_graph_nodes.size(); i++)
         {
-            DisjunctiveTermToString(i_dest, i_source, term);
+            i_dest << "v" << i << "[label = \"";
+            if(i == 0)
+                i_dest << "Final" << escaped_newline;
+            else if(i == 1)
+                i_dest << "Initial" << escaped_newline;
+            else
+                i_dest << "Node " << i << escaped_newline;
+            for(const auto & substitution : i_source.m_graph_nodes[i].m_substitutions)
+            {
+                i_dest << substitution.m_variable_name << " = " << ToSimplifiedStringForm(substitution.m_value) << escaped_newline;
+            }
+            i_dest << "\"]";
+            i_dest.NewLine();
         }
+
+        for(const auto & edge : i_source.m_edges)
+        {
+            std::string label = GetEdgeLabel(i_source, edge.second.m_source_index, edge.first);
+
+            size_t candidate_count = 0;
+            for(const Candidate & candidate : i_source.m_candidates)
+            {
+                if(candidate.m_start_node == edge.second.m_source_index && 
+                    candidate.m_dest_node == edge.first)
+                        candidate_count++;
+            }
+            assert(candidate_count <= 1);
+
+            if(candidate_count > 0)
+            {
+                i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
+                    << "[style=\"dashed\", label=\"" << label << "\"]"  << ';';
+            }
+            else
+            {
+                i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
+                    << "[label=\"" << label << "\"]"  << ';';
+            }
+            i_dest.NewLine();
+        }
+
+        i_dest.Untab();
+        i_dest << "}";
+        i_dest.NewLine();
+
         return i_dest;
     }
 
@@ -233,9 +320,49 @@ namespace djup
         return res.first->second;
     }
 
-    /** Returns false if the matching has failed */
-    bool MatchCandidate(MatchingContext & i_context, Candidate & i_candidate, SubstitutionsTree::NodeHandle i_subtitution_node)
+    uint32_t AddCandidate(MatchingContext & i_context,
+        uint32_t i_start_node, uint32_t i_dest_node,
+        Span<const Tensor> i_target, PatternSegment i_pattern,
+        uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
     {
+        assert(i_start_node != i_dest_node);
+
+        #if DBG_CREATE_GRAPHVIZ_SVG
+        if(!i_target.empty() && !i_pattern.m_pattern.empty())
+        {
+            std::string label = TensorListToString(i_target);
+            label += "\\nis\\n";
+            label += TensorListToString(i_pattern.m_pattern);
+            if(i_repetitions != std::numeric_limits<uint32_t>::max())
+                label += ToString(" (", i_repetitions, " times)");
+            i_context.m_edge_labels[CombineNodeIndices(i_start_node, i_dest_node)] = label;
+        }
+        #endif
+        
+        i_context.m_edges.insert({i_dest_node, {i_start_node, NumericCast<uint32_t>(i_context.m_candidates.size()) }});
+
+        i_context.m_graph_nodes[i_start_node].m_outgoing_edges++;
+
+        Candidate new_candidate;
+        new_candidate.m_start_node = i_start_node;
+        new_candidate.m_dest_node = i_dest_node;
+        new_candidate.m_pattern = i_pattern;
+        new_candidate.m_target_arguments = i_target;
+        new_candidate.m_has_repetitions = i_repetitions != std::numeric_limits<uint32_t>::max();
+        new_candidate.m_repetitions = new_candidate.m_has_repetitions ? i_repetitions : 1;
+        i_context.m_candidates.push_back(std::move(new_candidate));
+        return i_context.m_candidates.back().m_dest_node;
+    }
+
+    /** Returns false if the matching has failed */
+    bool MatchCandidate(MatchingContext & i_context, Candidate & i_candidate)
+    {
+        /*std::string rep_str;
+        if(i_candidate.m_has_repetitions)
+            rep_str = ToString(" x", i_candidate.m_repetitions);
+        PrintLn("Pattern: ", TensorListToString(i_candidate.m_pattern.m_pattern), rep_str);
+        PrintLn("Target: ", TensorListToString(i_candidate.m_target_arguments));*/
+        
         const bool nest_index = i_candidate.m_has_repetitions;
         const uint32_t repetitions = nest_index ? i_candidate.m_repetitions : 1;
         
@@ -280,43 +407,29 @@ namespace djup
 
                     const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
 
-                    auto sub_node = i_context.m_substitutions_tree.NewNode(i_subtitution_node);
-
                     uint32_t rep = NumericCast<uint32_t>(min_usable / sub_pattern_count);
                     for(size_t used = min_usable; used <= max_usable; used += sub_pattern_count, rep++)
                     {
-                        DisjunctiveTerm and_term;
-
                         assert(!nest_index); // repetitions can't be nested directly
 
+                        const uint32_t intermediate_node = NumericCast<uint32_t>(i_context.m_graph_nodes.size());
+                        i_context.m_graph_nodes.emplace_back();
+
                         // pre-pattern
-                        Candidate new_candidate;
-                        if(rep != 0)
-                        {
-                            new_candidate.m_pattern = { pattern.GetExpression()->GetArguments(),
+                        AddCandidate(i_context, i_candidate.m_start_node, intermediate_node, 
+                            i_candidate.m_target_arguments.subspan(target_index, used),
+                            PatternSegment{ pattern.GetExpression()->GetArguments(),
                                 pattern_info.m_pattern_arg_ranges,
-                                pattern_info.m_pattern_arg_reiaming_ranges };
-                            new_candidate.m_repetitions = rep;
-                            new_candidate.m_has_repetitions = true;
-                            new_candidate.m_variadic_indices = i_candidate.m_variadic_indices;
-                            new_candidate.m_target_arguments = i_candidate.m_target_arguments.subspan(target_index, used);
-                            and_term.m_candidates.push_back(std::move(new_candidate));
-                        }
+                                pattern_info.m_pattern_arg_reiaming_ranges }, rep );
 
                         // post-pattern
-                        new_candidate.m_pattern = { i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                            i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
-                            i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) };
-                        new_candidate.m_repetitions = 0;
-                        new_candidate.m_has_repetitions = false;
-                        new_candidate.m_variadic_indices = i_candidate.m_variadic_indices;
-                        new_candidate.m_target_arguments = i_candidate.m_target_arguments.subspan(target_index + used);
-                        and_term.m_candidates.push_back(std::move(new_candidate));
-
-                        and_term.m_substitution_node = i_context.m_substitutions_tree.NewNode(sub_node);
-                        i_context.m_disjunctive_terms.push_back(std::move(and_term));
+                        AddCandidate(i_context, intermediate_node, i_candidate.m_dest_node, 
+                            i_candidate.m_target_arguments.subspan(target_index + used),
+                            PatternSegment{ i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
+                                i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
+                                i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
                     }
-                    return true;
+                    return false;
                 }
 
                 if(target_index >= i_candidate.m_target_arguments.size())
@@ -334,7 +447,7 @@ namespace djup
                     if(!Is(target, pattern))
                         return false; // type mismatch
 
-                    if(!i_context.m_substitutions_tree.AddSubstitution(i_subtitution_node, 
+                    if(!i_context.m_graph_nodes[i_candidate.m_dest_node].AddSubstitution(
                             GetIdentifierName(pattern), i_candidate.m_variadic_indices, target))
                         return false; // incompatible substitution
                 }
@@ -351,18 +464,54 @@ namespace djup
                     if(target_arguments >= pattern_info.m_min_arguments &&
                         target_arguments <= pattern_info.m_max_arguments )
                     {
-                        Candidate new_candidate;
-                        new_candidate.m_pattern = { pattern.GetExpression()->GetArguments(),
-                            pattern_info.m_pattern_arg_ranges,
-                            pattern_info.m_pattern_arg_reiaming_ranges };
-                        new_candidate.m_target_arguments = target.GetExpression()->GetArguments();
-                        new_candidate.m_variadic_indices = i_candidate.m_variadic_indices;
+                        const uint32_t intermediate_node = NumericCast<uint32_t>(i_context.m_graph_nodes.size());
+                        i_context.m_graph_nodes.emplace_back();
 
-                        DisjunctiveTerm disjunctive;
-                        disjunctive.m_candidates.push_back(new_candidate);
-                        disjunctive.m_substitution_node = i_subtitution_node;
-                        i_context.m_disjunctive_terms.push_back(std::move(disjunctive));
+                        // match content
+                        AddCandidate(i_context,
+                            i_candidate.m_start_node, intermediate_node,
+                            target.GetExpression()->GetArguments(), 
+                            PatternSegment{
+                                pattern.GetExpression()->GetArguments(),
+                                pattern_info.m_pattern_arg_ranges,
+                                pattern_info.m_pattern_arg_reiaming_ranges} );
+
+                        if(nest_index && repetition + 1 < repetitions)
+                        {
+                            const uint32_t other_intermediate_node = NumericCast<uint32_t>(i_context.m_graph_nodes.size());
+                            i_context.m_graph_nodes.emplace_back();
+
+                            // rest of this repetition
+                            const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
+                            AddCandidate(i_context,
+                                intermediate_node, other_intermediate_node,
+                                i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
+                                PatternSegment{
+                                    i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1, remaining_in_pattern),
+                                    i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1, remaining_in_pattern),
+                                    i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1, remaining_in_pattern) } );
+
+                            // remaining repetitions
+                            const size_t target_start = target_index + 1 + remaining_in_pattern;
+                            AddCandidate(i_context, other_intermediate_node, i_candidate.m_dest_node,
+                                i_candidate.m_target_arguments.subspan(target_start), 
+                                i_candidate.m_pattern,
+                                repetitions - (repetition + 1) );
+                        }
+                        else
+                        {
+                            // rest of this repetition
+                            const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
+                            AddCandidate(i_context,
+                                intermediate_node, i_candidate.m_dest_node,
+                                i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
+                                PatternSegment{
+                                    i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1, remaining_in_pattern),
+                                    i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1, remaining_in_pattern),
+                                    i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1, remaining_in_pattern) } );
+                        }
                     }
+                    return false;
                 }
             }
         }
@@ -370,20 +519,112 @@ namespace djup
         return true;
     }
 
-    
-    void MatchDisjunctiveTerm(MatchingContext & i_context, DisjunctiveTerm & i_block)
+    void FilltMatches(const MatchingContext & i_context, std::vector<PatternMatch> & i_matches)
     {
-        if(i_context.m_substitutions_tree.IsValid(i_block.m_substitution_node))
-        { 
-            for(Candidate & candidate : i_block.m_candidates)
+        
+    }
+
+    std::vector<PatternMatch> GetMatches(const MatchingContext & i_context)
+    {
+        std::vector<PatternMatch> result;
+
+        assert(!i_context.m_graph_nodes.empty());
+
+        std::vector<bool> visited_nodes(i_context.m_graph_nodes.size());
+
+        size_t curr_node = 0;
+        //for(;;)
+        {
+            //curr_node
+            
+        }
+
+        return result;
+    }
+
+    #if DBG_CREATE_GRAPHVIZ_SVG
+    
+        void DumpGraphviz(MatchingContext & i_context, std::string i_name)
+        {
+            i_context.m_graph_name = i_name;
+
+            std::string dot_file_path(DBG_DEST_DIR + i_name + ".txt");
+            std::ofstream(dot_file_path) << ToString(i_context);
+            std::string cmd = ToString("\"", DBG_GRAPHVIZ_EXE, " -T png -O ", dot_file_path, "\"");
+            int res = std::system(cmd.c_str());
+            if(res != 0)
+                Error("The command ", cmd, " returned ", res);
+         }
+
+    #endif
+
+    void RemoveEdge(MatchingContext & i_context, uint32_t i_start_node, uint32_t i_dest_node);
+
+    void RemoveNode(MatchingContext & i_context, uint32_t i_node_index)
+    {
+        bool redo;
+        do {
+            
+            redo = false;
+
+            const auto range = i_context.m_edges.equal_range(i_node_index);
+            for(auto it = range.first; it != range.second; it++)
             {
-                if(!MatchCandidate(i_context, candidate, i_block.m_substitution_node))
+                RemoveEdge(i_context, it->second.m_source_index, it->first);
+                redo = true;
+                break;
+            }
+
+        } while(redo);
+
+        /*std::vector<uint32_t> nodes_to_remove;
+        nodes_to_remove.push_back(i_node_index);
+
+        while(!nodes_to_remove.empty())
+        {
+            uint32_t node = nodes_to_remove.back();
+            nodes_to_remove.pop_back();
+
+
+        }*/
+    }
+
+    void RemoveEdge(MatchingContext & i_context, uint32_t i_start_node, uint32_t i_dest_node)
+    {
+        uint32_t incoming_count = 0;
+        uint32_t found = 0;
+        
+        bool redo;
+        do {
+            redo = false;
+            incoming_count = 0;
+
+            const auto range = i_context.m_edges.equal_range(i_dest_node);
+            for(auto it = range.first; it != range.second; it++)
+            {
+                incoming_count++;
+
+                if(it->second.m_source_index == i_start_node)
                 {
-                    i_context.m_substitutions_tree.DeleteNode(i_block.m_substitution_node);
+                    assert(i_context.m_graph_nodes[i_start_node].m_outgoing_edges > 0);
+                    i_context.m_graph_nodes[i_start_node].m_outgoing_edges--;
+                    i_context.m_edges.erase(it);
+                    found++;
+                    redo = true;
                     break;
                 }
             }
+
+        } while(redo);
+
+        assert(found == 1);
+
+        if(i_context.m_graph_nodes[i_start_node].m_outgoing_edges == 0)
+        {
+            // we have removed the last outcoming edge for i_start_node, we can erase it
+            RemoveNode(i_context, i_start_node);
         }
+
     }
 
     std::vector<PatternMatch> Match(const Tensor & i_target, const Tensor & i_pattern)
@@ -392,41 +633,51 @@ namespace djup
         RepRange single_range = {1, 1};
         RepRange single_remaining = {0, 0};
 
-        Candidate root_candidate;
-        root_candidate.m_target_arguments = {&i_target, 1};
-        root_candidate.m_pattern = {{&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}};
+        context.m_graph_nodes.emplace_back().m_debug_name = "End"; // the first node is the final target
+        context.m_graph_nodes.emplace_back().m_debug_name = "Start";
 
-        DisjunctiveTerm root_term;
-        root_term.m_substitution_node = context.m_substitutions_tree.GetRoot();
-        root_term.m_candidates.push_back(std::move(root_candidate));
+        AddCandidate(context, 1, 0, {&i_target, 1}, {{&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}});
 
-        context.m_disjunctive_terms.push_back(std::move(root_term));
+        #if DBG_CREATE_GRAPHVIZ_SVG
+        if(g_enable_graphviz)
+        {
+            DumpGraphviz(context, "InitialState");
+        }
+        #endif
 
         int dbg_step = 0;
         do {
+            Candidate candidate = std::move(context.m_candidates.back());
+            context.m_candidates.pop_back();
+            
+            bool decayed = true;
 
-            #if DBG_PATTERN_TRACE
-                PrintLn();
-                Print(" ------ Step ", dbg_step, " ");
-                PrintLn(context);
-            #endif
+            const auto range = context.m_edges.equal_range(candidate.m_dest_node);
+            for(auto it = range.first; it != range.second; it++)
+            {
+                if(it->second.m_source_index == candidate.m_start_node)
+                {
+                    decayed = false;
+                }
+            }
 
-            DisjunctiveTerm term = std::move(context.m_disjunctive_terms.back());
-            context.m_disjunctive_terms.pop_back();
-            MatchDisjunctiveTerm(context, term);
+            if(!decayed)
+            {
+                if(!MatchCandidate(context, candidate))
+                {
+                    RemoveEdge(context, candidate.m_start_node, candidate.m_dest_node);
+                }
 
-            dbg_step++;
+                #if DBG_CREATE_GRAPHVIZ_SVG
+                    if(g_enable_graphviz)
+                        DumpGraphviz(context, ToString("Step_", dbg_step));
+                    dbg_step++;
+                #endif
+            }
 
-        } while(!context.m_disjunctive_terms.empty());
+        } while(!context.m_candidates.empty());
 
-        #if DBG_PATTERN_TRACE
-            PrintLn();
-            Print(" ------ Final State ");
-            PrintLn(context);
-        #endif
-
-        std::vector<PatternMatch> matches = context.m_substitutions_tree.GetMathes();
-
+        std::vector<PatternMatch> matches = GetMatches(context);
         return matches;
     }
 }
