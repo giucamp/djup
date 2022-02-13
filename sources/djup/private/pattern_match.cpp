@@ -180,7 +180,9 @@ namespace djup
         Span<const Tensor> m_target_arguments;
         PatternSegment m_pattern;
         uint32_t m_repetitions = 0;
+        uint32_t m_version;
         bool m_has_repetitions = false;
+        bool m_decayed = false;
         std::vector<VariadicIndex> m_variadic_indices;
     };
 
@@ -214,10 +216,16 @@ namespace djup
         }
     };
 
+    struct CandidateRef
+    {
+        uint32_t m_index = std::numeric_limits<uint32_t>::max();
+        uint32_t m_version{};
+    };
+
     struct Edge
     {
         uint32_t m_source_index{};
-        // uint32_t m_candidate_index{};
+        CandidateRef m_candidate_ref;
     };
 
     struct MatchingContext
@@ -226,11 +234,17 @@ namespace djup
         std::vector<GraphNode> m_graph_nodes;
         std::unordered_multimap<uint32_t, Edge> m_edges; // the key is the destination node
         std::unordered_map<const Expression*, PatternInfo> m_pattern_infos;
+        uint32_t m_next_candidate_version{};
         #if DBG_CREATE_GRAPHVIZ_SVG
             std::string m_graph_name;
             std::unordered_map<uint64_t, std::string> m_edge_labels;
         #endif
     };
+
+    bool IsCandidateRefValid(const MatchingContext & i_context, CandidateRef i_ref)
+    {
+        return i_ref.m_index < i_context.m_candidates.size() && i_ref.m_version == i_context.m_candidates[i_ref.m_index].m_version; 
+    }
 
     uint64_t CombineNodeIndices(uint32_t i_start_node, uint32_t i_dest_node)
     {
@@ -338,10 +352,6 @@ namespace djup
                 i_context.m_edge_labels[CombineNodeIndices(i_start_node, i_dest_node)] = label;
             }
         #endif
-        
-        i_context.m_edges.insert({i_dest_node, {i_start_node }});
-
-        i_context.m_graph_nodes[i_start_node].m_outgoing_edges++;
 
         Candidate new_candidate;
         new_candidate.m_start_node = i_start_node;
@@ -350,7 +360,15 @@ namespace djup
         new_candidate.m_target_arguments = i_target;
         new_candidate.m_has_repetitions = i_repetitions != std::numeric_limits<uint32_t>::max();
         new_candidate.m_repetitions = new_candidate.m_has_repetitions ? i_repetitions : 1;
+        new_candidate.m_version = i_context.m_next_candidate_version++;
+        
+        const uint32_t new_candidate_index = NumericCast<uint32_t>(i_context.m_candidates.size());
+        CandidateRef candidate_ref{new_candidate_index, new_candidate.m_version};
+        i_context.m_edges.insert({i_dest_node, {i_start_node, candidate_ref }});
+        i_context.m_graph_nodes[i_start_node].m_outgoing_edges++;
+
         i_context.m_candidates.push_back(std::move(new_candidate));
+        
     }
 
     class LinearPath
@@ -588,11 +606,9 @@ namespace djup
 
     #endif
 
-    void RemoveEdge(MatchingContext & i_context, uint32_t i_start_node, uint32_t i_dest_node);
-
     void RemoveNode(MatchingContext & i_context, uint32_t i_node_index)
     {
-        bool redo;
+        /*bool redo;
         do {
             
             redo = false;
@@ -600,14 +616,36 @@ namespace djup
             const auto range = i_context.m_edges.equal_range(i_node_index);
             for(auto it = range.first; it != range.second; it++)
             {
-                RemoveEdge(i_context, it->second.m_source_index, it->first);
+                uint32_t start_node = it->second.m_source_index;
+
+                if(IsCandidateRefValid(i_context, it->second.m_candidate_ref))
+                {
+                    Candidate & candidate = i_context.m_candidates[it->second.m_candidate_ref.m_index];
+                    if(candidate.m_start_node == it->second.m_source_index &&
+                        candidate.m_dest_node == it->first)
+                    {
+                        candidate.m_decayed = true;
+                    }
+                    
+                }
+                
+                assert(i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges > 0);
+                i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges--;
+                i_context.m_edges.erase(it);
+                
+                if(i_context.m_graph_nodes[start_node].m_outgoing_edges == 0)
+                {
+                    // we have removed the last outcoming edge for i_start_node, we can erase it
+                    RemoveNode(i_context, start_node);
+                }
+                
                 redo = true;
                 break;
             }
 
-        } while(redo);
+        } while(redo);*/
 
-        /*std::vector<uint32_t> nodes_to_remove;
+        std::vector<uint32_t> nodes_to_remove;
         nodes_to_remove.push_back(i_node_index);
 
         while(!nodes_to_remove.empty())
@@ -615,17 +653,48 @@ namespace djup
             uint32_t node = nodes_to_remove.back();
             nodes_to_remove.pop_back();
 
+            const auto range = i_context.m_edges.equal_range(node);
+            for(auto it = range.first; it != range.second;)
+            {
+                uint32_t start_node = it->second.m_source_index;
 
-        }*/
+                if(IsCandidateRefValid(i_context, it->second.m_candidate_ref))
+                {
+                    Candidate & candidate = i_context.m_candidates[it->second.m_candidate_ref.m_index];
+                    if(candidate.m_start_node == it->second.m_source_index &&
+                        candidate.m_dest_node == it->first)
+                    {
+                        candidate.m_decayed = true;
+                    }
+                }
+
+                assert(i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges > 0);
+                i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges--;
+                it = i_context.m_edges.erase(it);
+
+                if(i_context.m_graph_nodes[start_node].m_outgoing_edges == 0)
+                {
+                    // we have removed the last outcoming edge for i_start_node, we can erase it
+                    nodes_to_remove.push_back(start_node);
+                }
+            }
+        }
     }
 
-    void RemoveEdge(MatchingContext & i_context, uint32_t i_start_node, uint32_t i_dest_node)
+    void RemoveEdge(MatchingContext & i_context, 
+        uint32_t i_start_node, uint32_t i_dest_node, 
+        CandidateRef i_candidate_ref)
     {
         bool found = false;
         const auto range = i_context.m_edges.equal_range(i_dest_node);
         for(auto it = range.first; it != range.second; it++)
         {
-            if(it->second.m_source_index == i_start_node)
+            // the candidate has just been removed from the stack
+            // assert(IsCandidateRefValid(i_context, it->second.m_candidate_ref));
+
+            if(it->second.m_source_index == i_start_node &&
+                it->second.m_candidate_ref.m_index == i_candidate_ref.m_index &&
+                it->second.m_candidate_ref.m_version == i_candidate_ref.m_version)
             {
                 assert(i_context.m_graph_nodes[i_start_node].m_outgoing_edges > 0);
                 i_context.m_graph_nodes[i_start_node].m_outgoing_edges--;
@@ -665,23 +734,16 @@ namespace djup
         do {
             Candidate candidate = std::move(context.m_candidates.back());
             context.m_candidates.pop_back();
-            
-            bool decayed = true;
-
-            const auto range = context.m_edges.equal_range(candidate.m_dest_node);
-            for(auto it = range.first; it != range.second; it++)
+            if(!candidate.m_decayed)
             {
-                if(it->second.m_source_index == candidate.m_start_node)
-                {
-                    decayed = false;
-                }
-            }
+                // MatchCandidate may add other candidates, take the inndex beofore
+                const uint32_t candidate_index = NumericCast<uint32_t>(context.m_candidates.size());
 
-            if(!decayed)
-            {
                 if(!MatchCandidate(context, candidate))
                 {
-                    RemoveEdge(context, candidate.m_start_node, candidate.m_dest_node);
+                    RemoveEdge(context, 
+                        candidate.m_start_node, candidate.m_dest_node,
+                        {candidate_index, candidate.m_version});
                 }
 
                 #if DBG_CREATE_GRAPHVIZ_SVG
