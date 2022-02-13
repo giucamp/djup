@@ -217,7 +217,7 @@ namespace djup
     struct Edge
     {
         uint32_t m_source_index{};
-        uint32_t m_candidate_index{};
+        // uint32_t m_candidate_index{};
     };
 
     struct MatchingContext
@@ -287,7 +287,7 @@ namespace djup
                     candidate.m_dest_node == edge.first)
                         candidate_count++;
             }
-            assert(candidate_count <= 1);
+            //assert(candidate_count <= 1);
 
             if(candidate_count > 0)
             {
@@ -320,7 +320,7 @@ namespace djup
         return res.first->second;
     }
 
-    uint32_t AddCandidate(MatchingContext & i_context,
+    void AddCandidate(MatchingContext & i_context,
         uint32_t i_start_node, uint32_t i_dest_node,
         Span<const Tensor> i_target, PatternSegment i_pattern,
         uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
@@ -328,18 +328,18 @@ namespace djup
         assert(i_start_node != i_dest_node);
 
         #if DBG_CREATE_GRAPHVIZ_SVG
-        if(!i_target.empty() && !i_pattern.m_pattern.empty())
-        {
-            std::string label = TensorListToString(i_target);
-            label += "\\nis\\n";
-            label += TensorListToString(i_pattern.m_pattern);
-            if(i_repetitions != std::numeric_limits<uint32_t>::max())
-                label += ToString(" (", i_repetitions, " times)");
-            i_context.m_edge_labels[CombineNodeIndices(i_start_node, i_dest_node)] = label;
-        }
+            if(!i_target.empty() && !i_pattern.m_pattern.empty())
+            {
+                std::string label = TensorListToString(i_target);
+                label += "\\nis\\n";
+                label += TensorListToString(i_pattern.m_pattern);
+                if(i_repetitions != std::numeric_limits<uint32_t>::max())
+                    label += ToString(" (", i_repetitions, " times)");
+                i_context.m_edge_labels[CombineNodeIndices(i_start_node, i_dest_node)] = label;
+            }
         #endif
         
-        i_context.m_edges.insert({i_dest_node, {i_start_node, NumericCast<uint32_t>(i_context.m_candidates.size()) }});
+        i_context.m_edges.insert({i_dest_node, {i_start_node }});
 
         i_context.m_graph_nodes[i_start_node].m_outgoing_edges++;
 
@@ -351,8 +351,65 @@ namespace djup
         new_candidate.m_has_repetitions = i_repetitions != std::numeric_limits<uint32_t>::max();
         new_candidate.m_repetitions = new_candidate.m_has_repetitions ? i_repetitions : 1;
         i_context.m_candidates.push_back(std::move(new_candidate));
-        return i_context.m_candidates.back().m_dest_node;
     }
+
+    class LinearPath
+    {
+    public:
+        
+        LinearPath(MatchingContext & i_context, uint32_t i_start_node, uint32_t i_dest_node)
+            : m_context(i_context), m_start_node(i_start_node), m_dest_node(i_dest_node)
+        {
+
+        }
+
+        LinearPath(const LinearPath &) = delete;
+        LinearPath & operator = (const LinearPath &) = delete;
+
+        void AddEdge(Span<const Tensor> i_target, PatternSegment i_pattern,
+            uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
+        {
+            if(!i_target.empty() && !i_pattern.m_pattern.empty() && i_repetitions != 0)
+            {
+                if(!m_target.empty() && !m_pattern.m_pattern.empty() && m_repetitions != 0)
+                {
+                    const uint32_t intermediate_node = NumericCast<uint32_t>(m_context.m_graph_nodes.size());
+                    m_context.m_graph_nodes.emplace_back();
+
+                    FlushPendingEdge(intermediate_node);
+
+                    m_start_node = intermediate_node;
+                }
+
+                // store the pending edge
+                m_target = i_target;
+                m_pattern = i_pattern;
+                m_repetitions = i_repetitions;
+            }
+        }
+
+        ~LinearPath() noexcept(false)
+        {
+            FlushPendingEdge(m_dest_node);
+        }
+
+    private:
+
+        void FlushPendingEdge(uint32_t i_dest_node)
+        {
+            AddCandidate(m_context, m_start_node, i_dest_node, m_target, m_pattern, m_repetitions);
+        }
+
+    private:
+        MatchingContext & m_context;
+        uint32_t m_start_node;
+        uint32_t m_dest_node;
+
+        // pemding edge
+        Span<const Tensor> m_target;
+        PatternSegment m_pattern;
+        uint32_t m_repetitions{};
+    };
 
     /** Returns false if the matching has failed */
     bool MatchCandidate(MatchingContext & i_context, Candidate & i_candidate)
@@ -412,19 +469,17 @@ namespace djup
                     {
                         assert(!nest_index); // repetitions can't be nested directly
 
-                        const uint32_t intermediate_node = NumericCast<uint32_t>(i_context.m_graph_nodes.size());
-                        i_context.m_graph_nodes.emplace_back();
+                        LinearPath path(i_context, i_candidate.m_start_node, i_candidate.m_dest_node);
 
                         // pre-pattern
-                        AddCandidate(i_context, i_candidate.m_start_node, intermediate_node, 
-                            i_candidate.m_target_arguments.subspan(target_index, used),
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
                             PatternSegment{ pattern.GetExpression()->GetArguments(),
                                 pattern_info.m_pattern_arg_ranges,
-                                pattern_info.m_pattern_arg_reiaming_ranges }, rep );
+                                pattern_info.m_pattern_arg_reiaming_ranges },
+                                rep );
 
                         // post-pattern
-                        AddCandidate(i_context, intermediate_node, i_candidate.m_dest_node, 
-                            i_candidate.m_target_arguments.subspan(target_index + used),
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
                             PatternSegment{ i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
@@ -464,52 +519,27 @@ namespace djup
                     if(target_arguments >= pattern_info.m_min_arguments &&
                         target_arguments <= pattern_info.m_max_arguments )
                     {
-                        const uint32_t intermediate_node = NumericCast<uint32_t>(i_context.m_graph_nodes.size());
-                        i_context.m_graph_nodes.emplace_back();
+                        LinearPath path(i_context, i_candidate.m_start_node, i_candidate.m_dest_node);
 
                         // match content
-                        AddCandidate(i_context,
-                            i_candidate.m_start_node, intermediate_node,
-                            target.GetExpression()->GetArguments(), 
+                        path.AddEdge(target.GetExpression()->GetArguments(), 
                             PatternSegment{
                                 pattern.GetExpression()->GetArguments(),
                                 pattern_info.m_pattern_arg_ranges,
-                                pattern_info.m_pattern_arg_reiaming_ranges} );
+                                pattern_info.m_pattern_arg_reiaming_ranges});
 
-                        if(nest_index && repetition + 1 < repetitions)
-                        {
-                            const uint32_t other_intermediate_node = NumericCast<uint32_t>(i_context.m_graph_nodes.size());
-                            i_context.m_graph_nodes.emplace_back();
+                        // rest of this repetition
+                        const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
+                            PatternSegment{
+                                i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1, remaining_in_pattern),
+                                i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1, remaining_in_pattern),
+                                i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1, remaining_in_pattern) } );
 
-                            // rest of this repetition
-                            const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
-                            AddCandidate(i_context,
-                                intermediate_node, other_intermediate_node,
-                                i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
-                                PatternSegment{
-                                    i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1, remaining_in_pattern),
-                                    i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1, remaining_in_pattern),
-                                    i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1, remaining_in_pattern) } );
-
-                            // remaining repetitions
-                            const size_t target_start = target_index + 1 + remaining_in_pattern;
-                            AddCandidate(i_context, other_intermediate_node, i_candidate.m_dest_node,
-                                i_candidate.m_target_arguments.subspan(target_start), 
-                                i_candidate.m_pattern,
-                                repetitions - (repetition + 1) );
-                        }
-                        else
-                        {
-                            // rest of this repetition
-                            const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
-                            AddCandidate(i_context,
-                                intermediate_node, i_candidate.m_dest_node,
-                                i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
-                                PatternSegment{
-                                    i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1, remaining_in_pattern),
-                                    i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1, remaining_in_pattern),
-                                    i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1, remaining_in_pattern) } );
-                        }
+                        // remaining repetitions
+                        const size_t target_start = target_index + 1 + remaining_in_pattern;
+                        path.AddEdge( i_candidate.m_target_arguments.subspan(target_start), 
+                            i_candidate.m_pattern, repetitions - (repetition + 1) );
                     }
                     return false;
                 }
@@ -591,40 +621,26 @@ namespace djup
 
     void RemoveEdge(MatchingContext & i_context, uint32_t i_start_node, uint32_t i_dest_node)
     {
-        uint32_t incoming_count = 0;
-        uint32_t found = 0;
-        
-        bool redo;
-        do {
-            redo = false;
-            incoming_count = 0;
-
-            const auto range = i_context.m_edges.equal_range(i_dest_node);
-            for(auto it = range.first; it != range.second; it++)
+        bool found = false;
+        const auto range = i_context.m_edges.equal_range(i_dest_node);
+        for(auto it = range.first; it != range.second; it++)
+        {
+            if(it->second.m_source_index == i_start_node)
             {
-                incoming_count++;
-
-                if(it->second.m_source_index == i_start_node)
-                {
-                    assert(i_context.m_graph_nodes[i_start_node].m_outgoing_edges > 0);
-                    i_context.m_graph_nodes[i_start_node].m_outgoing_edges--;
-                    i_context.m_edges.erase(it);
-                    found++;
-                    redo = true;
-                    break;
-                }
+                assert(i_context.m_graph_nodes[i_start_node].m_outgoing_edges > 0);
+                i_context.m_graph_nodes[i_start_node].m_outgoing_edges--;
+                i_context.m_edges.erase(it);
+                found = true;
+                break;
             }
-
-        } while(redo);
-
-        assert(found == 1);
+        }
+        assert(found);
 
         if(i_context.m_graph_nodes[i_start_node].m_outgoing_edges == 0)
         {
             // we have removed the last outcoming edge for i_start_node, we can erase it
             RemoveNode(i_context, i_start_node);
         }
-
     }
 
     std::vector<PatternMatch> Match(const Tensor & i_target, const Tensor & i_pattern)

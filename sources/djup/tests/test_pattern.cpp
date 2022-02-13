@@ -47,6 +47,7 @@ namespace djup
             }*/
 
             /*{
+                g_enable_graphviz = true;
                 auto target =  "f(Sin(1, 2, 3))"_t;
                 auto pattern = "f(Sin(real x..., real y..., real z...))"_t;
                 std::vector<PatternMatch> matches = Match(target, pattern);
@@ -59,6 +60,14 @@ namespace djup
                 std::vector<PatternMatch> matches = Match(target, pattern);
                 DJUP_EXPECTS(matches.size() == 20);
             }*/
+
+            {
+                g_enable_graphviz = true;
+                auto target =  "Sin(f(1 2), f(4 5 6), f(7 8 9 1), f(11 12 13))"_t;
+                auto pattern = "Sin(f(real x..., real y...)..., f(real z..., real w...)..., f(real u..., real p...)...)"_t;
+                std::vector<PatternMatch> matches = Match(target, pattern);
+                DJUP_EXPECTS(matches.size() == 0);
+            }
 
             {
                 g_enable_graphviz = true;
