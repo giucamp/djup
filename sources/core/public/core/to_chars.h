@@ -50,7 +50,8 @@ namespace djup
         constexpr void Append(char i_char) noexcept
         {
             if (m_required_size < m_capacity)
-                m_chars[m_required_size++] = i_char;
+                m_chars[m_required_size] = i_char;
+            m_required_size++;
         }
 
         constexpr void Append(const std::string_view & i_string) noexcept
