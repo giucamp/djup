@@ -24,8 +24,6 @@
 
 namespace djup
 {
-
-
     namespace
     {
         struct ApplySubstitutions
@@ -176,6 +174,13 @@ namespace djup
         uint32_t m_index, m_count;
     };
 
+    struct Substitution
+    {
+        Name m_variable_name;
+        std::vector<VariadicIndex> m_indices;
+        Tensor m_value;
+    };
+
     struct Candidate
     {
         uint32_t m_start_node{};
@@ -186,8 +191,15 @@ namespace djup
         uint32_t m_version;
         bool m_decayed = false;
         std::vector<VariadicIndex> m_variadic_indices;
+        std::vector<Substitution> m_substitutions;
         int m_dbg_id{};
     };
+
+    bool AddSubstitution(Candidate & i_candidate, const Name & i_variable_name, Span<VariadicIndex> i_indices, const Tensor & i_value)
+    {
+        i_candidate.m_substitutions.emplace_back(Substitution{i_variable_name, {i_indices.begin(), i_indices.end()}, i_value});
+        return true;
+    }
 
     StringBuilder & operator << (StringBuilder & i_dest, const Candidate & i_source)
     {
@@ -199,24 +211,13 @@ namespace djup
         return i_dest;
     }
 
-    struct Substitution
-    {
-        Name m_variable_name;
-        std::vector<VariadicIndex> m_indices;
-        Tensor m_value;
-    };
-
     struct GraphNode
     {
         std::string m_debug_name;
-        std::vector<Substitution> m_substitutions;
         size_t m_outgoing_edges{};
 
-        bool AddSubstitution(const Name & i_variable_name, Span<VariadicIndex> i_indices, const Tensor & i_value)
-        {
-            m_substitutions.emplace_back(Substitution{i_variable_name, {i_indices.begin(), i_indices.end()}, i_value});
-            return true;
-        }
+        uint16_t m_open{};
+        uint16_t m_close{};
     };
 
     struct CandidateRef
@@ -229,6 +230,7 @@ namespace djup
     {
         uint32_t m_source_index{};
         CandidateRef m_candidate_ref;
+        std::vector<Substitution> m_substitutions;
         int m_dbg_id{};
     };
 
@@ -264,6 +266,8 @@ namespace djup
 
         for(size_t i = 0; i < i_source.m_graph_nodes.size(); i++)
         {
+            const GraphNode & node = i_source.m_graph_nodes[i];
+            
             i_dest << "v" << i << "[label = \"";
             if(i == 0)
                 i_dest << "Final" << escaped_newline;
@@ -271,10 +275,13 @@ namespace djup
                 i_dest << "Initial" << escaped_newline;
             else
                 i_dest << "Node " << i << escaped_newline;
-            for(const auto & substitution : i_source.m_graph_nodes[i].m_substitutions)
-            {
-                i_dest << substitution.m_variable_name << " = " << ToSimplifiedStringForm(substitution.m_value) << escaped_newline;
-            }
+
+            for(uint16_t j = 0; j < node.m_open; j++)
+                i_dest << "+" << escaped_newline;
+            
+            for(uint16_t j = 0; j < node.m_close; j++)
+                i_dest << "-" << escaped_newline;
+
             i_dest << "\"]";
             i_dest.NewLine();
         }
@@ -300,7 +307,11 @@ namespace djup
             }
             else
             {
-                std::string label = "subst";
+                std::string label;
+                for(const auto & substitution : edge.second.m_substitutions)
+                {
+                    label += ToString(substitution.m_variable_name, " = ", ToSimplifiedStringForm(substitution.m_value), escaped_newline);
+                }
                 i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
                     << "[label=\"" << label << "\"]"  << ';';
             }
@@ -343,7 +354,7 @@ namespace djup
 
         const uint32_t new_candidate_index = NumericCast<uint32_t>(i_context.m_candidates.size());
         CandidateRef candidate_ref{new_candidate_index, new_candidate.m_version};
-        i_context.m_edges.insert({i_dest_node, {i_start_node, candidate_ref, i_dbg_id }});
+        i_context.m_edges.insert({i_dest_node, Edge{i_start_node, candidate_ref, {}, i_dbg_id }});
         i_context.m_graph_nodes[i_start_node].m_outgoing_edges++;
 
         i_context.m_candidates.push_back(std::move(new_candidate));
@@ -376,8 +387,18 @@ namespace djup
             {
                 if(!m_target.empty() && !m_pattern.m_pattern.empty() && m_repetitions != 0)
                 {
+                    if(m_repetitions != std::numeric_limits<uint32_t>::max())
+                    {
+                        m_context.m_graph_nodes[m_start_node].m_open++;
+                    }
+
                     const uint32_t intermediate_node = NumericCast<uint32_t>(m_context.m_graph_nodes.size());
                     m_context.m_graph_nodes.emplace_back();
+
+                    if(m_repetitions != std::numeric_limits<uint32_t>::max())
+                    {
+                        m_context.m_graph_nodes.back().m_close++;
+                    }
 
                     FlushPendingEdge(intermediate_node);
 
@@ -501,8 +522,7 @@ namespace djup
                     if(!Is(target, pattern))
                         return false; // type mismatch
 
-                    if(!i_context.m_graph_nodes[i_candidate.m_dest_node].AddSubstitution(
-                            GetIdentifierName(pattern), i_candidate.m_variadic_indices, target))
+                    if(!AddSubstitution(i_candidate, GetIdentifierName(pattern), i_candidate.m_variadic_indices, target))
                         return false; // incompatible substitution
                 }
                 else 
@@ -665,6 +685,26 @@ namespace djup
                     RemoveEdge(context, 
                         candidate.m_start_node, candidate.m_dest_node,
                         {candidate_index, candidate.m_version});
+                }
+                else
+                {
+                    bool found = false;
+                    const auto range = context.m_edges.equal_range(candidate.m_dest_node);
+                    for(auto it = range.first; it != range.second; it++)
+                    {
+                        // the candidate has just been removed from the stack
+                        // assert(IsCandidateRefValid(i_context, it->second.m_candidate_ref));
+
+                        if(it->second.m_source_index == candidate.m_start_node &&
+                            it->second.m_candidate_ref.m_index == candidate_index &&
+                            it->second.m_candidate_ref.m_version == candidate.m_version)
+                        {
+                            it->second.m_substitutions = std::move(candidate.m_substitutions);
+                            found = true;
+                            break;
+                        }
+                    }
+                    assert(found);
                 }
 
                 #if DBG_CREATE_GRAPHVIZ_SVG

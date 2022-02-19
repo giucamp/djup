@@ -68,8 +68,9 @@ namespace djup
             }
 
             {
-                auto target =  "f(Sin(1, 2, 3), Sin(2, 5, 6, 7, 8))"_t;
-                auto pattern = "f(Sin(real x..., 2, real y...)...)"_t;
+                g_enable_graphviz = true;
+                auto target =  "f(Sin(1, 2, 3, 4), Sin(5, 3, 6, 7, 8, 9))"_t;
+                auto pattern = "f(Sin(real x..., 3, real y...)...)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
                 DJUP_EXPECTS(solutions == 1);
             }
