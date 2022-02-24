@@ -129,7 +129,7 @@ namespace djup
     {
         size_t m_source_node = 0;
         size_t m_current_token = 0;
-        std::unordered_map<Name, PatternMatch::VariableValue> m_substitutions;
+        std::unordered_map<Name, Tensor> m_substitutions;
         // std::unordered_map<const Expression*, size_t> m_expansions;
     };
 
@@ -166,7 +166,7 @@ namespace djup
                     if(!Is(token, edge.m_expr))
                         continue;
                     
-                    curr_head.m_substitutions.emplace(std::pair{GetIdentifierName(edge.m_expr), PatternMatch::VariableValue{token}});
+                    curr_head.m_substitutions.emplace(std::pair{GetIdentifierName(edge.m_expr), token});
                     curr_head.m_current_token += target.GetSibilingOffset(curr_head.m_current_token);
                 }
                 else

@@ -177,7 +177,6 @@ namespace djup
     struct Substitution
     {
         Name m_variable_name;
-        std::vector<VariadicIndex> m_indices;
         Tensor m_value;
     };
 
@@ -190,14 +189,14 @@ namespace djup
         uint32_t m_repetitions = 0;
         uint32_t m_version;
         bool m_decayed = false;
-        std::vector<VariadicIndex> m_variadic_indices;
+        uint32_t m_open{};
+        uint32_t m_close{};
         std::vector<Substitution> m_substitutions;
-        int m_dbg_id{};
     };
 
-    bool AddSubstitution(Candidate & i_candidate, const Name & i_variable_name, Span<VariadicIndex> i_indices, const Tensor & i_value)
+    bool AddSubstitution(Candidate & i_candidate, const Name & i_variable_name, const Tensor & i_value)
     {
-        i_candidate.m_substitutions.emplace_back(Substitution{i_variable_name, {i_indices.begin(), i_indices.end()}, i_value});
+        i_candidate.m_substitutions.emplace_back(Substitution{i_variable_name, i_value});
         return true;
     }
 
@@ -215,9 +214,6 @@ namespace djup
     {
         std::string m_debug_name;
         size_t m_outgoing_edges{};
-
-        uint16_t m_open{};
-        uint16_t m_close{};
     };
 
     struct CandidateRef
@@ -231,7 +227,8 @@ namespace djup
         uint32_t m_source_index{};
         CandidateRef m_candidate_ref;
         std::vector<Substitution> m_substitutions;
-        int m_dbg_id{};
+        uint32_t m_open;
+        uint32_t m_close;
     };
 
     struct MatchingContext
@@ -276,18 +273,18 @@ namespace djup
             else
                 i_dest << "Node " << i << escaped_newline;
 
-            for(uint16_t j = 0; j < node.m_open; j++)
-                i_dest << "+" << escaped_newline;
-            
-            for(uint16_t j = 0; j < node.m_close; j++)
-                i_dest << "-" << escaped_newline;
-
             i_dest << "\"]";
             i_dest.NewLine();
         }
 
         for(const auto & edge : i_source.m_edges)
         {
+            std::string labels;
+            if(edge.second.m_open)
+                labels += " taillabel = \" " + std::string(edge.second.m_open, '+') + " \" ";
+            if(edge.second.m_close)
+                labels += " headlabel = \" " + std::string(edge.second.m_close, '-') + " \" ";
+            
             if(IsCandidateRefValid(i_source, edge.second.m_candidate_ref))
             {
                 const Candidate candidate = i_source.m_candidates[edge.second.m_candidate_ref.m_index];
@@ -303,7 +300,7 @@ namespace djup
                 }
 
                 i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
-                    << "[style=\"dashed\", label=\"" << label << "\"]"  << ';';
+                    << "[style=\"dashed\", label=\"" << label << "\"" << labels << "]"  << ';';
             }
             else
             {
@@ -313,7 +310,7 @@ namespace djup
                     label += ToString(substitution.m_variable_name, " = ", ToSimplifiedStringForm(substitution.m_value), escaped_newline);
                 }
                 i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
-                    << "[label=\"" << label << "\"]"  << ';';
+                    << "[label=\"" << label << "\"" << labels << "]"  << ';';
             }
             i_dest.NewLine();
         }
@@ -336,9 +333,10 @@ namespace djup
         return res.first->second;
     }
 
-    void AddCandidate(MatchingContext & i_context, int i_dbg_id,
+    void AddCandidate(MatchingContext & i_context,
         uint32_t i_start_node, uint32_t i_dest_node,
         Span<const Tensor> i_target, PatternSegment i_pattern,
+        uint32_t i_open, uint32_t i_close,
         uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
     {
         assert(i_start_node != i_dest_node);
@@ -350,23 +348,25 @@ namespace djup
         new_candidate.m_target_arguments = i_target;
         new_candidate.m_repetitions = i_repetitions;
         new_candidate.m_version = i_context.m_next_candidate_version++;
-        new_candidate.m_dbg_id = i_dbg_id;
+        new_candidate.m_open = i_open;
+        new_candidate.m_close = i_close;
 
         const uint32_t new_candidate_index = NumericCast<uint32_t>(i_context.m_candidates.size());
         CandidateRef candidate_ref{new_candidate_index, new_candidate.m_version};
-        i_context.m_edges.insert({i_dest_node, Edge{i_start_node, candidate_ref, {}, i_dbg_id }});
+        i_context.m_edges.insert({i_dest_node, Edge{i_start_node, candidate_ref, {}, i_open, i_close }});
         i_context.m_graph_nodes[i_start_node].m_outgoing_edges++;
 
-        i_context.m_candidates.push_back(std::move(new_candidate));
-        
+        i_context.m_candidates.push_back(std::move(new_candidate));    
     }
 
     class LinearPath
     {
     public:
         
-        LinearPath(MatchingContext & i_context, uint32_t i_start_node, uint32_t i_dest_node)
-            : m_context(i_context), m_start_node(i_start_node), m_dest_node(i_dest_node)
+        LinearPath(MatchingContext & i_context, const Candidate & i_source_candidate)
+            : m_context(i_context),
+              m_start_node(i_source_candidate.m_start_node), m_dest_node(i_source_candidate.m_dest_node),
+              m_open(i_source_candidate.m_open), m_close(i_source_candidate.m_close)
         {
 
         }
@@ -374,8 +374,8 @@ namespace djup
         LinearPath(const LinearPath &) = delete;
         LinearPath & operator = (const LinearPath &) = delete;
 
-        void AddEdge(int i_dbg_id, Span<const Tensor> i_target, PatternSegment i_pattern,
-            uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
+        void AddEdge(Span<const Tensor> i_target, PatternSegment i_pattern,
+            bool i_increase_depth = false, uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
         {
             /*std::string rep_str;
             if(i_repetitions != std::numeric_limits<uint32_t>::max())
@@ -385,22 +385,12 @@ namespace djup
 
             if(!i_target.empty() && !i_pattern.m_pattern.empty() && i_repetitions != 0)
             {
-                if(!m_target.empty() && !m_pattern.m_pattern.empty() && m_repetitions != 0)
+                if(!(m_target.empty() && m_pattern.m_pattern.empty()) && m_repetitions != 0)
                 {
-                    if(m_repetitions != std::numeric_limits<uint32_t>::max())
-                    {
-                        m_context.m_graph_nodes[m_start_node].m_open++;
-                    }
-
                     const uint32_t intermediate_node = NumericCast<uint32_t>(m_context.m_graph_nodes.size());
                     m_context.m_graph_nodes.emplace_back();
 
-                    if(m_repetitions != std::numeric_limits<uint32_t>::max())
-                    {
-                        m_context.m_graph_nodes.back().m_close++;
-                    }
-
-                    FlushPendingEdge(intermediate_node);
+                    FlushPendingEdgeIfNotEmpty(intermediate_node);
 
                     m_start_node = intermediate_node;
                 }
@@ -409,32 +399,53 @@ namespace djup
                 m_target = i_target;
                 m_pattern = i_pattern;
                 m_repetitions = i_repetitions;
-                m_dbg_id = i_dbg_id;
+                m_increase_depth = i_increase_depth;
             }
         }
 
         ~LinearPath() noexcept(false)
         {
-            FlushPendingEdge(m_dest_node);
+            if(m_close == 0)
+                FlushPendingEdgeIfNotEmpty(m_dest_node);
+            else
+                FlushPendingEdge(m_dest_node, m_close);
         }
 
     private:
 
-        void FlushPendingEdge(uint32_t i_dest_node)
+        void FlushPendingEdgeIfNotEmpty(uint32_t i_dest_node)
         {
-            AddCandidate(m_context, m_dbg_id, m_start_node, i_dest_node, m_target, m_pattern, m_repetitions);
+            if(!(m_target.empty() && m_pattern.m_pattern.empty()) && m_repetitions != 0)
+            {
+                FlushPendingEdge(i_dest_node);
+            }
+        }
+
+
+        void FlushPendingEdge(uint32_t i_dest_node, uint32_t i_close = {})
+        {
+            uint32_t open = m_open;
+            if(m_increase_depth)
+            {
+                open++;
+                i_close++;
+            }
+            AddCandidate(m_context, m_start_node, i_dest_node, m_target, m_pattern, open, i_close, m_repetitions);
+            m_open = 0;
         }
 
     private:
         MatchingContext & m_context;
         uint32_t m_start_node;
         uint32_t m_dest_node;
+        uint32_t m_open;
+        uint32_t m_close;
 
-        // pemding edge
+        // pending edge
         Span<const Tensor> m_target;
         PatternSegment m_pattern;
         uint32_t m_repetitions{};
-        int m_dbg_id{};
+        bool m_increase_depth{};
     };
 
     /** Returns false if the matching has failed */
@@ -489,17 +500,17 @@ namespace djup
                     {
                         assert(!nest_index); // repetitions can't be nested directly
 
-                        LinearPath path(i_context, i_candidate.m_start_node, i_candidate.m_dest_node);
+                        LinearPath path(i_context, i_candidate);
 
                         // pre-pattern
-                        path.AddEdge(__LINE__, i_candidate.m_target_arguments.subspan(target_index, used),
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
                             PatternSegment{ pattern.GetExpression()->GetArguments(),
                                 pattern_info.m_pattern_arg_ranges,
                                 pattern_info.m_pattern_arg_reiaming_ranges },
-                                rep );
+                                true, rep );
 
                         // post-pattern
-                        path.AddEdge(__LINE__, i_candidate.m_target_arguments.subspan(target_index + used),
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
                             PatternSegment{ i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
@@ -522,7 +533,7 @@ namespace djup
                     if(!Is(target, pattern))
                         return false; // type mismatch
 
-                    if(!AddSubstitution(i_candidate, GetIdentifierName(pattern), i_candidate.m_variadic_indices, target))
+                    if(!AddSubstitution(i_candidate, GetIdentifierName(pattern), target))
                         return false; // incompatible substitution
                 }
                 else 
@@ -538,10 +549,10 @@ namespace djup
                     if(target_arguments >= pattern_info.m_min_arguments &&
                         target_arguments <= pattern_info.m_max_arguments )
                     {
-                        LinearPath path(i_context, i_candidate.m_start_node, i_candidate.m_dest_node);
+                        LinearPath path(i_context, i_candidate);
 
                         // match content
-                        path.AddEdge(__LINE__, target.GetExpression()->GetArguments(), 
+                        path.AddEdge(target.GetExpression()->GetArguments(), 
                             PatternSegment{
                                 pattern.GetExpression()->GetArguments(),
                                 pattern_info.m_pattern_arg_ranges,
@@ -549,7 +560,7 @@ namespace djup
 
                         // rest of this repetition
                         const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
-                        path.AddEdge(__LINE__, i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
                             PatternSegment{
                                 i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1, remaining_in_pattern),
                                 i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1, remaining_in_pattern),
@@ -557,8 +568,8 @@ namespace djup
 
                         // remaining repetitions
                         const size_t target_start = target_index + 1 + remaining_in_pattern;
-                        path.AddEdge(__LINE__,  i_candidate.m_target_arguments.subspan(target_start), 
-                            i_candidate.m_pattern, repetitions - (repetition + 1) );
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_start), 
+                            i_candidate.m_pattern, false, repetitions - (repetition + 1) );
                     }
                     return false;
                 }
@@ -659,10 +670,12 @@ namespace djup
         RepRange single_range = {1, 1};
         RepRange single_remaining = {0, 0};
 
+        static_assert(g_start_node_index == 1);
+        static_assert(g_end_node_index == 0);
         context.m_graph_nodes.emplace_back().m_debug_name = "End"; // the first node is the final target
         context.m_graph_nodes.emplace_back().m_debug_name = "Start";
 
-        AddCandidate(context, __LINE__,  1, 0, {&i_target, 1}, {{&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}});
+        AddCandidate(context, 1, 0, {&i_target, 1}, {{&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}}, {}, {});
 
         #if DBG_CREATE_GRAPHVIZ_SVG
         if(g_enable_graphviz)
@@ -733,6 +746,140 @@ namespace djup
                 solutions += CountSolutions(i_context, it->second.m_source_index);
         }
         return solutions;
+    }
+
+    struct VariadicValue
+    {
+        std::variant<std::monostate, Tensor, std::vector<VariadicValue>> m_value;
+    };
+
+    void VariadicValueAdd(VariadicValue & i_dest, uint32_t i_depth, const Tensor & i_value)
+    {
+        if(i_depth == 0)
+        {
+            i_dest.m_value = i_value;
+        }
+        else
+        {
+            auto * vector = std::get_if<std::vector<VariadicValue>>(&i_dest.m_value);
+            if(vector == nullptr)
+            {
+                i_dest.m_value = std::vector<VariadicValue>{};
+                vector = std::get_if<std::vector<VariadicValue>>(&i_dest.m_value);
+            }
+            vector->emplace_back();
+            VariadicValueAdd(vector->back(), i_depth - 1, i_value);
+        }
+    }
+
+    Tensor ToTuple(const VariadicValue & i_source)
+    {
+        assert(!std::holds_alternative<std::monostate>(i_source.m_value));
+
+        if(const Tensor * tensor = std::get_if<Tensor>(&i_source.m_value))
+            return *tensor;
+
+        const std::vector<VariadicValue> & values = std::get<std::vector<VariadicValue>>(i_source.m_value);
+        std::vector<Tensor> arguments;
+        arguments.reserve(values.size());
+        for(auto it = values.rbegin(); it != values.rend(); ++it)
+            arguments.push_back(ToTuple(*it));
+        return Tuple(arguments);
+    }
+
+    struct Solution
+    {
+        uint32_t m_node{};
+        uint32_t m_depth{};
+        std::unordered_map<Name, Tensor> m_substitutions;
+        std::unordered_map<Name, VariadicValue> m_variadic_substitutions;
+    };
+
+    bool AddSubstitution(Solution & i_dest, const Name & i_variable_name, const Tensor & i_value)
+    {
+        const auto [it, inserted] = i_dest.m_substitutions.insert(std::pair(i_variable_name, i_value));
+        if(!inserted)
+            return AlwaysEqual(it->second, i_value);
+        else
+            return true;
+    }
+
+    void AddVariadicSubstitution(Solution & i_dest, const Name & i_variable_name, const Tensor & i_value)
+    {
+        VariadicValueAdd(i_dest.m_variadic_substitutions[i_variable_name], i_dest.m_depth, i_value);
+    }
+
+    PatternMatch Match(const Tensor & i_target, const Tensor & i_pattern)
+    {
+        MatchingContext context = MakeSubstitutionsGraph(i_target, i_pattern);
+
+        std::vector<Solution> solutions;
+        solutions.push_back(Solution{g_end_node_index});
+
+        do {
+            const Solution source_solution = solutions.back();
+            solutions.pop_back();
+
+            const auto range = context.m_edges.equal_range(source_solution.m_node);
+            for(auto edge_it = range.first; edge_it != range.second; edge_it++)
+            {
+                Solution solution = source_solution;
+
+                bool incompatible = false;
+
+                solution.m_depth += edge_it->second.m_close;
+
+                if(solution.m_depth == 0)
+                {
+                    assert(edge_it->second.m_open == 0);
+
+                    for(const Substitution & substitution : edge_it->second.m_substitutions)
+                    {
+                        if(!AddSubstitution(solution, substitution.m_variable_name, substitution.m_value))
+                        {
+                            incompatible = true;
+                            break;
+                        }
+                    }   
+                }
+                else
+                {
+                    for(const Substitution & substitution : edge_it->second.m_substitutions)
+                    {
+                        AddVariadicSubstitution(solution, substitution.m_variable_name, substitution.m_value);
+                    }
+
+                    solution.m_depth -= edge_it->second.m_open;
+                    assert(solution.m_depth >= 0);
+
+                    if(solution.m_depth == 0)
+                    {
+                        // back from the variadic substitutions
+                        for(auto variadic_subst : solution.m_variadic_substitutions)
+                        {
+                            if(!AddSubstitution(solution, variadic_subst.first, ToTuple(variadic_subst.second)))
+                            {
+                                incompatible = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                solution.m_node = edge_it->second.m_source_index;
+                if(solution.m_node == g_start_node_index)
+                {
+                    assert(solution.m_depth == 0);
+                    return PatternMatch{1, std::move(solution.m_substitutions) };
+                }
+
+                if(!incompatible)
+                    solutions.push_back(solution);
+            }
+
+        } while(!solutions.empty());
+
+        return {};
     }
 
     size_t PatternMatchingCount(const Tensor & i_target, const Tensor & i_pattern)

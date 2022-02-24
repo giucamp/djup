@@ -19,11 +19,13 @@ namespace djup
             std::variant<std::monostate, Tensor, std::vector<VariableValue>> m_value;
         };
 
-        size_t m_pattern_id;
-        std::unordered_map<Name, VariableValue> m_substitutions;
+        size_t m_pattern_id{};
+        std::unordered_map<Name, Tensor> m_substitutions;
     };
 
     size_t PatternMatchingCount(const Tensor & i_target, const Tensor & i_pattern);
+
+    PatternMatch Match(const Tensor & i_target, const Tensor & i_pattern);
 
     Tensor SubstitutePatternMatch(const Tensor & i_source, const PatternMatch & i_match);
 }
