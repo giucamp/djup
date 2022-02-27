@@ -61,6 +61,22 @@ namespace djup
             }
 
             {
+                // g_enable_graphviz = true;
+                auto target =  "Sin(1 2 3 4 5)"_t;
+                auto pattern = "Sin(1 real x... 4 5)"_t;
+                auto match = Match(target, pattern);
+                DJUP_EXPECTS(match.m_substitutions.size() == 1);
+            }
+
+            {
+                // g_enable_graphviz = true;
+                auto target =  "Sin(1 2 3 4 5 6 7)"_t;
+                auto pattern = "Sin(1 real x... 3 4 real y... 6 7)"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
+            }
+
+            {
                 auto target =  "Sin(f(1 2), f(4 5 6), f(7 8 9 1), f(11 12 13))"_t;
                 auto pattern = "Sin(f(real x..., real y...)..., f(real z..., real w...)..., f(real u..., real p...)...)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);

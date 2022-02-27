@@ -53,15 +53,12 @@ namespace djup
             }
         };
 
-        bool IsCommutative(const Name & i_function)
+        enum class FunctionFlags
         {
-            return i_function == "Add" || i_function == "Mul" || i_function == "Equals";
-        }
-
-        bool IsAssociative(const Name & i_function)
-        {
-            return i_function == "Add" || i_function == "Mul" || i_function == "MatMul";
-        }
+            None = 0,
+            Associative = 1 << 0,
+            Commutative = 1 << 1,
+        };
 
         std::string TensorListToString(Span<const Tensor> i_tensors)
         {
@@ -98,34 +95,44 @@ namespace djup
         size_t m_min_arguments{}, m_max_arguments{};
         std::vector<RepRange> m_pattern_arg_ranges;
         std::vector<RepRange> m_pattern_arg_reiaming_ranges;
+        FunctionFlags m_flags = FunctionFlags::None;
     };
 
     struct PatternSegment
     {
+        FunctionFlags m_flags;
         Span<const Tensor> m_pattern;
         Span<const RepRange> m_ranges;
         Span<const RepRange> m_remaining;
 
         PatternSegment() = default;
 
-        PatternSegment(Span<const Tensor> i_pattern, Span<const RepRange> i_ranges, Span<const RepRange> i_remaining)
-            : m_pattern(i_pattern), m_ranges(i_ranges), m_remaining(i_remaining)
+        PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern, Span<const RepRange> i_ranges, Span<const RepRange> i_remaining)
+            : m_flags(i_flags), m_pattern(i_pattern), m_ranges(i_ranges), m_remaining(i_remaining)
         {
             assert(m_ranges.size() == m_pattern.size());
             assert(m_ranges.size() == m_remaining.size());
         }
     };
 
-    PatternInfo BuildPatternInfo(Span<const Tensor> i_pattern_args)
+    PatternInfo BuildPatternInfo(const Tensor & i_pattern)
     {
+        Span<const Tensor> pattern_args = i_pattern.GetExpression()->GetArguments();
+
         PatternInfo result;
 
+        const Name & function_name = i_pattern.GetExpression()->GetName();
+        if(function_name == "Add" || function_name == "Mul" || function_name == "Equals")
+            result.m_flags = CombineFlags(result.m_flags, FunctionFlags::Commutative);
+        if(function_name == "Add" || function_name == "Mul" || function_name == "MatMul")
+            result.m_flags = CombineFlags(result.m_flags, FunctionFlags::Associative);
+
         // fill m_pattern_arg_ranges
-        result.m_pattern_arg_ranges.resize(i_pattern_args.size());
+        result.m_pattern_arg_ranges.resize(pattern_args.size());
         bool upper_unbounded = false;
-        for(size_t sub_pattern_index = 0; sub_pattern_index < i_pattern_args.size(); sub_pattern_index++)
+        for(size_t sub_pattern_index = 0; sub_pattern_index < pattern_args.size(); sub_pattern_index++)
         {
-            const Tensor & arg = i_pattern_args[sub_pattern_index]; 
+            const Tensor & arg = pattern_args[sub_pattern_index]; 
 
             RepRange & arg_range = result.m_pattern_arg_ranges[sub_pattern_index];
 
@@ -148,6 +155,13 @@ namespace djup
                 result.m_min_arguments++;
                 upper_unbounded = true;
             }
+            else if(HasFlag(result.m_flags, FunctionFlags::Associative) && NameIs(arg, builtin_names::Identifier))
+            {
+                arg_range.m_min = 1;
+                arg_range.m_max = s_max_reps;
+                result.m_min_arguments++;
+                upper_unbounded = true;
+            }
             else
             {
                 result.m_min_arguments++;
@@ -158,11 +172,11 @@ namespace djup
             result.m_max_arguments = s_max_reps;
 
         // fill m_pattern_arg_reiaming_ranges
-        result.m_pattern_arg_reiaming_ranges.resize(i_pattern_args.size());
-        for(size_t sub_pattern_index = 0; sub_pattern_index < i_pattern_args.size(); sub_pattern_index++)
+        result.m_pattern_arg_reiaming_ranges.resize(pattern_args.size());
+        for(size_t sub_pattern_index = 0; sub_pattern_index < pattern_args.size(); sub_pattern_index++)
         {
             uint32_t min = 0, max = 0;
-            for(size_t j = sub_pattern_index + 1; j < i_pattern_args.size(); j++)
+            for(size_t j = sub_pattern_index + 1; j < pattern_args.size(); j++)
             {
                 min += result.m_pattern_arg_ranges[j].m_min;
 
@@ -289,9 +303,30 @@ namespace djup
 
         for(const auto & edge : i_source.m_edges)
         {
-            std::string labels;
+            std::string tail;
+            auto append_to_tail = [&] (const std::string & i_str) {
+                if(!tail.empty())
+                    tail += escaped_newline;
+                tail += i_str;
+            };
+
+            if(IsCandidateRefValid(i_source, edge.second.m_candidate_ref))
+            {
+                const Candidate candidate = i_source.m_candidates[edge.second.m_candidate_ref.m_index];
+                if(HasAllFlags(candidate.m_pattern.m_flags, CombineFlags(FunctionFlags::Associative, FunctionFlags::Commutative)))
+                    append_to_tail("ac");
+                else if(HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Associative))
+                    append_to_tail("a");
+                else if(HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Commutative))
+                    append_to_tail("a");
+            }
+         
             if(edge.second.m_open)
-                labels += " taillabel = \" " + std::string(edge.second.m_open, '+') + " \" ";
+                append_to_tail(" " + std::string(edge.second.m_open, '+') + " ");
+
+            std::string labels;
+            if(!tail.empty())
+                labels += " taillabel = \" " + tail + " \" ";
             if(edge.second.m_close)
                 labels += " headlabel = \" " + std::string(edge.second.m_close, '-') + " \" ";
             
@@ -338,7 +373,7 @@ namespace djup
         auto it = i_context.m_pattern_infos.find(expr);
         if(it != i_context.m_pattern_infos.end())
             return it->second;
-        auto res = i_context.m_pattern_infos.insert({expr, BuildPatternInfo(expr->GetArguments())});
+        auto res = i_context.m_pattern_infos.insert({expr, BuildPatternInfo(i_pattern)});
         assert(res.second);
         return res.first->second;
     }
@@ -473,13 +508,18 @@ namespace djup
 
                 if(i_candidate.m_pattern.m_ranges[pattern_index].m_min != i_candidate.m_pattern.m_ranges[pattern_index].m_max)
                 {
-                    assert(NameIs(pattern, builtin_names::RepetitionsZeroToMany) ||
+                    /*assert(NameIs(pattern, builtin_names::RepetitionsZeroToMany) ||
                         NameIs(pattern, builtin_names::RepetitionsZeroToOne) ||
-                        NameIs(pattern, builtin_names::RepetitionsOneToMany));
+                        NameIs(pattern, builtin_names::RepetitionsOneToMany) ||
+                        HasFlag(i_candidate.m_pattern.m_flags, FunctionFlags::Associative))*/;
 
                     size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
 
-                    size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
+                    size_t sub_pattern_count;
+                    if(pattern.GetExpression()->GetName() == builtin_names::Identifier)
+                        sub_pattern_count = 1;
+                    else
+                        sub_pattern_count = pattern.GetExpression()->GetArguments().size();
                     assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                     // compute usable range
@@ -507,15 +547,30 @@ namespace djup
                         LinearPath path(i_context, i_candidate);
 
                         // pre-pattern
-                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
-                            PatternSegment{ pattern.GetExpression()->GetArguments(),
-                                pattern_info.m_pattern_arg_ranges,
-                                pattern_info.m_pattern_arg_reiaming_ranges },
-                                true, rep );
+                        if(HasFlag(i_candidate.m_pattern.m_flags, FunctionFlags::Associative) &&
+                            pattern.GetExpression()->GetName() == builtin_names::Identifier)
+                        {
+                            path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
+                                PatternSegment{ FunctionFlags::None,
+                                i_candidate.m_pattern.m_pattern.subspan(pattern_index, 1),
+                                i_candidate.m_pattern.m_ranges.subspan(pattern_index, 1),
+                                i_candidate.m_pattern.m_remaining.subspan(pattern_index, 1) },
+                                false, rep );
+                        }
+                        else
+                        {
+                            path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
+                                PatternSegment{ pattern_info.m_flags,
+                                    pattern.GetExpression()->GetArguments(),
+                                    pattern_info.m_pattern_arg_ranges,
+                                    pattern_info.m_pattern_arg_reiaming_ranges },
+                                    true, rep );
+                        }
 
                         // post-pattern
                         path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
-                            PatternSegment{ i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
+                            PatternSegment{ pattern_info.m_flags,
+                                i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
                     }
@@ -557,7 +612,7 @@ namespace djup
 
                         // match content
                         path.AddEdge(target.GetExpression()->GetArguments(), 
-                            PatternSegment{
+                            PatternSegment{ pattern_info.m_flags,
                                 pattern.GetExpression()->GetArguments(),
                                 pattern_info.m_pattern_arg_ranges,
                                 pattern_info.m_pattern_arg_reiaming_ranges});
@@ -565,14 +620,14 @@ namespace djup
                         // rest of this repetition
                         const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
                         path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
-                            PatternSegment{
-                                i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1, remaining_in_pattern),
-                                i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1, remaining_in_pattern),
-                                i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1, remaining_in_pattern) } );
+                            PatternSegment{ i_candidate.m_pattern.m_flags,
+                                i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
+                                i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
+                                i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
 
                         // remaining repetitions
                         const size_t target_start = target_index + 1 + remaining_in_pattern;
-                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_start), 
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_start),
                             i_candidate.m_pattern, false, repetitions - (repetition + 1) );
                     }
                     return false;
@@ -679,7 +734,7 @@ namespace djup
         context.m_graph_nodes.emplace_back().m_debug_name = "End"; // the first node is the final target
         context.m_graph_nodes.emplace_back().m_debug_name = "Start";
 
-        AddCandidate(context, 1, 0, {&i_target, 1}, {{&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}}, {}, {});
+        AddCandidate(context, 1, 0, {&i_target, 1}, { FunctionFlags::None, {&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}}, {}, {});
 
         #if DBG_CREATE_GRAPHVIZ_SVG
         if(g_enable_graphviz)
