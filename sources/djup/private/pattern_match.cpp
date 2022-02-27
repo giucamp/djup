@@ -53,6 +53,16 @@ namespace djup
             }
         };
 
+        bool IsCommutative(const Name & i_function)
+        {
+            return i_function == "Add" || i_function == "Mul" || i_function == "Equals";
+        }
+
+        bool IsAssociative(const Name & i_function)
+        {
+            return i_function == "Add" || i_function == "Mul" || i_function == "MatMul";
+        }
+
         std::string TensorListToString(Span<const Tensor> i_tensors)
         {
             std::string result;
@@ -451,12 +461,6 @@ namespace djup
     /** Returns false if the matching has failed */
     bool MatchCandidate(MatchingContext & i_context, Candidate & i_candidate)
     {
-        /*std::string rep_str;
-        if(i_candidate.m_has_repetitions)
-            rep_str = ToString(" x", i_candidate.m_repetitions);
-        PrintLn("Pattern: ", TensorListToString(i_candidate.m_pattern.m_pattern), rep_str);
-        PrintLn("Target: ", TensorListToString(i_candidate.m_target_arguments));*/
-        
         const bool nest_index = i_candidate.m_repetitions != std::numeric_limits<uint32_t>::max();
         const uint32_t repetitions = nest_index ? i_candidate.m_repetitions : 1;
         
@@ -750,41 +754,44 @@ namespace djup
 
     struct VariadicValue
     {
-        std::variant<std::monostate, Tensor, std::vector<VariadicValue>> m_value;
+        std::vector<std::vector<Tensor>> m_stack;
     };
 
-    void VariadicValueAdd(VariadicValue & i_dest, uint32_t i_depth, const Tensor & i_value)
+    void VariadicAddValue(VariadicValue & i_dest, uint32_t i_depth, const Tensor & i_value)
     {
-        if(i_depth == 0)
-        {
-            i_dest.m_value = i_value;
-        }
-        else
-        {
-            auto * vector = std::get_if<std::vector<VariadicValue>>(&i_dest.m_value);
-            if(vector == nullptr)
-            {
-                i_dest.m_value = std::vector<VariadicValue>{};
-                vector = std::get_if<std::vector<VariadicValue>>(&i_dest.m_value);
-            }
-            vector->emplace_back();
-            VariadicValueAdd(vector->back(), i_depth - 1, i_value);
-        }
+        if(i_dest.m_stack.size() < i_depth)
+            i_dest.m_stack.resize(i_depth);
+        i_dest.m_stack.back().push_back(i_value);
     }
 
-    Tensor ToTuple(const VariadicValue & i_source)
+    Tensor ReverseToTuple(const std::vector<Tensor> & i_source)
     {
-        assert(!std::holds_alternative<std::monostate>(i_source.m_value));
-
-        if(const Tensor * tensor = std::get_if<Tensor>(&i_source.m_value))
-            return *tensor;
-
-        const std::vector<VariadicValue> & values = std::get<std::vector<VariadicValue>>(i_source.m_value);
         std::vector<Tensor> arguments;
-        arguments.reserve(values.size());
-        for(auto it = values.rbegin(); it != values.rend(); ++it)
-            arguments.push_back(ToTuple(*it));
+        arguments.reserve(i_source.size());
+        for(auto it = i_source.rbegin(); it != i_source.rend(); ++it)
+            arguments.push_back(*it);
         return Tuple(arguments);
+    }
+
+    void VariadicReduceDepth(VariadicValue & i_dest)
+    {
+        assert(i_dest.m_stack.size() >= 2);
+
+        const size_t size = i_dest.m_stack.size();
+        i_dest.m_stack[size - 2].push_back(Tuple(i_dest.m_stack[size - 1]));
+        i_dest.m_stack.pop_back();
+    }
+
+    Tensor VariadicClear(VariadicValue & i_dest)
+    {
+        assert(i_dest.m_stack.size() >= 1);
+
+        while(i_dest.m_stack.size() > 1)
+            VariadicReduceDepth(i_dest);
+
+        Tensor result = ReverseToTuple(i_dest.m_stack.front());
+        i_dest.m_stack.clear();
+        return result;
     }
 
     struct Solution
@@ -802,11 +809,6 @@ namespace djup
             return AlwaysEqual(it->second, i_value);
         else
             return true;
-    }
-
-    void AddVariadicSubstitution(Solution & i_dest, const Name & i_variable_name, const Tensor & i_value)
-    {
-        VariadicValueAdd(i_dest.m_variadic_substitutions[i_variable_name], i_dest.m_depth, i_value);
     }
 
     PatternMatch Match(const Tensor & i_target, const Tensor & i_pattern)
@@ -846,21 +848,33 @@ namespace djup
                 {
                     for(const Substitution & substitution : edge_it->second.m_substitutions)
                     {
-                        AddVariadicSubstitution(solution, substitution.m_variable_name, substitution.m_value);
+                        VariadicAddValue(solution.m_variadic_substitutions[substitution.m_variable_name], solution.m_depth, substitution.m_value);
                     }
 
-                    solution.m_depth -= edge_it->second.m_open;
-                    assert(solution.m_depth >= 0);
-
-                    if(solution.m_depth == 0)
+                    if(edge_it->second.m_open)
                     {
-                        // back from the variadic substitutions
-                        for(auto variadic_subst : solution.m_variadic_substitutions)
+                        solution.m_depth -= edge_it->second.m_open;
+                        assert(solution.m_depth >= 0);
+
+                        if(solution.m_depth == 0)
                         {
-                            if(!AddSubstitution(solution, variadic_subst.first, ToTuple(variadic_subst.second)))
+                            for(auto & var_subst : solution.m_variadic_substitutions)
                             {
-                                incompatible = true;
-                                break;
+                                Tensor value = VariadicClear(var_subst.second);
+                                if(!AddSubstitution(solution, var_subst.first, value))
+                                {
+                                    incompatible = true;
+                                    break;
+                                }
+                            }
+                            solution.m_variadic_substitutions.clear();
+                        }
+                        else
+                        {
+                            for(auto & var_subst : solution.m_variadic_substitutions)
+                            {
+                                while(var_subst.second.m_stack.size() > solution.m_depth)
+                                    VariadicReduceDepth(var_subst.second);
                             }
                         }
                     }

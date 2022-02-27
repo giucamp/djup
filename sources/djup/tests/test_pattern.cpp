@@ -68,22 +68,11 @@ namespace djup
             }
 
             {
-                g_enable_graphviz = true;
+                //g_enable_graphviz = true;
                 auto target =  "f(Sin(1, 2, 3, 4), Sin(5, 3, 6, 7, 8, 9))"_t;
                 auto pattern = "f(Sin(real x..., 3, real y...)...)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
                 auto match = Match(target, pattern);
-                PrintLn();
-
-                for(auto const & subs : match.m_substitutions)
-                {
-                    PrintLn(subs.first, " = ", ToSimplifiedStringForm(subs.second));
-                }
-                /*
-                y = Tuple(Tuple(Tuple(6)), Tuple(Tuple(7)), Tuple(Tuple(8)), Tuple(Tuple(9)), Tuple(4))
-                x = Tuple(Tuple(Tuple(5)), Tuple(1), Tuple(2))
-                
-                */
                 DJUP_EXPECTS(solutions == 1);
             }
 
