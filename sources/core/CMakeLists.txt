@@ -22,6 +22,7 @@ add_library(core STATIC
 	public/core/sockets.h
 	public/core/span.h
 	public/core/split.h
+	public/core/bits.h
 	public/core/to_chars.h
 	public/core/to_string.h
 	public/core/traits.h
@@ -31,6 +32,7 @@ add_library(core STATIC
 	tests/test_split.cpp
 	tests/test_to_chars.cpp
 	tests/test_to_string.cpp
+	tests/test_bits.cpp
 	tests/test_traits.cpp
 	tests/test_udp_socket.cpp
 )

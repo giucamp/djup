@@ -24,6 +24,7 @@
     <ClCompile Include="..\private\sockets.cpp" />
     <ClCompile Include="..\private\to_chars.cpp" />
     <ClCompile Include="..\private\to_string.cpp" />
+    <ClCompile Include="..\tests\test_bits.cpp" />
     <ClCompile Include="..\tests\test_from_chars.cpp" />
     <ClCompile Include="..\tests\test_core.cpp" />
     <ClCompile Include="..\tests\test_queue.cpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="..\private\has_fp_charconv.h" />
     <ClInclude Include="..\public\core\address.h" />
     <ClInclude Include="..\public\core\algorithms.h" />
+    <ClInclude Include="..\public\core\bits.h" />
     <ClInclude Include="..\public\core\diagnostic.h" />
     <ClInclude Include="..\public\core\flags.h" />
     <ClInclude Include="..\public\core\from_chars.h" />

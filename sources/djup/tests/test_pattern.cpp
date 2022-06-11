@@ -69,7 +69,7 @@ namespace djup
             }
 
             {
-                //g_enable_graphviz = true;
+                // g_enable_graphviz = true;
                 auto target =  "Add(1 2 77 3 4 5 6 7)"_t;
                 auto pattern = "Add(1 real x 3 4 real y 6 7)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);

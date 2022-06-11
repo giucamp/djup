@@ -80,10 +80,19 @@ namespace djup
         constexpr bool operator >= (const Hash & i_right) const
             { return m_value >= i_right.m_value; }
 
+        constexpr friend Hash HashFromValue(uint64_t i_value)
+        {
+            Hash result;
+            result.m_value = i_value;
+            return result;
+        }
+
     private:
         static constexpr uint64_t s_empty_value = 5381;
         uint64_t m_value = s_empty_value;
     };
+
+    constexpr Hash HashFromValue(uint64_t i_value);
 
     template <typename... PARAMATERS>
         Hash ComputeHash(PARAMATERS && ... i_parameters)

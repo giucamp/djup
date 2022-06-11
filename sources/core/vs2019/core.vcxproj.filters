@@ -51,6 +51,9 @@
     <ClCompile Include="..\tests\test_queue.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\tests\test_bits.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\core\hash_variant.h">
@@ -102,6 +105,9 @@
       <Filter>public</Filter>
     </ClInclude>
     <ClInclude Include="..\public\core\algorithms.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\bits.h">
       <Filter>public</Filter>
     </ClInclude>
   </ItemGroup>

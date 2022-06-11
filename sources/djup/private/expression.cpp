@@ -11,6 +11,9 @@
 #include <core/to_chars.h>
 #include <djup/tensor.h>
 #include <core/algorithms.h>
+#include <core/bits.h>
+#include <core/hash.h>
+#include <core/flags.h>
 
 namespace djup
 {
@@ -25,12 +28,33 @@ namespace djup
           m_arguments(i_arguments.begin(), i_arguments.end()), 
           m_metadata(std::move(i_metadata))
     {
-        /*if(m_name != builtin_names::Identifier
-        && AllOf(m_data.m_arguments, djup::IsConstant))
-        m_data.m_is_constant = true; */
+        static const Name non_constants[] = {builtin_names::Identifier, builtin_names::RepetitionsZeroToMany, 
+            builtin_names::RepetitionsOneToMany, builtin_names::RepetitionsZeroToOne, builtin_names::AssociativeIdentifier};
 
+        if(Contains(non_constants, m_name)
+            && AllOf(m_arguments, djup::IsConstant))
+        {
+            if(!m_metadata)
+                m_metadata = ExpressionMetadata{};
+            m_metadata->m_is_constant = true;
+        }
+
+        if(HasFlag(GetFunctionFlags(m_name), FunctionFlags::Commutative))
+        {
+            std::sort(m_arguments.begin(), m_arguments.end(), 
+                [](const Tensor & i_first, const Tensor & i_second){
+                    return i_first.GetExpression()->GetHash() < i_second.GetExpression()->GetHash(); });
+        }
         m_hash << m_name;
         m_hash << m_arguments;
+
+        auto hash = m_hash.GetValue();
+        if(IsConstant())
+            hash &= ~bit_reverse<decltype(hash)>(0);
+        else
+            hash |= bit_reverse<decltype(hash)>(0);
+
+        m_hash = HashFromValue(hash);
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src)

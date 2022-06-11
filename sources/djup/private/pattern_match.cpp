@@ -53,13 +53,6 @@ namespace djup
             }
         };
 
-        enum class FunctionFlags
-        {
-            None = 0,
-            Associative = 1 << 0,
-            Commutative = 1 << 1,
-        };
-
         std::string TensorListToString(Span<const Tensor> i_tensors)
         {
             std::string result;
@@ -115,13 +108,12 @@ namespace djup
         }
     };
 
-    FunctionFlags GetFunctionFlags(const Tensor & i_expr)
+    FunctionFlags GetFunctionFlags(const Name & i_function_name)
     {
         FunctionFlags flags = {};
-        const Name & function_name = i_expr.GetExpression()->GetName();
-        if(function_name == "Add" || function_name == "Mul" || function_name == "Equals")
-            flags = CombineFlags(flags, FunctionFlags::Commutative);
-        if(function_name == "Add" || function_name == "Mul" || function_name == "MatMul")
+        /*if(i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "Equals")
+            flags = CombineFlags(flags, FunctionFlags::Commutative);*/
+        if(i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "MatMul")
             flags = CombineFlags(flags, FunctionFlags::Associative);
         return flags;
     }
@@ -131,7 +123,7 @@ namespace djup
         Span<const Tensor> pattern_args = i_pattern.GetExpression()->GetArguments();
 
         PatternInfo result;
-        result.m_flags = GetFunctionFlags(i_pattern);
+        result.m_flags = GetFunctionFlags(i_pattern.GetExpression()->GetName());
 
         // fill m_pattern_arg_ranges
         result.m_pattern_arg_ranges.resize(pattern_args.size());
@@ -392,32 +384,49 @@ namespace djup
         return res.first->second;
     }
 
-    Tensor SubstituteAssociativeIdentifiers(const Tensor & i_pattern)
+    Tensor PreprocessPattern(const Tensor & i_pattern)
     {
         return SubstituteByPredicate(i_pattern, [](const Tensor & i_candidate){
-            FunctionFlags flags = GetFunctionFlags(i_candidate);
+            FunctionFlags flags = GetFunctionFlags(i_candidate.GetExpression()->GetName());
+
+            bool some_substitution = false;
+            std::vector<Tensor> new_arguments;
+
+            const std::vector<Tensor> & arguments = i_candidate.GetExpression()->GetArguments();
+            const size_t argument_count = arguments.size();
+
+            // substitute identifiers in associative functions with AssociativeIdentifier()
             if(HasFlag(flags, FunctionFlags::Associative))
             {
-                bool some_substitution = false;
-                std::vector<Tensor> new_arguments;
-                for(const Tensor & argument : i_candidate.GetExpression()->GetArguments())
+                size_t index = 0;
+                
+                for(; index < argument_count; index++)
                 {
+                    const Tensor & argument = arguments[index];
                     if(IsIdentifier(argument))
                     {
-                        new_arguments.push_back(MakeExpression(builtin_names::AssociativeIdentifier, 
-                            {argument}, 
-                            argument.GetExpression()->GetMetadata()));
+                        new_arguments = arguments;
                         some_substitution = true;
-                    }
-                    else
-                    {
-                        new_arguments.push_back(argument);
+                        break;
                     }
                 }
-                if(some_substitution)
-                    return MakeExpression(i_candidate.GetExpression()->GetName(), new_arguments, i_candidate.GetExpression()->GetMetadata());
+
+                for(; index < argument_count; index++)
+                {
+                    const Tensor & argument = arguments[index];
+                    if(IsIdentifier(argument))
+                    {
+                        new_arguments[index] = MakeExpression(builtin_names::AssociativeIdentifier, 
+                            {argument}, 
+                            argument.GetExpression()->GetMetadata());
+                    }
+                }
             }
-            return i_candidate;
+
+            if(some_substitution)
+                return MakeExpression(i_candidate.GetExpression()->GetName(), new_arguments, i_candidate.GetExpression()->GetMetadata());
+            else
+                return i_candidate;
         });
     }
 
@@ -558,18 +567,7 @@ namespace djup
 
                     size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
 
-                    size_t sub_pattern_count;
-                    /*if(pattern.GetExpression()->GetName() == builtin_names::Identifier)
-                    {
-                        // identifier in associative function
-                        assert(i_candidate.m_pattern.m_ranges[pattern_index].m_is_associative_var);
-                        sub_pattern_count = 1;
-                    }
-                    else*/
-                    {
-                        //assert(!i_candidate.m_pattern.m_ranges[pattern_index].m_is_associative_var);
-                        sub_pattern_count = pattern.GetExpression()->GetArguments().size();
-                    }
+                    size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
                     assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                     // compute usable range
@@ -596,15 +594,13 @@ namespace djup
 
                         LinearPath path(i_context, i_candidate);
 
-                        {
-                            // pre-pattern
-                            path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
-                                PatternSegment{ pattern_info.m_flags,
-                                    pattern.GetExpression()->GetArguments(),
-                                    pattern_info.m_pattern_arg_ranges,
-                                    pattern_info.m_pattern_arg_reiaming_ranges },
-                                    true, rep );
-                        }
+                        // pre-pattern
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
+                            PatternSegment{ pattern_info.m_flags,
+                                pattern.GetExpression()->GetArguments(),
+                                pattern_info.m_pattern_arg_ranges,
+                                pattern_info.m_pattern_arg_reiaming_ranges },
+                                true, rep );
 
                         // post-pattern
                         path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
@@ -764,7 +760,8 @@ namespace djup
 
     MatchingContext MakeSubstitutionsGraph(const Tensor & i_target, const Tensor & i_pattern)
     {
-        Tensor pattern = SubstituteAssociativeIdentifiers(i_pattern);
+        Tensor pattern = PreprocessPattern(i_pattern);
+        const Tensor & target = i_target;
 
         MatchingContext context;
         RepRange single_range = {1, 1};
@@ -775,7 +772,7 @@ namespace djup
         context.m_graph_nodes.emplace_back().m_debug_name = "End"; // the first node is the final target
         context.m_graph_nodes.emplace_back().m_debug_name = "Start";
 
-        AddCandidate(context, 1, 0, {&i_target, 1}, { FunctionFlags::None, {&pattern, 1}, {&single_range, 1}, {&single_remaining, 1}}, {}, {});
+        AddCandidate(context, 1, 0, {&target, 1}, { FunctionFlags::None, {&pattern, 1}, {&single_range, 1}, {&single_remaining, 1}}, {}, {});
 
         #if DBG_CREATE_GRAPHVIZ_SVG
         if(g_enable_graphviz)

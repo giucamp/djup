@@ -77,6 +77,15 @@ namespace djup
 
     void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source);
 
+    enum class FunctionFlags
+    {
+        None = 0,
+        Associative = 1 << 0,
+        Commutative = 1 << 1,
+    };
+
+    FunctionFlags GetFunctionFlags(const Name & i_function_name);
+
     template <auto VALUE>
         [[nodiscard]] const Tensor & MakeLiteral()
     {

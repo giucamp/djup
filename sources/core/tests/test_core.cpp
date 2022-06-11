@@ -12,6 +12,7 @@ namespace djup
     namespace tests
     {
         void Traits();
+        void Bits();
         void ToChars();
         void FromChars();
         void ToString();
@@ -24,6 +25,7 @@ namespace djup
             PrintLn("Test: Core...");
 
             Traits();
+            Bits();
             ToChars();
             FromChars();
             ToString();
