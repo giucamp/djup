@@ -100,7 +100,7 @@ namespace djup
 
     struct PatternSegment
     {
-        FunctionFlags m_flags;
+        FunctionFlags m_flags = FunctionFlags::None;
         Span<const Tensor> m_pattern;
         Span<const RepRange> m_ranges;
         Span<const RepRange> m_remaining;
@@ -115,17 +115,23 @@ namespace djup
         }
     };
 
+    FunctionFlags GetFunctionFlags(const Tensor & i_expr)
+    {
+        FunctionFlags flags = {};
+        const Name & function_name = i_expr.GetExpression()->GetName();
+        if(function_name == "Add" || function_name == "Mul" || function_name == "Equals")
+            flags = CombineFlags(flags, FunctionFlags::Commutative);
+        if(function_name == "Add" || function_name == "Mul" || function_name == "MatMul")
+            flags = CombineFlags(flags, FunctionFlags::Associative);
+        return flags;
+    }
+
     PatternInfo BuildPatternInfo(const Tensor & i_pattern)
     {
         Span<const Tensor> pattern_args = i_pattern.GetExpression()->GetArguments();
 
         PatternInfo result;
-
-        const Name & function_name = i_pattern.GetExpression()->GetName();
-        if(function_name == "Add" || function_name == "Mul" || function_name == "Equals")
-            result.m_flags = CombineFlags(result.m_flags, FunctionFlags::Commutative);
-        if(function_name == "Add" || function_name == "Mul" || function_name == "MatMul")
-            result.m_flags = CombineFlags(result.m_flags, FunctionFlags::Associative);
+        result.m_flags = GetFunctionFlags(i_pattern);
 
         // fill m_pattern_arg_ranges
         result.m_pattern_arg_ranges.resize(pattern_args.size());
@@ -148,14 +154,7 @@ namespace djup
                 arg_range.m_max = 1;
                 result.m_max_arguments++;
             }
-            else if(NameIs(arg, builtin_names::RepetitionsOneToMany))
-            {
-                arg_range.m_min = 1;
-                arg_range.m_max = s_max_reps;
-                result.m_min_arguments++;
-                upper_unbounded = true;
-            }
-            else if(HasFlag(result.m_flags, FunctionFlags::Associative) && NameIs(arg, builtin_names::Identifier))
+            else if(NameIs(arg, builtin_names::RepetitionsOneToMany) || NameIs(arg, builtin_names::AssociativeIdentifier))
             {
                 arg_range.m_min = 1;
                 arg_range.m_max = s_max_reps;
@@ -283,6 +282,17 @@ namespace djup
         i_dest << "label = \"" << i_source.m_graph_name << "\"";
         i_dest.NewLine();
 
+        // next_candidate
+        const Candidate * next_candidate = nullptr;
+        for(auto it = i_source.m_candidates.rbegin(); it != i_source.m_candidates.rend(); it++)
+        {
+            if(!it->m_decayed)
+            {
+                next_candidate = &*it;
+                break;
+            }
+        }
+
         const char escaped_newline[] = "\\n";
 
         for(size_t i = 0; i < i_source.m_graph_nodes.size(); i++)
@@ -332,7 +342,7 @@ namespace djup
             
             if(IsCandidateRefValid(i_source, edge.second.m_candidate_ref))
             {
-                const Candidate candidate = i_source.m_candidates[edge.second.m_candidate_ref.m_index];
+                const Candidate & candidate = i_source.m_candidates[edge.second.m_candidate_ref.m_index];
 
                 std::string label;
                 if(!candidate.m_target_arguments.empty() && !candidate.m_pattern.m_pattern.empty())
@@ -344,8 +354,12 @@ namespace djup
                         label += ToString(" (", candidate.m_repetitions, " times)");
                 }
 
+                std::string color = "black";
+                if(&candidate == next_candidate)
+                    color = "green4";
+
                 i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
-                    << "[style=\"dashed\", label=\"" << label << "\"" << labels << "]"  << ';';
+                    << "[style=\"dashed\", color=\"" << color << "\", label=\"" << label << "\"" << labels << "]"  << ';';
             }
             else
             {
@@ -376,6 +390,35 @@ namespace djup
         auto res = i_context.m_pattern_infos.insert({expr, BuildPatternInfo(i_pattern)});
         assert(res.second);
         return res.first->second;
+    }
+
+    Tensor SubstituteAssociativeIdentifiers(const Tensor & i_pattern)
+    {
+        return SubstituteByPredicate(i_pattern, [](const Tensor & i_candidate){
+            FunctionFlags flags = GetFunctionFlags(i_candidate);
+            if(HasFlag(flags, FunctionFlags::Associative))
+            {
+                bool some_substitution = false;
+                std::vector<Tensor> new_arguments;
+                for(const Tensor & argument : i_candidate.GetExpression()->GetArguments())
+                {
+                    if(IsIdentifier(argument))
+                    {
+                        new_arguments.push_back(MakeExpression(builtin_names::AssociativeIdentifier, 
+                            {argument}, 
+                            argument.GetExpression()->GetMetadata()));
+                        some_substitution = true;
+                    }
+                    else
+                    {
+                        new_arguments.push_back(argument);
+                    }
+                }
+                if(some_substitution)
+                    return MakeExpression(i_candidate.GetExpression()->GetName(), new_arguments, i_candidate.GetExpression()->GetMetadata());
+            }
+            return i_candidate;
+        });
     }
 
     void AddCandidate(MatchingContext & i_context,
@@ -516,10 +559,17 @@ namespace djup
                     size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
 
                     size_t sub_pattern_count;
-                    if(pattern.GetExpression()->GetName() == builtin_names::Identifier)
+                    /*if(pattern.GetExpression()->GetName() == builtin_names::Identifier)
+                    {
+                        // identifier in associative function
+                        assert(i_candidate.m_pattern.m_ranges[pattern_index].m_is_associative_var);
                         sub_pattern_count = 1;
-                    else
+                    }
+                    else*/
+                    {
+                        //assert(!i_candidate.m_pattern.m_ranges[pattern_index].m_is_associative_var);
                         sub_pattern_count = pattern.GetExpression()->GetArguments().size();
+                    }
                     assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                     // compute usable range
@@ -546,19 +596,8 @@ namespace djup
 
                         LinearPath path(i_context, i_candidate);
 
-                        // pre-pattern
-                        if(HasFlag(i_candidate.m_pattern.m_flags, FunctionFlags::Associative) &&
-                            pattern.GetExpression()->GetName() == builtin_names::Identifier)
                         {
-                            path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
-                                PatternSegment{ FunctionFlags::None,
-                                i_candidate.m_pattern.m_pattern.subspan(pattern_index, 1),
-                                i_candidate.m_pattern.m_ranges.subspan(pattern_index, 1),
-                                i_candidate.m_pattern.m_remaining.subspan(pattern_index, 1) },
-                                false, rep );
-                        }
-                        else
-                        {
+                            // pre-pattern
                             path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
                                 PatternSegment{ pattern_info.m_flags,
                                     pattern.GetExpression()->GetArguments(),
@@ -570,9 +609,9 @@ namespace djup
                         // post-pattern
                         path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
                             PatternSegment{ pattern_info.m_flags,
-                                i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                                i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
-                                i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
+                            i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
+                            i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
+                            i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
                     }
                     return false;
                 }
@@ -620,7 +659,7 @@ namespace djup
                         // rest of this repetition
                         const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
                         path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
-                            PatternSegment{ i_candidate.m_pattern.m_flags,
+                            PatternSegment{ pattern_info.m_flags,
                                 i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
@@ -725,6 +764,8 @@ namespace djup
 
     MatchingContext MakeSubstitutionsGraph(const Tensor & i_target, const Tensor & i_pattern)
     {
+        Tensor pattern = SubstituteAssociativeIdentifiers(i_pattern);
+
         MatchingContext context;
         RepRange single_range = {1, 1};
         RepRange single_remaining = {0, 0};
@@ -734,7 +775,7 @@ namespace djup
         context.m_graph_nodes.emplace_back().m_debug_name = "End"; // the first node is the final target
         context.m_graph_nodes.emplace_back().m_debug_name = "Start";
 
-        AddCandidate(context, 1, 0, {&i_target, 1}, { FunctionFlags::None, {&i_pattern, 1}, {&single_range, 1}, {&single_remaining, 1}}, {}, {});
+        AddCandidate(context, 1, 0, {&i_target, 1}, { FunctionFlags::None, {&pattern, 1}, {&single_range, 1}, {&single_remaining, 1}}, {}, {});
 
         #if DBG_CREATE_GRAPHVIZ_SVG
         if(g_enable_graphviz)
@@ -749,6 +790,10 @@ namespace djup
             context.m_candidates.pop_back();
             if(!candidate.m_decayed)
             {
+                #if DBG_CREATE_GRAPHVIZ_SVG
+                    dbg_step++;
+                #endif
+
                 // MatchCandidate may add other candidates, take the inndex beofore
                 const uint32_t candidate_index = NumericCast<uint32_t>(context.m_candidates.size());
 
@@ -782,7 +827,6 @@ namespace djup
                 #if DBG_CREATE_GRAPHVIZ_SVG
                     if(g_enable_graphviz)
                         DumpGraphviz(context, ToString("Step_", dbg_step));
-                    dbg_step++;
                 #endif
             }
 

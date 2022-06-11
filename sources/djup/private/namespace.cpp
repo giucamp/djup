@@ -118,7 +118,7 @@ namespace djup
             const Tensor & pattern_type = m_type_inference_axioms_rhss[match.m_pattern_id];
             Tensor type = SubstitutePatternMatch(pattern_type, match);
             const Expression & source = *i_source.GetExpression();
-            // to do: check compatibiloity with the previous type
+            // to do: check compatibility with the previous type
             return MakeExpression(source.GetName(), source.GetArguments(), ExpressionMetadata{type});
         }
         else

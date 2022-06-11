@@ -27,6 +27,8 @@ namespace djup
         constexpr ConstexprName RepetitionsZeroToMany("RepetitionsZeroToMany");
         constexpr ConstexprName RepetitionsOneToMany("RepetitionsOneToMany");
         constexpr ConstexprName RepetitionsZeroToOne("RepetitionsZeroToOne");
+
+        constexpr ConstexprName AssociativeIdentifier("AssociativeIdentifier");
         
         constexpr ConstexprName If("If");
         constexpr ConstexprName Add("Add");
