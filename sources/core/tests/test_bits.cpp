@@ -24,7 +24,6 @@ namespace djup
             static_assert(bits<uint32_t>(0, 1) == 1);
             static_assert(bits<uint32_t>(1, 1) == 2);
             static_assert(bits<uint32_t>(31, 1) == 0x80000000);
-
             static_assert(bits<uint32_t>(0, 0) == 0);
             static_assert(bits<uint32_t>(2, 0) == 0);
             static_assert(bits<uint32_t>(0, 3) == 7);
