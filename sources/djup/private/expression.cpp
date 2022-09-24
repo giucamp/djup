@@ -31,7 +31,7 @@ namespace djup
         static const Name non_constants[] = {builtin_names::Identifier, builtin_names::RepetitionsZeroToMany, 
             builtin_names::RepetitionsOneToMany, builtin_names::RepetitionsZeroToOne, builtin_names::AssociativeIdentifier};
 
-        if(Contains(non_constants, m_name)
+        if(!Contains(non_constants, m_name)
             && AllOf(m_arguments, djup::IsConstant))
         {
             if(!m_metadata)
@@ -48,6 +48,7 @@ namespace djup
         m_hash << m_name;
         m_hash << m_arguments;
 
+        // constants have always lower hash than non-constants
         auto hash = m_hash.GetValue();
         if(IsConstant())
             hash &= ~bit_reverse<decltype(hash)>(0);

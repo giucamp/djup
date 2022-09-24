@@ -39,7 +39,7 @@ namespace djup
 
         const std::optional<ExpressionMetadata> & GetMetadata() const { return m_metadata; }
 
-        bool IsConstant() const { return m_metadata ? m_metadata->m_is_constant : false; }
+        bool IsConstant() const { return m_metadata.has_value() && m_metadata->m_is_constant; }
 
         const Tensor & GetType() const { return m_metadata ? m_metadata->m_type : EmptyTensor(); }
 
