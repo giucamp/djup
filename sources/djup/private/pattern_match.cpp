@@ -111,8 +111,8 @@ namespace djup
     FunctionFlags GetFunctionFlags(const Name & i_function_name)
     {
         FunctionFlags flags = {};
-        /*if(i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "Equals")
-            flags = CombineFlags(flags, FunctionFlags::Commutative);*/
+        if(i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "Equals")
+            flags = CombineFlags(flags, FunctionFlags::Commutative);
         if(i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "MatMul")
             flags = CombineFlags(flags, FunctionFlags::Associative);
         return flags;
@@ -183,11 +183,6 @@ namespace djup
 
         return result;
     }
-
-    struct VariadicIndex
-    {
-        uint32_t m_index, m_count;
-    };
 
     struct Substitution
     {
@@ -560,11 +555,6 @@ namespace djup
 
                 if(i_candidate.m_pattern.m_ranges[pattern_index].m_min != i_candidate.m_pattern.m_ranges[pattern_index].m_max)
                 {
-                    /*assert(NameIs(pattern, builtin_names::RepetitionsZeroToMany) ||
-                        NameIs(pattern, builtin_names::RepetitionsZeroToOne) ||
-                        NameIs(pattern, builtin_names::RepetitionsOneToMany) ||
-                        HasFlag(i_candidate.m_pattern.m_flags, FunctionFlags::Associative))*/;
-
                     size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
 
                     size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
@@ -659,6 +649,129 @@ namespace djup
                                 i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
                                 i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
+
+                        // remaining repetitions
+                        const size_t target_start = target_index + 1 + remaining_in_pattern;
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_start),
+                            i_candidate.m_pattern, false, repetitions - (repetition + 1) );
+                    }
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /** Returns false if the matching has failed */
+    bool MatchCommutativeCandidate(MatchingContext & i_context, Candidate & i_candidate)
+    {
+        const bool nest_index = i_candidate.m_repetitions != std::numeric_limits<uint32_t>::max();
+        const uint32_t repetitions = nest_index ? i_candidate.m_repetitions : 1;
+
+        size_t target_index = 0;
+        for(uint32_t repetition = 0; repetition < repetitions; repetition++)
+        {
+            for(size_t pattern_index = 0; pattern_index < i_candidate.m_pattern.m_pattern.size(); target_index++, pattern_index++)
+            {
+                const Tensor & pattern = i_candidate.m_pattern.m_pattern[pattern_index];
+
+                if(i_candidate.m_pattern.m_ranges[pattern_index].m_min != i_candidate.m_pattern.m_ranges[pattern_index].m_max)
+                {
+                    size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
+
+                    size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
+                    assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
+
+                    // compute usable range
+                    size_t max_usable = total_available_targets - i_candidate.m_pattern.m_remaining[pattern_index].m_min;
+                    size_t min_usable = i_candidate.m_pattern.m_remaining[pattern_index].m_max == s_max_reps ?
+                        0 :
+                        total_available_targets - i_candidate.m_pattern.m_remaining[pattern_index].m_max;
+                    if(max_usable > i_candidate.m_pattern.m_ranges[pattern_index].m_max)
+                        max_usable = i_candidate.m_pattern.m_ranges[pattern_index].m_max;
+                    if(min_usable < i_candidate.m_pattern.m_ranges[pattern_index].m_min)
+                        min_usable = i_candidate.m_pattern.m_ranges[pattern_index].m_min;
+
+                    // align the usable range to be a multiple of sub_pattern_count
+                    min_usable += sub_pattern_count - 1;
+                    min_usable -= min_usable % sub_pattern_count;
+                    max_usable -= max_usable % sub_pattern_count;
+
+                    const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
+
+                    uint32_t rep = NumericCast<uint32_t>(min_usable / sub_pattern_count);
+                    for(size_t used = min_usable; used <= max_usable; used += sub_pattern_count, rep++)
+                    {
+                        assert(!nest_index); // repetitions can't be nested directly
+
+                        LinearPath path(i_context, i_candidate);
+
+                        // pre-pattern
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
+                            PatternSegment{ pattern_info.m_flags,
+                            pattern.GetExpression()->GetArguments(),
+                            pattern_info.m_pattern_arg_ranges,
+                            pattern_info.m_pattern_arg_reiaming_ranges },
+                            true, rep );
+
+                        // post-pattern
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
+                            PatternSegment{ pattern_info.m_flags,
+                            i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
+                            i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
+                            i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
+                    }
+                    return false;
+                }
+
+                if(target_index >= i_candidate.m_target_arguments.size())
+                    return false;
+
+                const Tensor & target = i_candidate.m_target_arguments[target_index];
+
+                if(IsConstant(pattern))
+                {
+                    if(!AlwaysEqual(pattern, target))
+                        return false;
+                }
+                else if(NameIs(pattern, builtin_names::Identifier))
+                {
+                    if(!Is(target, pattern))
+                        return false; // type mismatch
+
+                    if(!AddSubstitution(i_candidate, GetIdentifierName(pattern), target))
+                        return false; // incompatible substitution
+                }
+                else 
+                {
+                    if(pattern.GetExpression()->GetName() != target.GetExpression()->GetName())
+                        return false;
+
+                    // build pattern info
+                    const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
+
+                    // if the target does not have enough arguments, early reject
+                    size_t target_arguments = target.GetExpression()->GetArguments().size();
+                    if(target_arguments >= pattern_info.m_min_arguments &&
+                        target_arguments <= pattern_info.m_max_arguments )
+                    {
+                        LinearPath path(i_context, i_candidate);
+
+                        // match content
+                        path.AddEdge(target.GetExpression()->GetArguments(), 
+                            PatternSegment{ pattern_info.m_flags,
+                            pattern.GetExpression()->GetArguments(),
+                            pattern_info.m_pattern_arg_ranges,
+                            pattern_info.m_pattern_arg_reiaming_ranges});
+
+                        // rest of this repetition
+                        const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
+                        path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
+                            PatternSegment{ pattern_info.m_flags,
+                            i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
+                            i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
+                            i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
 
                         // remaining repetitions
                         const size_t target_start = target_index + 1 + remaining_in_pattern;
@@ -794,7 +907,13 @@ namespace djup
                 // MatchCandidate may add other candidates, take the inndex beofore
                 const uint32_t candidate_index = NumericCast<uint32_t>(context.m_candidates.size());
 
-                if(!MatchCandidate(context, candidate))
+                bool match;
+                if(HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Commutative))
+                    match = MatchCommutativeCandidate(context, candidate);
+                else
+                    match = MatchCandidate(context, candidate);
+
+                if(!match)
                 {
                     RemoveEdge(context, 
                         candidate.m_start_node, candidate.m_dest_node,

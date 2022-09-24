@@ -11,7 +11,7 @@
 
 namespace djup
 {
-    /* A token is a range of chars recognized by the lexer. Accessing the content of this struct after
+    /* A token is a range of chars recognized by the lexer. Accessing the content of this struct
         outside the lifetime of the Lexer that returned it causes undefined behaviour. */
     struct Token
     {
@@ -56,7 +56,7 @@ namespace djup
             behaviour is undefined. */
         Lexer(std::string_view i_source);
 
-        /** Returns the current token without accepting it. Heading spaces are ignored */
+        /** Returns the current token without accepting it. Heading spaces are skipped */
         const Token & GetCurrentToken() const { return m_curr_token; }
 
         /** If after skipping spaces the current token matches the provided symbol id,

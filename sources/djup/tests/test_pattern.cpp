@@ -18,6 +18,39 @@ namespace djup
             Print("Test: djup - Pattern Matching...");
 
             {
+                g_enable_graphviz = true;
+                auto target =  "Equals(1 2 3 Cos(4) Sin(5))"_t;
+                auto pattern = "Equals(3 2 1 Cos(real y) Sin(real x))"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
+            }
+
+            {
+                g_enable_graphviz = true;
+                auto target =  "Equals(1 2 3 Cos(4) Sin(5))"_t;
+                auto pattern = "Equals(3 2 1 Sin(real x) Cos(real y))"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
+            }
+
+
+            {
+                g_enable_graphviz = true;
+                auto target =  "Add(1 9 2 3 4 5 6 7)"_t;
+                auto pattern = "Add(1 2 real x real y 7)"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 3);
+            }
+
+            {
+                g_enable_graphviz = true;
+                auto target =  "Add(1 2 3 4 5 6 7)"_t;
+                auto pattern = "Add(1 2 real x real y 7)"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 3);
+            }
+
+            {
                 auto target =  "2"_t;
                 auto pattern = "2"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);

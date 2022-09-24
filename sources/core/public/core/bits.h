@@ -28,7 +28,7 @@ namespace djup
         return UINT(1) << i_index;
     }
 
-    /** Returns an unsigned integer in which only the bits from i_index to i_index + i_count (exluded) are .
+    /** Returns an unsigned integer in which only the bits from i_index to i_index + i_count (excluded) are 1.
         The least significant bit has index 0.
      
         static_assert(bits<uint32_t>(0, 1) == 1);
@@ -57,7 +57,7 @@ namespace djup
     }
 
     /** Returns an unsigned integer in which only the bit with the speficied index is 1.
-        The most  significant bit has index 0. 
+        The most significant bit has index 0. 
 
         static_assert(bit_reverse<uint8_t>(0) == 128);
         static_assert(bit_reverse<uint8_t>(1) == 64);
