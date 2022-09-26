@@ -18,6 +18,7 @@ namespace djup
             std__namespace->AddScalarType("rational", {"int"});
             std__namespace->AddScalarType("real", {"rational"});
             std__namespace->AddScalarType("complex", {"real"});
+            std__namespace->AddScalarType("any", {"complex"});
             return std__namespace;
         }
     }
