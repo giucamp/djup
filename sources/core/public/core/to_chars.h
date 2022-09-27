@@ -82,8 +82,23 @@ namespace djup
     };
 
     /** Primary template for a CharWriter. The second paramater can be used in partial
-        sepcializations to simplify sfinae conditions. The function operator must be
-        noexcept, and may be constexpr. */
+        sepcializations to simplify sfinae conditions using VoidT. The function operator
+        must be noexcept, and may be constexpr. 
+        
+        template <> struct CharWriter<bool>
+        {
+            ...
+
+        template <typename TYPE> struct CharWriter<TYPE, VoidT<
+            decltype(...expression...) > >
+        {
+            ...
+
+        template <typename TYPE> struct CharWriter<TYPE, VoidT<
+            std::enable_if_t<...condition...> > >
+        {
+            ...
+    */
     template <typename TYPE, typename SFINAE_CONDITION = void>
         struct CharWriter
     {
@@ -108,8 +123,8 @@ namespace djup
     }
 
     // CharWriter for strings and chars
-    template <typename TYPE> struct CharWriter<TYPE,
-        std::enable_if_t<std::is_constructible_v<std::string_view, TYPE> > >
+    template <typename TYPE> struct CharWriter<TYPE, VoidT<
+        std::enable_if_t<std::is_constructible_v<std::string_view, TYPE> > > >
     {
         constexpr void operator() (CharBufferView & i_dest, const TYPE & i_source) noexcept
         {
@@ -262,16 +277,21 @@ namespace djup
     template <> struct CharWriter<long double>
         { void operator() (CharBufferView & i_dest, long double i_source) noexcept; };
 
-    // CharWriter for Span
-    template <typename TYPE> struct CharWriter<Span<TYPE>>
+    // CharWriter for containers
+    template <typename CONTAINER> struct CharWriter<CONTAINER, VoidT<
+        ContainerElementTypeT<CONTAINER>,
+        std::enable_if_t<!std::is_constructible_v<std::string_view, CONTAINER> >
+        >>
     {
-        constexpr void operator() (CharBufferView & i_dest, Span<TYPE> i_source) noexcept
+        constexpr void operator() (CharBufferView & i_dest, const CONTAINER & i_source) noexcept
         {
-            for (size_t i = 0; i < i_source.size(); i++)
+            bool add_comma = false;
+            for(const auto & element : i_source)
             {
-                if(i != 0)
+                if(add_comma)
                     i_dest << ", ";
-                i_dest << i_source[i];
+                i_dest << element;
+                add_comma = true;
             }
         }
     };

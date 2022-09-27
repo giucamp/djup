@@ -201,13 +201,13 @@ namespace djup
 
     Tensor Substitute(const Tensor & i_where, Span<const Rule> i_rules);
 
-    template <> struct CharWriter<Tensor>
+    std::string ToSimplifiedStringForm(const Tensor & i_source);
+
+    /*template <> struct CharWriter<Tensor>
     {
         void operator() (CharBufferView & i_dest, const Tensor & i_source)
         {
             assert(false); // to do
         }
-    };
-
-    std::string ToSimplifiedStringForm(const Tensor & i_source);
+    };*/
 }

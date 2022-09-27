@@ -39,7 +39,7 @@ namespace djup
     template <typename TYPE> using IsComparableT = typename IsComparable<TYPE>::type;
     template <typename TYPE> constexpr bool IsComparableV = IsComparable<TYPE>::value;
 
-    // IsContainerV<CONTAINER, ELEMENT_TYPE>
+    // IsContainerV<CONTAINER>
     template <typename CONTAINER, typename = VoidT<>>
         struct IsContainer : std::false_type { };
     template <typename CONTAINER>

@@ -7,7 +7,8 @@
 #include <core/to_chars.h>
 #include <core/diagnostic.h>
 #include <string_view>
-#include <array>
+#include <vector>
+#include <list>
 
 namespace djup
 {
@@ -26,6 +27,7 @@ namespace djup
             static_assert(HasCharWriterV<std::nullptr_t>);
             static_assert(HasCharWriterV<int*>);
             static_assert(HasCharWriterV<const char*>);
+            static_assert(HasCharWriterV<std::string_view>);
             static_assert(!HasCharWriterV<TypeWithNoToChars>);
 
             // bool
@@ -46,6 +48,18 @@ namespace djup
             // sequence
             DJUP_EXPECTS_EQ(std::string_view(ToCharArray<128>(
                 42.f, "abc", 52).data()), "42abc52");
+
+            // containers
+            {
+                std::vector<int> ints{1, 2, 3};
+                char out[64];
+                DJUP_EXPECTS_EQ(ToCharsView(out, ints), "1, 2, 3");
+            }
+            {
+                std::list<int> ints{1, 2, 3};
+                char out[64];
+                DJUP_EXPECTS_EQ(ToCharsView(out, ints), "1, 2, 3");
+            }
 
             PrintLn("successful");
         }
