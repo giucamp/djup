@@ -27,7 +27,6 @@
     <ClInclude Include="..\private\alphabet.h" />
     <ClInclude Include="..\private\builtin_names.h" />
     <ClInclude Include="..\private\diagnostic.h" />
-    <ClInclude Include="..\private\discrimination_net.h" />
     <ClInclude Include="..\private\expression.h" />
     <ClInclude Include="..\private\constant_shape.h" />
     <ClInclude Include="..\private\indices.h" />
@@ -35,6 +34,8 @@
     <ClInclude Include="..\private\name.h" />
     <ClInclude Include="..\private\parser.h" />
     <ClInclude Include="..\private\namespace.h" />
+    <ClInclude Include="..\private\pattern\discrimination_net.h" />
+    <ClInclude Include="..\private\pattern\pattern_info.h" />
     <ClInclude Include="..\private\pattern_match.h" />
     <ClInclude Include="..\private\substitute_by_predicate.h" />
     <ClInclude Include="..\private\substitutions_tree.h" />
@@ -42,7 +43,6 @@
     <ClInclude Include="..\public\djup\tensor.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\private\discrimination_net.cpp" />
     <ClCompile Include="..\private\is.cpp" />
     <ClCompile Include="..\private\expression.cpp" />
     <ClCompile Include="..\private\constant_shape.cpp" />
@@ -51,6 +51,8 @@
     <ClCompile Include="..\private\name.cpp" />
     <ClCompile Include="..\private\parser.cpp" />
     <ClCompile Include="..\private\namespace.cpp" />
+    <ClCompile Include="..\private\pattern\discrimination_net.cpp" />
+    <ClCompile Include="..\private\pattern\pattern_info.cpp" />
     <ClCompile Include="..\private\pattern_match.cpp" />
     <ClCompile Include="..\private\standard_namespace.cpp" />
     <ClCompile Include="..\private\substitutions_tree.cpp" />

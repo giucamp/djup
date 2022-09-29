@@ -141,6 +141,11 @@ namespace djup
         return result;
     }
 
+    std::string Namespace::SubstitutionGraphToDotLanguage() const
+    {
+        return m_substitution_axioms_patterns.ToDotLanguage("Substitutions");
+    }
+
     namespace
     {
         thread_local std::shared_ptr<Namespace> g_active_namespace = GetDefaultNamespace();

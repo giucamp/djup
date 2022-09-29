@@ -208,6 +208,7 @@ namespace djup
             constexpr int buffer_size = std::numeric_limits<SINT_TYPE>::digits10 + 1;
             char buffer[buffer_size] = {};
             size_t length = 0;
+
             /* note: if the number is negative, we can't just negate the sign and use the same algorithm,
                because the unary minus operator is lossy: for example, negating -128 as int8 produces an
                overflow, as 128 can't be represented as int8 */

@@ -10,15 +10,15 @@
     <Filter Include="tests">
       <UniqueIdentifier>{23930c8a-cb98-4356-af49-c7960622fee5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="private\pattern">
+      <UniqueIdentifier>{4d450ea9-6776-453b-9e98-aca9d426325e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\private\expression.h">
       <Filter>private</Filter>
     </ClInclude>
     <ClInclude Include="..\private\name.h">
-      <Filter>private</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\discrimination_net.h">
       <Filter>private</Filter>
     </ClInclude>
     <ClInclude Include="..\private\namespace.h">
@@ -60,15 +60,18 @@
     <ClInclude Include="..\private\substitutions_tree.h">
       <Filter>private</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\pattern\discrimination_net.h">
+      <Filter>private\pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\pattern\pattern_info.h">
+      <Filter>private\pattern</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\name.cpp">
-      <Filter>private</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\discrimination_net.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\namespace.cpp">
@@ -118,6 +121,12 @@
     </ClCompile>
     <ClCompile Include="..\private\substitutions_tree.cpp">
       <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\pattern\discrimination_net.cpp">
+      <Filter>private\pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\pattern\pattern_info.cpp">
+      <Filter>private\pattern</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

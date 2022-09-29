@@ -6,7 +6,7 @@
 
 #pragma once
 #include <memory>
-#include <private/discrimination_net.h>
+#include <private/pattern/discrimination_net.h>
 #include <private/name.h>
 
 namespace djup
@@ -37,6 +37,8 @@ namespace djup
         void AddTypeInferenceAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when = {});
 
         Tensor Canonicalize(const Tensor & i_source) const;
+
+        std::string SubstitutionGraphToDotLanguage() const;
     
     private:
         

@@ -64,6 +64,8 @@ namespace djup
 
         const std::string & ShrinkAndGetString();
 
+        std::string StealString();
+
         friend void swap(StringBuilder & i_first, StringBuilder & i_second) noexcept;
 
         const char * GetData() const { return m_writer.data(); }

@@ -6,6 +6,7 @@
 
 #pragma once
 #include <core/diagnostic.h>
+#include <type_traits>
 
 namespace djup
 {
@@ -38,4 +39,5 @@ namespace djup
             return result;
         }
     }
+
 } // namespace djup

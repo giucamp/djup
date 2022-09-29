@@ -52,6 +52,13 @@ namespace djup
         return m_dest;
     }
 
+    std::string StringBuilder::StealString()
+    {
+        const size_t used_size = m_writer.GetRequiredSize();
+        m_dest.resize(used_size);
+        return std::move(m_dest);
+    }
+
     void StringBuilder::Grow(size_t i_original_used_size)
     {
         // pick new_capacity
