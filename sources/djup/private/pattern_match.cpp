@@ -8,6 +8,7 @@
 #include <private/builtin_names.h>
 #include <private/substitute_by_predicate.h>
 #include <private/expression.h>
+#include <private/pattern/pattern_info.h>
 #include <core/flags.h>
 #include <core/diagnostic.h>
 #include <vector>
@@ -24,6 +25,8 @@
 
 namespace djup
 {
+    using namespace pattern;
+
     namespace
     {
         struct ApplySubstitutions
@@ -76,7 +79,7 @@ namespace djup
             uint32_t m_max = 1;
         };
 
-        struct PatternInfo
+        struct OldPatternInfo
         {
             size_t m_min_arguments{}, m_max_arguments{};
             std::vector<RepRange> m_pattern_arg_ranges;
@@ -88,24 +91,22 @@ namespace djup
         {
             FunctionFlags m_flags = FunctionFlags::None;
             Span<const Tensor> m_pattern;
-            Span<const RepRange> m_ranges;
-            Span<const RepRange> m_remaining;
-
+            Span<const ArgumentInfo> m_arguments;
+            
             PatternSegment() = default;
 
-            PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern, Span<const RepRange> i_ranges, Span<const RepRange> i_remaining)
-                : m_flags(i_flags), m_pattern(i_pattern), m_ranges(i_ranges), m_remaining(i_remaining)
+            PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern, Span<const ArgumentInfo> i_arguments)
+                : m_flags(i_flags), m_pattern(i_pattern), m_arguments(i_arguments)
             {
-                assert(m_ranges.size() == m_pattern.size());
-                assert(m_ranges.size() == m_remaining.size());
+                assert(m_arguments.size() == m_pattern.size());
             }
         };
 
-        PatternInfo BuildPatternInfo(const Tensor & i_pattern)
+        OldPatternInfo OldBuildPatternInfo(const Tensor & i_pattern)
         {
             Span<const Tensor> pattern_args = i_pattern.GetExpression()->GetArguments();
 
-            PatternInfo result;
+            OldPatternInfo result;
             result.m_flags = GetFunctionFlags(i_pattern.GetExpression()->GetName());
 
             // fill m_pattern_arg_ranges
@@ -351,12 +352,36 @@ namespace djup
             return i_dest;
         }
 
+        void CheckPatternInfo(const Tensor & i_pattern)
+        {
+            PatternInfo info = BuildPatternInfo(i_pattern);
+            OldPatternInfo old_info = OldBuildPatternInfo(i_pattern);
+
+            assert(info.m_flags == old_info.m_flags);
+
+            assert(info.m_argument_range.m_min == old_info.m_min_arguments);
+            assert(info.m_argument_range.m_max == old_info.m_max_arguments);
+
+            assert(info.m_arguments.size() == old_info.m_pattern_arg_ranges.size());
+            assert(info.m_arguments.size() == old_info.m_pattern_arg_reiaming_ranges.size());
+
+            for(size_t i = 0; i < info.m_arguments.size(); i++)
+            {
+                assert(info.m_arguments[i].m_cardinality.m_min == old_info.m_pattern_arg_ranges[i].m_min);
+                assert(info.m_arguments[i].m_cardinality.m_max == old_info.m_pattern_arg_ranges[i].m_max);
+
+                assert(info.m_arguments[i].m_remaining.m_min == old_info.m_pattern_arg_reiaming_ranges[i].m_min);
+                assert(info.m_arguments[i].m_remaining.m_max == old_info.m_pattern_arg_reiaming_ranges[i].m_max);
+            }
+        }
+
         const PatternInfo & GetPatternInfo(MatchingContext & i_context, const Tensor & i_pattern)
         {
             const Expression * expr = i_pattern.GetExpression().get();
             auto it = i_context.m_pattern_infos.find(expr);
             if(it != i_context.m_pattern_infos.end())
                 return it->second;
+            CheckPatternInfo(i_pattern);
             auto res = i_context.m_pattern_infos.insert({expr, BuildPatternInfo(i_pattern)});
             assert(res.second);
             return res.first->second;
@@ -536,7 +561,7 @@ namespace djup
                 {
                     const Tensor & pattern = i_candidate.m_pattern.m_pattern[pattern_index];
 
-                    if(i_candidate.m_pattern.m_ranges[pattern_index].m_min != i_candidate.m_pattern.m_ranges[pattern_index].m_max)
+                    if(i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_min != i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_max)
                     {
                         size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
 
@@ -544,14 +569,14 @@ namespace djup
                         assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                         // compute usable range
-                        size_t max_usable = total_available_targets - i_candidate.m_pattern.m_remaining[pattern_index].m_min;
-                        size_t min_usable = i_candidate.m_pattern.m_remaining[pattern_index].m_max == s_max_reps ?
+                        size_t max_usable = total_available_targets - i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_min;
+                        size_t min_usable = i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_max == s_max_reps ?
                             0 :
-                            total_available_targets - i_candidate.m_pattern.m_remaining[pattern_index].m_max;
-                        if(max_usable > i_candidate.m_pattern.m_ranges[pattern_index].m_max)
-                            max_usable = i_candidate.m_pattern.m_ranges[pattern_index].m_max;
-                        if(min_usable < i_candidate.m_pattern.m_ranges[pattern_index].m_min)
-                            min_usable = i_candidate.m_pattern.m_ranges[pattern_index].m_min;
+                            total_available_targets - i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_max;
+                        if(max_usable > i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_max)
+                            max_usable = i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_max;
+                        if(min_usable < i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_min)
+                            min_usable = i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_min;
 
                         // align the usable range to be a multiple of sub_pattern_count
                         min_usable += sub_pattern_count - 1;
@@ -571,16 +596,14 @@ namespace djup
                             path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
                                 PatternSegment{ pattern_info.m_flags,
                                     pattern.GetExpression()->GetArguments(),
-                                    pattern_info.m_pattern_arg_ranges,
-                                    pattern_info.m_pattern_arg_reiaming_ranges },
+                                    pattern_info.m_arguments},
                                     true, rep );
 
                             // post-pattern
                             path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
                                 PatternSegment{ pattern_info.m_flags,
                                 i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                                i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
-                                i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
+                                i_candidate.m_pattern.m_arguments.subspan(pattern_index + 1) } );
                         }
                         return false;
                     }
@@ -613,8 +636,8 @@ namespace djup
 
                         // if the target does not have enough arguments, early reject
                         size_t target_arguments = target.GetExpression()->GetArguments().size();
-                        if(target_arguments >= pattern_info.m_min_arguments &&
-                            target_arguments <= pattern_info.m_max_arguments )
+                        if(target_arguments >= pattern_info.m_argument_range.m_min &&
+                            target_arguments <= pattern_info.m_argument_range.m_max )
                         {
                             LinearPath path(i_context, i_candidate);
 
@@ -622,16 +645,14 @@ namespace djup
                             path.AddEdge(target.GetExpression()->GetArguments(), 
                                 PatternSegment{ pattern_info.m_flags,
                                     pattern.GetExpression()->GetArguments(),
-                                    pattern_info.m_pattern_arg_ranges,
-                                    pattern_info.m_pattern_arg_reiaming_ranges});
+                                    pattern_info.m_arguments });
 
                             // rest of this repetition
                             const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
                             path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
                                 PatternSegment{ pattern_info.m_flags,
                                     i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                                    i_candidate.m_pattern.m_ranges.subspan(pattern_index + 1),
-                                    i_candidate.m_pattern.m_remaining.subspan(pattern_index + 1) } );
+                                    i_candidate.m_pattern.m_arguments.subspan(pattern_index + 1) } );
 
                             // remaining repetitions
                             const size_t target_start = target_index + 1 + remaining_in_pattern;
@@ -649,7 +670,9 @@ namespace djup
         /** Returns false if the matching has failed */
         bool MatchCommutativeCandidate(MatchingContext & i_context, Candidate & i_candidate)
         {
-            const bool nest_index = i_candidate.m_repetitions != std::numeric_limits<uint32_t>::max();
+            return MatchCandidate(i_context, i_candidate);
+
+            /*const bool nest_index = i_candidate.m_repetitions != std::numeric_limits<uint32_t>::max();
             const uint32_t repetitions = nest_index ? i_candidate.m_repetitions : 1;
 
             size_t target_index = 0;
@@ -766,7 +789,7 @@ namespace djup
                 }
             }
 
-            return true;
+            return true;*/
         }
 
         #if DBG_CREATE_GRAPHVIZ_SVG
@@ -860,15 +883,20 @@ namespace djup
             const Tensor & target = i_target;
 
             MatchingContext context;
-            RepRange single_range = {1, 1};
-            RepRange single_remaining = {0, 0};
+            Range single_range = {1, 1};
+            Range single_remaining = {0, 0};
 
             static_assert(g_start_node_index == 1);
             static_assert(g_end_node_index == 0);
             context.m_graph_nodes.emplace_back().m_debug_name = "End"; // the first node is the final target
             context.m_graph_nodes.emplace_back().m_debug_name = "Start";
 
-            AddCandidate(context, 1, 0, {&target, 1}, { FunctionFlags::None, {&pattern, 1}, {&single_range, 1}, {&single_remaining, 1}}, {}, {});
+            PatternSegment segment;
+            segment.m_flags = FunctionFlags::None;
+            segment.m_pattern = {&pattern, 1};
+            ArgumentInfo arg_info{single_range, single_remaining};
+            segment.m_arguments = {&arg_info, 1};
+            AddCandidate(context, 1, 0, {&target, 1}, segment, {}, {});
 
             #if DBG_CREATE_GRAPHVIZ_SVG
             if(g_enable_graphviz)

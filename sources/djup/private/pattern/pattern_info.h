@@ -13,38 +13,43 @@
 
 namespace djup
 {
-    struct Range
+    namespace pattern
     {
-        uint32_t m_min{1}, m_max{0};
+        struct Range
+        {
+            uint32_t m_min{1}, m_max{0};
 
-        constexpr static uint32_t s_infinite = std::numeric_limits<uint32_t>::max();
+            constexpr static uint32_t s_infinite = std::numeric_limits<uint32_t>::max();
 
-        bool IsEmpty() const noexcept { return m_min > m_max; }
+            bool IsEmpty() const noexcept { return m_min > m_max; }
 
-        Range operator + (const Range & i_other) const noexcept;
-        Range & operator += (const Range & i_other) noexcept;
+            Range operator + (const Range & i_other) const noexcept;
+            Range & operator += (const Range & i_other) noexcept;
 
-        Range operator | (const Range & i_other) const noexcept;
-        Range & operator |= (const Range & i_other) noexcept;
+            Range operator | (const Range & i_other) const noexcept;
+            Range & operator |= (const Range & i_other) noexcept;
 
-        bool operator == (const Range & i_other) const noexcept;
-        bool operator != (const Range & i_other) const noexcept;
+            bool operator == (const Range & i_other) const noexcept;
+            bool operator != (const Range & i_other) const noexcept;
 
-        std::string ToString() const;
-    };
+            std::string ToString() const;
+        };
 
-    struct ArgumentInfo
-    {
-        Range m_cardinality;
-        Range m_remaining;
-    };
+        struct ArgumentInfo
+        {
+            Range m_cardinality;
+            Range m_remaining;
+        };
 
-    struct PatternInfo
-    {
-        FunctionFlags m_flags;
-        Range m_argument_range;
-        std::vector<ArgumentInfo> m_arguments;
-    };
+        struct PatternInfo
+        {
+            FunctionFlags m_flags;
+            Range m_argument_range;
+            std::vector<ArgumentInfo> m_arguments;
+        };
 
-    PatternInfo BuildPatternInfo(const Tensor & i_pattern);
-}
+        PatternInfo BuildPatternInfo(const Tensor & i_pattern);
+    
+    } // namespace pattern
+
+} // namespace djup
