@@ -72,21 +72,6 @@ namespace djup
         constexpr uint32_t g_end_node_index = 0;
         constexpr uint32_t s_max_reps = std::numeric_limits<uint32_t>::max();
 
-        // by default describes a non-variadic argument
-        struct RepRange
-        {
-            uint32_t m_min = 1;
-            uint32_t m_max = 1;
-        };
-
-        struct OldPatternInfo
-        {
-            size_t m_min_arguments{}, m_max_arguments{};
-            std::vector<RepRange> m_pattern_arg_ranges;
-            std::vector<RepRange> m_pattern_arg_reiaming_ranges;
-            FunctionFlags m_flags = FunctionFlags::None;
-        };
-
         struct PatternSegment
         {
             FunctionFlags m_flags = FunctionFlags::None;
@@ -101,72 +86,6 @@ namespace djup
                 assert(m_arguments.size() == m_pattern.size());
             }
         };
-
-        OldPatternInfo OldBuildPatternInfo(const Tensor & i_pattern)
-        {
-            Span<const Tensor> pattern_args = i_pattern.GetExpression()->GetArguments();
-
-            OldPatternInfo result;
-            result.m_flags = GetFunctionFlags(i_pattern.GetExpression()->GetName());
-
-            // fill m_pattern_arg_ranges
-            result.m_pattern_arg_ranges.resize(pattern_args.size());
-            bool upper_unbounded = false;
-            for(size_t sub_pattern_index = 0; sub_pattern_index < pattern_args.size(); sub_pattern_index++)
-            {
-                const Tensor & arg = pattern_args[sub_pattern_index]; 
-
-                RepRange & arg_range = result.m_pattern_arg_ranges[sub_pattern_index];
-
-                if(NameIs(arg, builtin_names::RepetitionsZeroToMany))
-                {
-                    arg_range.m_min = 0;
-                    arg_range.m_max = s_max_reps;
-                    upper_unbounded = true;
-                }
-                else if(NameIs(arg, builtin_names::RepetitionsZeroToOne))
-                {
-                    arg_range.m_min = 0;
-                    arg_range.m_max = 1;
-                    result.m_max_arguments++;
-                }
-                else if(NameIs(arg, builtin_names::RepetitionsOneToMany) || NameIs(arg, builtin_names::AssociativeIdentifier))
-                {
-                    arg_range.m_min = 1;
-                    arg_range.m_max = s_max_reps;
-                    result.m_min_arguments++;
-                    upper_unbounded = true;
-                }
-                else
-                {
-                    result.m_min_arguments++;
-                    result.m_max_arguments++;
-                }
-            }
-            if(upper_unbounded)
-                result.m_max_arguments = s_max_reps;
-
-            // fill m_pattern_arg_reiaming_ranges
-            result.m_pattern_arg_reiaming_ranges.resize(pattern_args.size());
-            for(size_t sub_pattern_index = 0; sub_pattern_index < pattern_args.size(); sub_pattern_index++)
-            {
-                uint32_t min = 0, max = 0;
-                for(size_t j = sub_pattern_index + 1; j < pattern_args.size(); j++)
-                {
-                    min += result.m_pattern_arg_ranges[j].m_min;
-
-                    auto new_max = max + result.m_pattern_arg_ranges[j].m_max;
-                    if(max <= new_max)
-                        max = new_max;
-                    else
-                        max = s_max_reps; // overflow, max or m_max were s_max_reps
-                }
-                result.m_pattern_arg_reiaming_ranges[sub_pattern_index].m_min = min;
-                result.m_pattern_arg_reiaming_ranges[sub_pattern_index].m_max = max;
-            }
-
-            return result;
-        }
 
         struct Substitution
         {
@@ -352,36 +271,12 @@ namespace djup
             return i_dest;
         }
 
-        void CheckPatternInfo(const Tensor & i_pattern)
-        {
-            PatternInfo info = BuildPatternInfo(i_pattern);
-            OldPatternInfo old_info = OldBuildPatternInfo(i_pattern);
-
-            assert(info.m_flags == old_info.m_flags);
-
-            assert(info.m_argument_range.m_min == old_info.m_min_arguments);
-            assert(info.m_argument_range.m_max == old_info.m_max_arguments);
-
-            assert(info.m_arguments.size() == old_info.m_pattern_arg_ranges.size());
-            assert(info.m_arguments.size() == old_info.m_pattern_arg_reiaming_ranges.size());
-
-            for(size_t i = 0; i < info.m_arguments.size(); i++)
-            {
-                assert(info.m_arguments[i].m_cardinality.m_min == old_info.m_pattern_arg_ranges[i].m_min);
-                assert(info.m_arguments[i].m_cardinality.m_max == old_info.m_pattern_arg_ranges[i].m_max);
-
-                assert(info.m_arguments[i].m_remaining.m_min == old_info.m_pattern_arg_reiaming_ranges[i].m_min);
-                assert(info.m_arguments[i].m_remaining.m_max == old_info.m_pattern_arg_reiaming_ranges[i].m_max);
-            }
-        }
-
         const PatternInfo & GetPatternInfo(MatchingContext & i_context, const Tensor & i_pattern)
         {
             const Expression * expr = i_pattern.GetExpression().get();
             auto it = i_context.m_pattern_infos.find(expr);
             if(it != i_context.m_pattern_infos.end())
                 return it->second;
-            CheckPatternInfo(i_pattern);
             auto res = i_context.m_pattern_infos.insert({expr, BuildPatternInfo(i_pattern)});
             assert(res.second);
             return res.first->second;
