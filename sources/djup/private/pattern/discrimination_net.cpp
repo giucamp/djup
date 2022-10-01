@@ -18,51 +18,36 @@ namespace djup
     {
         void DiscriminationNet::AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition)
         {
-            Edge * edge = AddEdge(s_start_node_index, i_pattern);
-            edge->m_cardinality = {1, 1};
-            edge->m_remaining_targets = {0, 0};
-            edge->m_argument_cardinality = {1, 1};
-            uint32_t curr_node = edge->m_dest_node;
-
-            AddPatternRes res = AddPatternFrom(i_pattern_id, curr_node, i_pattern, i_condition);
-            edge = AddEdge(s_start_node_index, i_pattern);
-            edge->m_argument_cardinality = res.m_argument_cardinality;
+            ArgumentInfo argument_info;
+            argument_info.m_cardinality = {1, 1};
+            argument_info.m_remaining = {0, 0};
+            AddPatternFrom(i_pattern_id, s_start_node_index, i_pattern, argument_info, i_condition);
         }
 
-        DiscriminationNet::AddPatternRes DiscriminationNet::AddPatternFrom(uint32_t i_pattern_id, 
-            uint32_t i_from_node, const Tensor & i_pattern, const Tensor & i_condition)
+        uint32_t DiscriminationNet::AddPatternFrom(uint32_t i_pattern_id, 
+            uint32_t i_source_node, const Tensor & i_pattern, const ArgumentInfo & i_argument_info, const Tensor & i_condition)
         {
             const PatternInfo pattern_info = BuildPatternInfo(i_pattern);
 
-            Span<const Tensor> parameters = i_pattern.GetExpression()->GetArguments();
+            Edge * edge = AddEdge(i_source_node, i_pattern);
+            edge->m_function_flags = GetFunctionFlags(i_pattern.GetExpression()->GetName());
+            edge->m_cardinality = i_argument_info.m_cardinality;
+            edge->m_remaining_targets = i_argument_info.m_remaining;
+            edge->m_argument_cardinality = {0, 0};
+            uint32_t curr_node = edge->m_dest_node;
 
-            uint32_t curr_node = i_from_node;
-            for(size_t i = 0; i < parameters.size(); i++)
+            if(!IsConstant(i_pattern) && !IsIdentifier(i_pattern))
             {
-                const Tensor & pattern = parameters[i];
+                edge->m_argument_cardinality = pattern_info.m_argument_range;
 
-                Edge * edge = AddEdge(curr_node, pattern);
-                edge->m_cardinality = pattern_info.m_arguments[i].m_cardinality;
-                edge->m_remaining_targets = pattern_info.m_arguments[i].m_remaining;
-                
-                // m_argument_cardinality: wrong!
-                //edge->m_argument_cardinality |= pattern_info.m_argument_range;
-                
-                if(!IsConstant(pattern) && !IsIdentifier(pattern) && !pattern.GetExpression()->GetArguments().empty())
+                Span<const Tensor> parameters = i_pattern.GetExpression()->GetArguments();
+                for(size_t i = 0; i < parameters.size(); i++)
                 {
-                    AddPatternRes res = AddPatternFrom(i_pattern_id, edge->m_dest_node, pattern, i_condition);
-                    
-                    Edge * edge = AddEdge(curr_node, pattern);
-                    edge->m_argument_cardinality = res.m_argument_cardinality;
-                    curr_node = res.m_dest_node;
-                }
-                else
-                {
-                    curr_node = edge->m_dest_node;
+                    curr_node = AddPatternFrom(i_pattern_id, curr_node, parameters[i], pattern_info.m_arguments[i], i_condition);
                 }
             }
 
-            return { curr_node, pattern_info.m_argument_range };
+            return curr_node;
         }
 
         DiscriminationNet::Edge * DiscriminationNet::AddEdge(uint32_t i_source_node, const Tensor & i_expression)
@@ -78,7 +63,6 @@ namespace djup
 
                 if(same)
                 {
-                    assert(it->second.m_cardinality == GetCardinality(i_expression));
                     return &it->second;
                 }
             }
@@ -87,8 +71,6 @@ namespace djup
 
             Edge new_edge;
             new_edge.m_expression = i_expression;
-            new_edge.m_cardinality = GetCardinality(i_expression);
-            new_edge.m_function_flags = GetFunctionFlags(i_expression.GetExpression()->GetName());
             new_edge.m_dest_node = new_node;
             auto res = m_edges.insert(std::pair(i_source_node, std::move(new_edge)));
             return &res->second;
@@ -131,7 +113,7 @@ namespace djup
                 if(edge.second.m_cardinality != Range{1, 1})
                     name += escaped_newline + "card: " + edge.second.m_cardinality.ToString();
 
-                if(!edge.second.m_argument_cardinality.IsEmpty())
+                if(edge.second.m_argument_cardinality != Range{0, 0})
                     name += escaped_newline + "args: " + edge.second.m_argument_cardinality.ToString();
 
                 name += escaped_newline + "rem: " + edge.second.m_remaining_targets.ToString();

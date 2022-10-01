@@ -12,6 +12,23 @@ namespace djup
 {
     namespace pattern
     {
+        namespace
+        {
+            Range GetCardinality(const Tensor & i_expression)
+            {
+                if(NameIs(i_expression, builtin_names::RepetitionsZeroToMany))
+                    return {0, Range::s_infinite};
+                else if(NameIs(i_expression, builtin_names::RepetitionsZeroToOne))
+                    return {0, 1};
+                else if(NameIs(i_expression, builtin_names::RepetitionsOneToMany) || NameIs(i_expression, builtin_names::AssociativeIdentifier))
+                    return {1, Range::s_infinite};
+                else
+                    return {1, 1};
+            }
+        }
+
+                        /**** Range ****/
+
         Range Range::operator | (const Range & i_other) const noexcept
         {
             Range res = *this;
@@ -83,17 +100,8 @@ namespace djup
                 return djup::ToString(m_min, ", ", m_max);
         }
 
-        Range GetCardinality(const Tensor & i_expression)
-        {
-            if(NameIs(i_expression, builtin_names::RepetitionsZeroToMany))
-                return {0, Range::s_infinite};
-            else if(NameIs(i_expression, builtin_names::RepetitionsZeroToOne))
-                return {0, 1};
-            else if(NameIs(i_expression, builtin_names::RepetitionsOneToMany) || NameIs(i_expression, builtin_names::AssociativeIdentifier))
-                return {1, Range::s_infinite};
-            else
-                return {1, 1};
-        }
+
+                    /**** BuildPatternInfo ****/
 
         PatternInfo BuildPatternInfo(const Tensor & i_pattern)
         {
