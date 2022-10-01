@@ -38,11 +38,17 @@ namespace djup
                 Range m_cardinality;
                 Range m_remaining_targets;
                 Range m_argument_cardinality;
-                uint32_t m_dest_node{};
+                uint32_t m_dest_node{0};
                 FunctionFlags m_function_flags{};
             };
 
-            uint32_t AddPatternFrom(uint32_t i_pattern_id, uint32_t i_from_node, 
+            struct AddPatternRes
+            {
+                uint32_t m_dest_node;
+                Range m_argument_cardinality;
+            };
+
+            AddPatternRes AddPatternFrom(uint32_t i_pattern_id, uint32_t i_from_node, 
                 const Tensor & i_pattern, const Tensor & i_condition);
 
             Edge * AddEdge(uint32_t i_source_node, const Tensor & i_expression);

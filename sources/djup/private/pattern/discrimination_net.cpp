@@ -24,10 +24,12 @@ namespace djup
             edge->m_argument_cardinality = {1, 1};
             uint32_t curr_node = edge->m_dest_node;
 
-            AddPatternFrom(i_pattern_id, curr_node, i_pattern, i_condition);
+            AddPatternRes res = AddPatternFrom(i_pattern_id, curr_node, i_pattern, i_condition);
+            edge = AddEdge(s_start_node_index, i_pattern);
+            edge->m_argument_cardinality = res.m_argument_cardinality;
         }
 
-        uint32_t DiscriminationNet::AddPatternFrom(uint32_t i_pattern_id, 
+        DiscriminationNet::AddPatternRes DiscriminationNet::AddPatternFrom(uint32_t i_pattern_id, 
             uint32_t i_from_node, const Tensor & i_pattern, const Tensor & i_condition)
         {
             const PatternInfo pattern_info = BuildPatternInfo(i_pattern);
@@ -42,16 +44,25 @@ namespace djup
                 Edge * edge = AddEdge(curr_node, pattern);
                 edge->m_cardinality = pattern_info.m_arguments[i].m_cardinality;
                 edge->m_remaining_targets = pattern_info.m_arguments[i].m_remaining;
-                edge->m_argument_cardinality |= pattern_info.m_argument_range;
-                curr_node = edge->m_dest_node;
-
+                
+                // m_argument_cardinality: wrong!
+                //edge->m_argument_cardinality |= pattern_info.m_argument_range;
+                
                 if(!IsConstant(pattern) && !IsIdentifier(pattern) && !pattern.GetExpression()->GetArguments().empty())
                 {
-                    curr_node = AddPatternFrom(i_pattern_id, edge->m_dest_node, pattern, i_condition);
+                    AddPatternRes res = AddPatternFrom(i_pattern_id, edge->m_dest_node, pattern, i_condition);
+                    
+                    Edge * edge = AddEdge(curr_node, pattern);
+                    edge->m_argument_cardinality = res.m_argument_cardinality;
+                    curr_node = res.m_dest_node;
+                }
+                else
+                {
+                    curr_node = edge->m_dest_node;
                 }
             }
 
-            return curr_node;
+            return { curr_node, pattern_info.m_argument_range };
         }
 
         DiscriminationNet::Edge * DiscriminationNet::AddEdge(uint32_t i_source_node, const Tensor & i_expression)
