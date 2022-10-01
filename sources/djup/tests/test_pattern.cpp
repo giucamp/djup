@@ -207,7 +207,7 @@ namespace djup
             test_namespace.AddSubstitutionAxiom("f(5, 12, real a)",    "g((4, 6, 12, a)...)");*/
 
 
-            test_namespace.AddSubstitutionAxiom("f(3, 4, (real x + 1 + 2).., 5)",    "g((4, a)...)");
+            test_namespace.AddSubstitutionAxiom("f(3, 4, (real x + 1), 5, 6)",    "g((4, a)...)");
             //test_namespace.AddSubstitutionAxiom("f(3, 7, real x, 5)",    "g((4, a)...)");
 
             auto str = test_namespace.SubstitutionGraphToDotLanguage();

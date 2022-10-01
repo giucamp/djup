@@ -48,6 +48,8 @@ namespace djup
             std::vector<ArgumentInfo> m_arguments;
         };
 
+        Range GetCardinality(const Tensor & i_expression);
+
         PatternInfo BuildPatternInfo(const Tensor & i_pattern);
     
     } // namespace pattern

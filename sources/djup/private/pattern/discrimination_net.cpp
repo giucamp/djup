@@ -16,24 +16,45 @@ namespace djup
 {
     namespace pattern
     {
-        void DiscriminationNet::AddPattern(NodeIndex i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition)
+        void DiscriminationNet::AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition)
         {
-            AddPatternFrom(i_pattern_id, s_start_node_index, i_pattern, i_condition);
+            Edge * edge = AddEdge(s_start_node_index, i_pattern);
+            edge->m_cardinality = {1, 1};
+            edge->m_remaining_targets = {0, 0};
+            edge->m_argument_cardinality = {1, 1};
+            uint32_t curr_node = edge->m_dest_node;
+
+            AddPatternFrom(i_pattern_id, curr_node, i_pattern, i_condition);
         }
 
-        Range DiscriminationNet::GetCardinality(const Tensor & i_expression)
+        uint32_t DiscriminationNet::AddPatternFrom(uint32_t i_pattern_id, 
+            uint32_t i_from_node, const Tensor & i_pattern, const Tensor & i_condition)
         {
-            if(NameIs(i_expression, builtin_names::RepetitionsZeroToMany))
-                return {0, Range::s_infinite};
-            else if(NameIs(i_expression, builtin_names::RepetitionsZeroToOne))
-                return {0, 1};
-            else if(NameIs(i_expression, builtin_names::RepetitionsOneToMany) || NameIs(i_expression, builtin_names::AssociativeIdentifier))
-                return {1, Range::s_infinite};
-            else
-                return {1, 1};
+            const PatternInfo pattern_info = BuildPatternInfo(i_pattern);
+
+            Span<const Tensor> parameters = i_pattern.GetExpression()->GetArguments();
+
+            uint32_t curr_node = i_from_node;
+            for(size_t i = 0; i < parameters.size(); i++)
+            {
+                const Tensor & pattern = parameters[i];
+
+                Edge * edge = AddEdge(curr_node, pattern);
+                edge->m_cardinality = pattern_info.m_arguments[i].m_cardinality;
+                edge->m_remaining_targets = pattern_info.m_arguments[i].m_remaining;
+                edge->m_argument_cardinality |= pattern_info.m_argument_range;
+                curr_node = edge->m_dest_node;
+
+                if(!IsConstant(pattern) && !IsIdentifier(pattern) && !pattern.GetExpression()->GetArguments().empty())
+                {
+                    curr_node = AddPatternFrom(i_pattern_id, edge->m_dest_node, pattern, i_condition);
+                }
+            }
+
+            return curr_node;
         }
 
-        DiscriminationNet::Edge * DiscriminationNet::AddEdge(NodeIndex i_source_node, const Tensor & i_expression)
+        DiscriminationNet::Edge * DiscriminationNet::AddEdge(uint32_t i_source_node, const Tensor & i_expression)
         {
             auto range = m_edges.equal_range(i_source_node);
             for(auto it = range.first; it != range.second; it++)
@@ -51,7 +72,7 @@ namespace djup
                 }
             }
 
-            NodeIndex new_node = ++m_last_node_index;
+            uint32_t new_node = ++m_last_node_index;
 
             Edge new_edge;
             new_edge.m_expression = i_expression;
@@ -60,39 +81,6 @@ namespace djup
             new_edge.m_dest_node = new_node;
             auto res = m_edges.insert(std::pair(i_source_node, std::move(new_edge)));
             return &res->second;
-        }
-
-        DiscriminationNet::AddPatternResult DiscriminationNet::AddPatternFrom(NodeIndex i_pattern_id, 
-            NodeIndex i_from_node, const Tensor & i_pattern, const Tensor & i_condition)
-        {
-            const PatternInfo pattern_info = BuildPatternInfo(i_pattern);
-
-            Span<const Tensor> parameters = i_pattern.GetExpression()->GetArguments();
-
-            NodeIndex curr_node = i_from_node;
-            for(size_t i = 0; i < parameters.size(); i++)
-            {
-                const Tensor & pattern = parameters[i];
-
-                const NodeIndex prev_node = curr_node;
-                Edge * edge = AddEdge(curr_node, pattern);
-                edge->m_cardinality = pattern_info.m_arguments[i].m_cardinality;
-                edge->m_remaining_targets = pattern_info.m_arguments[i].m_remaining;
-                edge->m_argument_cardinality |= pattern_info.m_argument_range;
-
-                curr_node = edge->m_dest_node;
-            
-                if(!IsConstant(pattern) && !IsIdentifier(pattern) && !pattern.GetExpression()->GetArguments().empty())
-                {
-                    AddPatternResult res = AddPatternFrom(i_pattern_id, edge->m_dest_node, pattern, i_condition);
-                    curr_node = res.m_dest_node_index;
-                
-                    edge = AddEdge(prev_node, pattern);
-                    
-                }
-            }
-
-            return {curr_node, pattern_info.m_argument_range};
         }
 
         std::string DiscriminationNet::ToDotLanguage(std::string_view i_graph_name) const
@@ -110,7 +98,7 @@ namespace djup
 
             const std::string escaped_newline = "\\n";
 
-            for(NodeIndex i = 0; i <= m_last_node_index; i++)
+            for(uint32_t i = 0; i <= m_last_node_index; i++)
             {
                 dest << "v" << i << "[label = \"";
                 if(i == s_start_node_index)

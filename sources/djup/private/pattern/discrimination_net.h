@@ -19,9 +19,9 @@ namespace djup
         {
         public:
 
-            using NodeIndex = uint32_t;
+            using uint32_t = uint32_t;
 
-            void AddPattern(NodeIndex i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
+            void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
 
             void FindMatches(const Tensor & i_target, std::vector<PatternMatch> & o_matches) const
             {
@@ -38,29 +38,21 @@ namespace djup
                 Range m_cardinality;
                 Range m_remaining_targets;
                 Range m_argument_cardinality;
-                NodeIndex m_dest_node{};
+                uint32_t m_dest_node{};
                 FunctionFlags m_function_flags{};
             };
 
-            struct AddPatternResult
-            {
-                NodeIndex m_dest_node_index;
-                Range m_argument_cardinality;
-            };
-
-            AddPatternResult AddPatternFrom(NodeIndex i_pattern_id, NodeIndex i_from_node, 
+            uint32_t AddPatternFrom(uint32_t i_pattern_id, uint32_t i_from_node, 
                 const Tensor & i_pattern, const Tensor & i_condition);
 
-            static Range GetCardinality(const Tensor & i_expression);
+            Edge * AddEdge(uint32_t i_source_node, const Tensor & i_expression);
 
-            Edge * AddEdge(NodeIndex i_source_node, const Tensor & i_expression);
+            std::unordered_multimap<uint32_t, Edge> m_edges; /* The key is the source node index */
+            uint32_t m_last_node_index = s_start_node_index;
 
-            std::unordered_multimap<NodeIndex, Edge> m_edges; /* The key is the source node index */
-            NodeIndex m_last_node_index = s_start_node_index;
-
-            constexpr static NodeIndex s_start_node_index = 0;
-            constexpr static NodeIndex s_max_node_index = std::numeric_limits<NodeIndex>::max();
-            constexpr static NodeIndex s_terminal_dest_node = s_max_node_index;
+            constexpr static uint32_t s_start_node_index = 0;
+            // constexpr static uint32_t s_max_node_index = std::numeric_limits<uint32_t>::max();
+            // constexpr static uint32_t s_terminal_dest_node = s_max_node_index;
         };
 
     } // namespace pattern
