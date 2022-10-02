@@ -66,6 +66,9 @@
     <ClInclude Include="..\private\pattern\pattern_info.h">
       <Filter>private\pattern</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\pattern\substitution_graph.h">
+      <Filter>private\pattern</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
@@ -126,6 +129,9 @@
       <Filter>private\pattern</Filter>
     </ClCompile>
     <ClCompile Include="..\private\pattern\pattern_info.cpp">
+      <Filter>private\pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\pattern\substitution_graph.cpp">
       <Filter>private\pattern</Filter>
     </ClCompile>
   </ItemGroup>

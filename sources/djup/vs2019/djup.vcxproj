@@ -36,6 +36,7 @@
     <ClInclude Include="..\private\namespace.h" />
     <ClInclude Include="..\private\pattern\discrimination_net.h" />
     <ClInclude Include="..\private\pattern\pattern_info.h" />
+    <ClInclude Include="..\private\pattern\substitution_graph.h" />
     <ClInclude Include="..\private\pattern_match.h" />
     <ClInclude Include="..\private\substitute_by_predicate.h" />
     <ClInclude Include="..\private\substitutions_tree.h" />
@@ -53,6 +54,7 @@
     <ClCompile Include="..\private\namespace.cpp" />
     <ClCompile Include="..\private\pattern\discrimination_net.cpp" />
     <ClCompile Include="..\private\pattern\pattern_info.cpp" />
+    <ClCompile Include="..\private\pattern\substitution_graph.cpp" />
     <ClCompile Include="..\private\pattern_match.cpp" />
     <ClCompile Include="..\private\standard_namespace.cpp" />
     <ClCompile Include="..\private\substitutions_tree.cpp" />
