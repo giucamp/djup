@@ -77,7 +77,7 @@ namespace djup
 
     void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source);
 
-    enum class FunctionFlags
+    enum class FunctionFlags : uint32_t
     {
         None = 0,
         Associative = 1 << 0,

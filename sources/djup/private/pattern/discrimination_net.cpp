@@ -31,8 +31,7 @@ namespace djup
 
             Edge * edge = AddEdge(i_source_node, i_pattern);
             edge->m_function_flags = GetFunctionFlags(i_pattern.GetExpression()->GetName());
-            edge->m_cardinality = i_argument_info.m_cardinality;
-            edge->m_remaining_targets = i_argument_info.m_remaining;
+            edge->m_info = i_argument_info;
             edge->m_argument_cardinality = {0, 0};
             uint32_t curr_node = edge->m_dest_node;
 
@@ -110,13 +109,13 @@ namespace djup
                 else
                     name = edge.second.m_expression.GetExpression()->GetName().AsString();
 
-                if(edge.second.m_cardinality != Range{1, 1})
-                    name += escaped_newline + "card: " + edge.second.m_cardinality.ToString();
+                if(edge.second.m_info.m_cardinality != Range{1, 1})
+                    name += escaped_newline + "card: " + edge.second.m_info.m_cardinality.ToString();
 
                 if(edge.second.m_argument_cardinality != Range{0, 0})
                     name += escaped_newline + "args: " + edge.second.m_argument_cardinality.ToString();
 
-                name += escaped_newline + "rem: " + edge.second.m_remaining_targets.ToString();
+                name += escaped_newline + "rem: " + edge.second.m_info.m_remaining.ToString();
 
                 std::string color = "black";
 

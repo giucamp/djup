@@ -35,8 +35,7 @@ namespace djup
             struct Edge
             {
                 Tensor m_expression;
-                Range m_cardinality;
-                Range m_remaining_targets;
+                ArgumentInfo m_info;
                 Range m_argument_cardinality;
                 uint32_t m_dest_node{0};
                 FunctionFlags m_function_flags{};
