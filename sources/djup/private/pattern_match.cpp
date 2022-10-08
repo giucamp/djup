@@ -464,24 +464,23 @@ namespace djup
                         assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                         // compute usable range
-                        size_t max_usable = total_available_targets - i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_min;
-                        size_t min_usable = i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_max == s_max_reps ?
+                        Range usable;
+                        usable.m_max = total_available_targets - i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_min;
+                        usable.m_min = i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_max == s_max_reps ?
                             0 :
                             total_available_targets - i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_max;
-                        if(max_usable > i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_max)
-                            max_usable = i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_max;
-                        if(min_usable < i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_min)
-                            min_usable = i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_min;
+
+                        usable = i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.Clamp(usable);
 
                         // align the usable range to be a multiple of sub_pattern_count
-                        min_usable += sub_pattern_count - 1;
-                        min_usable -= min_usable % sub_pattern_count;
-                        max_usable -= max_usable % sub_pattern_count;
+                        usable.m_min += sub_pattern_count - 1;
+                        usable.m_min -= usable.m_min % sub_pattern_count;
+                        usable.m_max -= usable.m_max % sub_pattern_count;
 
                         const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
 
-                        uint32_t rep = NumericCast<uint32_t>(min_usable / sub_pattern_count);
-                        for(size_t used = min_usable; used <= max_usable; used += sub_pattern_count, rep++)
+                        uint32_t rep = NumericCast<uint32_t>(usable.m_min / sub_pattern_count);
+                        for(size_t used = usable.m_min; used <= usable.m_max; used += sub_pattern_count, rep++)
                         {
                             assert(!nest_index); // repetitions can't be nested directly
 
@@ -810,7 +809,7 @@ namespace djup
                         dbg_step++;
                     #endif
 
-                    // MatchCandidate may add other candidates, take the inndex beofore
+                    // MatchCandidate may add other candidates, take the index before
                     const uint32_t candidate_index = NumericCast<uint32_t>(context.m_candidates.size());
 
                     bool match;

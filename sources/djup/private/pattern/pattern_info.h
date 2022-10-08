@@ -17,7 +17,8 @@ namespace djup
     {
         struct Range
         {
-            uint32_t m_min{1}, m_max{0};
+            uint32_t m_min{1}; /**< inclusive lower bound */
+            uint32_t m_max{0}; /**< inclusive upper bound */
 
             constexpr static uint32_t s_infinite = std::numeric_limits<uint32_t>::max();
 
@@ -31,6 +32,10 @@ namespace djup
 
             bool operator == (const Range & i_other) const noexcept;
             bool operator != (const Range & i_other) const noexcept;
+
+            uint32_t Clamp(uint32_t i_value) const noexcept;
+
+            Range Clamp(Range i_range) const noexcept;
 
             std::string ToString() const;
         };

@@ -30,7 +30,7 @@ namespace djup
 
             std::string ToDotLanguage(std::string_view i_graph_name) const;
 
-        private:
+            uint32_t GetStartNode() const { return s_start_node_index; }
 
             struct Edge
             {
@@ -40,6 +40,36 @@ namespace djup
                 uint32_t m_dest_node{0};
                 FunctionFlags m_function_flags{};
             };
+
+            class EdgeSet
+            {
+            public:
+
+                EdgeSet(DiscriminationNet const & i_net, uint32_t i_from_node)
+                    : m_net(i_net), m_from_node(i_from_node)
+                {
+                    auto res = m_net.m_edges.equal_range(i_from_node);
+                    m_begin = res.first;
+                    m_end = res.second;
+                }
+
+                auto begin() const { return m_begin; }
+                
+                auto end() const { return m_begin; }
+
+            private:
+                DiscriminationNet const & m_net;
+                uint32_t const m_from_node;
+                std::unordered_multimap<uint32_t, Edge>::const_iterator m_begin;
+                std::unordered_multimap<uint32_t, Edge>::const_iterator m_end;
+            };
+
+            EdgeSet EdgesFrom(uint32_t i_from_node) const
+            {
+                return EdgeSet(*this, i_from_node);
+            }
+
+        private:
 
             constexpr static uint32_t s_start_node_index = 0;
 

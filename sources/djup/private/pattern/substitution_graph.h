@@ -16,13 +16,15 @@ namespace djup
 {
     namespace pattern
     {
+        class DiscriminationNet;
 
         class SubstitutionGraph
         {
 
         public:
 
-
+            void FindMatches(const DiscriminationNet & i_discrimination_net, 
+                const Tensor & i_target, const Tensor & i_condition);
 
         private:
 
@@ -34,6 +36,9 @@ namespace djup
 
         private:
 
+            void AddEdge(uint32_t i_source_node, uint32_t i_dest_node, std::vector<Substitution> && i_substitutions);
+
+            bool MatchCandidate(const DiscriminationNet & i_discrimination_net, Candidate & i_candidate);
 
         private:
 

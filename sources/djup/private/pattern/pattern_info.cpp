@@ -86,6 +86,28 @@ namespace djup
             return !(*this == i_other);
         }
 
+        uint32_t Range::Clamp(uint32_t i_value) const noexcept
+        {
+            if(i_value < m_min)
+                return m_min;
+            else if(i_value > m_max)
+                return m_max;
+            else
+                return i_value;
+        }
+
+        Range Range::Clamp(Range i_range) const noexcept
+        {
+            Range res = i_range;
+
+            if(res.m_max > m_max)
+                res.m_max = m_max;
+            if(res.m_min < m_min)
+                res.m_min = m_min;
+            
+            return res;
+        }
+
         std::string Range::ToString() const
         {
             if(IsEmpty())
