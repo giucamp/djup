@@ -23,11 +23,19 @@ namespace djup
             Print("Test: djup - Pattern Matching...");
 
             {
-                // g_enable_graphviz = true;
-                auto target =  "f(1 2 3 4 5)"_t;
-                auto pattern = "f(1 real x... real y...)"_t;
+                //g_enable_graphviz = true;
+                auto target =  "g(f(1 2 3 4 5))"_t;
+                auto pattern = "g(f(1 real x... real y...)...)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
                 DJUP_EXPECTS(solutions == 5);
+            }
+
+            {
+                //g_enable_graphviz = true;
+                auto target =  "g(f(1 2 3 4 5), f(1 2 5 6 7 8 9))"_t;
+                auto pattern = "g(f(1 real x... real y...)...)"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 35);
             }
 
             {
@@ -100,8 +108,9 @@ namespace djup
             }
 
             {
-                auto target =  "f(Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
-                auto pattern = "f(Sin(real x..., real y...), Sin(real z..., real w...))"_t;
+                //g_enable_graphviz = true;
+                auto target =  "f(Cos(2,4), Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
+                auto pattern = "f(Cos(2,4), Sin(real x..., real y...), Sin(real z..., real w...))"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
                 DJUP_EXPECTS(solutions == 20);
             }
@@ -131,6 +140,7 @@ namespace djup
             }
 
             {
+                //g_enable_graphviz = true;
                 auto target =  "Sin(f(1 2), f(4 5 6), f(7 8 9 1), f(11 12 13))"_t;
                 auto pattern = "Sin(f(real x..., real y...)..., f(real z..., real w...)..., f(real u..., real p...)...)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
@@ -200,15 +210,15 @@ namespace djup
             DJUP_EXPECTS(!Is("1.2", "int"));
 
             Namespace test_namespace("Test", Namespace::Root());
-            /*test_namespace.AddSubstitutionAxiom("2+3", "5");
+            test_namespace.AddSubstitutionAxiom("2+3", "5");
             test_namespace.AddSubstitutionAxiom("0 * real",             "0");
             test_namespace.AddSubstitutionAxiom("f(Sin(5, real a))",    "g((4, a)...)");
             test_namespace.AddSubstitutionAxiom("f(Sin(5, 7, real a...))",    "g((4, 6, a)...)");
-            test_namespace.AddSubstitutionAxiom("f(5, 12, real a)",    "g((4, 6, 12, a)...)");*/
+            test_namespace.AddSubstitutionAxiom("f(5, 12, real a)",    "g((4, 6, 12, a)...)");
 
 
-            test_namespace.AddSubstitutionAxiom("f(3, 4, (real x + 1), 5, 6)",    "g((4, a)...)");
-            //test_namespace.AddSubstitutionAxiom("f(3, 7, real x, 5)",    "g((4, a)...)");
+            test_namespace.AddSubstitutionAxiom("f((3+1), 4, real x..., 5, 6)",    "g((4, a)...)");
+            test_namespace.AddSubstitutionAxiom("f((3+1), 4, real x..., 9)",    "g((4, a)...)");
 
             auto str = test_namespace.SubstitutionGraphToDotLanguage();
             std::string dot_file_path(std::string(DBG_DEST_DIR) + "Subst.txt");

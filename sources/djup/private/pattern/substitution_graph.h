@@ -33,6 +33,9 @@ namespace djup
             struct Substitution;
             struct CandidateRef;
             struct Edge;
+            
+            class LinearPath;
+            friend class LinearPath;
 
         private:
 
@@ -41,6 +44,9 @@ namespace djup
             bool MatchCandidate(const DiscriminationNet & i_discrimination_net, Candidate & i_candidate);
 
         private:
+
+            constexpr static uint32_t s_start_node_index = 0;
+            constexpr static uint32_t s_end_node_index = 1;
 
             std::vector<Candidate> m_candidates;
             std::vector<Node> m_graph_nodes;

@@ -90,9 +90,10 @@ namespace djup
 
         struct SubstitutionGraph::Candidate
         {
+            uint32_t m_discrimination_node{};
             uint32_t m_start_node{};
+            uint32_t m_end_node{};
             Span<const Tensor> m_targets;
-
 
             uint32_t m_repetitions{};
             uint32_t m_version{};
@@ -128,9 +129,41 @@ namespace djup
 
         #if 1
 
+        class SubstitutionGraph::LinearPath
+        {
+        public:
+
+            LinearPath(SubstitutionGraph & i_substitution_graph, 
+                const Candidate & i_source_candidate, uint32_t i_discrimination_node)
+                : m_substitution_graph(i_substitution_graph),
+                  m_discrimination_node(i_discrimination_node),
+                  m_start_node(i_source_candidate.m_start_node), m_end_node(i_source_candidate.m_end_node)
+            {
+            }
+
+            LinearPath(const LinearPath &) = delete;
+            LinearPath & operator = (const LinearPath &) = delete;
+
+            enum EdgeType
+            {
+                First, Meddle, Last
+            };
+
+            void AddEdge(EdgeType i_type, Span<const Tensor> i_targets)
+            {
+
+            }
+
+        private:
+            SubstitutionGraph & m_substitution_graph;
+            const uint32_t m_discrimination_node{};
+            const uint32_t m_start_node{};
+            const uint32_t m_end_node{};
+        };
+
         bool SubstitutionGraph::MatchCandidate(const DiscriminationNet & i_discrimination_net, Candidate & i_candidate)
         {
-            for(auto edge_it : i_discrimination_net.EdgesFrom(i_candidate.m_start_node))
+            for(auto edge_it : i_discrimination_net.EdgesFrom(i_candidate.m_discrimination_node))
             {
                 const Tensor & target = i_candidate.m_targets.front();
 
@@ -141,12 +174,12 @@ namespace djup
 
                 if(cardinality.m_min != cardinality.m_max)
                 {
-                    size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
+                    uint32_t sub_pattern_count = NumericCast<uint32_t>(pattern.GetExpression()->GetArguments().size());
                     assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                     // compute usable range
                     Range usable;
-                    size_t available_targets = i_candidate.m_targets.size();
+                    uint32_t available_targets = NumericCast<uint32_t>(i_candidate.m_targets.size());
                     usable.m_max = available_targets - remaining.m_min;
                     usable.m_min = remaining.m_max == Range::s_infinite ?
                         0 : available_targets - remaining.m_max;
@@ -160,10 +193,16 @@ namespace djup
                     uint32_t rep = NumericCast<uint32_t>(usable.m_min / sub_pattern_count);
                     for(size_t used = usable.m_min; used <= usable.m_max; used += sub_pattern_count, rep++)
                     {
-                        /*LinearPath path(i_context, i_candidate);
+                        LinearPath path(*this, i_candidate, edge_it.second.m_dest_node);
 
                         // pre-pattern
-                        path.AddEdge(i_candidate.m_targets.subspan(0, used),
+                        path.AddEdge(LinearPath::First, i_candidate.m_targets.subspan(0, used));
+
+                        // post-pattern
+                        path.AddEdge(LinearPath::Last, i_candidate.m_targets.subspan(used));
+
+                        // pre-pattern
+                        /*path.AddEdge(i_candidate.m_targets.subspan(0, used),
                             PatternSegment{ pattern_info.m_flags,
                             pattern.GetExpression()->GetArguments(),
                             pattern_info.m_arguments},
@@ -200,10 +239,10 @@ namespace djup
                     if(target_arguments >= argument_cardinality.m_min &&
                         target_arguments <= argument_cardinality.m_max )
                     {
-                        /*LinearPath path(i_context, i_candidate);
+                        LinearPath path(*this, i_candidate, edge_it.second.m_dest_node);
 
                         // match content
-                        path.AddEdge(target.GetExpression()->GetArguments(), 
+                        /*path.AddEdge(target.GetExpression()->GetArguments(), 
                             PatternSegment{ pattern_info.m_flags,
                             pattern.GetExpression()->GetArguments(),
                             pattern_info.m_arguments });
@@ -232,7 +271,9 @@ namespace djup
             const Tensor & i_target, const Tensor & i_condition)
         {
             Candidate first_candidate;
-            first_candidate.m_start_node = i_discrimination_net.GetStartNode();
+            first_candidate.m_discrimination_node = i_discrimination_net.GetStartNode();
+            first_candidate.m_start_node = s_start_node_index;
+            first_candidate.m_start_node = s_end_node_index;
             first_candidate.m_targets = {i_target, 1};
             m_candidates.push_back(std::move(first_candidate));
 
