@@ -103,21 +103,6 @@ namespace djup
             std::vector<Substitution> m_substitutions;
         };
 
-        struct SubstitutionGraph::CandidateRef
-        {
-            uint32_t m_index = std::numeric_limits<uint32_t>::max();
-            uint32_t m_version{};
-        };
-
-        struct SubstitutionGraph::Edge
-        {
-            uint32_t m_source_index{};
-            CandidateRef m_candidate_ref;
-            std::vector<Substitution> m_substitutions;
-            uint32_t m_open{};
-            uint32_t m_close{};
-        };
-
         void SubstitutionGraph::AddEdge(uint32_t i_source_node, uint32_t i_dest_node, 
             std::vector<Substitution> && i_substitutions)
         {
