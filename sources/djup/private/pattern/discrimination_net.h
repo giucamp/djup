@@ -19,8 +19,6 @@ namespace djup
         {
         public:
 
-            using uint32_t = uint32_t;
-
             void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
 
             void FindMatches(const Tensor & i_target, std::vector<PatternMatch> & o_matches) const

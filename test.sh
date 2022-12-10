@@ -8,15 +8,15 @@ export CXX=/usr/bin/clang++-8
 
 mkdir build/clang8 || false
 pushd build/clang8
-rm sources/test/test
-rm test
-cmake -S../../
+rm -f sources/test/djup_test
+rm -f djup_test
+cmake -S ../../
 make
 
-cp sources/test/test test
+cp sources/test/djup_test djup_test
 
-chmod +x ./test
-./test
+chmod +x ./djup_test
+./djup_test
 popd
 
 
@@ -29,15 +29,15 @@ export CXX_FLAGS=-stdlib=libc++
 
 mkdir build/gcc9 || false
 pushd build/gcc9
-rm sources/test/test
-rm test
-cmake -S../../
+rm -f sources/test/djup_test
+rm -f djup_test
+cmake -S ../../
 make
 
-cp sources/test/test test
+cp sources/test/djup_test djup_test
 
-chmod +x ./test
-./test
+chmod +x ./djup_test
+./djup_test
 popd
 
 

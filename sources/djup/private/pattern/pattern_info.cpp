@@ -42,7 +42,7 @@ namespace djup
             {
                 *this = i_other;
             }
-            else
+            else if(!i_other.IsEmpty())
             {
                 m_min = std::min(m_min, i_other.m_min);
                 m_max = std::max(m_max, i_other.m_max);
@@ -63,7 +63,7 @@ namespace djup
             {
                 *this = i_other;
             }
-            else
+            else if(!i_other.IsEmpty())
             {
                 m_min += i_other.m_min;
                 if(m_min < i_other.m_min)

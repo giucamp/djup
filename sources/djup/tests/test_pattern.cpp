@@ -10,7 +10,7 @@
 
 #define DBG_CREATE_GRAPHVIZ_SVG         1
 #define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""
-#define DBG_DEST_DIR                    "C:\\projects\\djup\\test\\discr\\"
+#define DBG_DEST_DIR                    "D:\\repos\\djup\\tests\\"
 
 extern bool g_enable_graphviz;
 
