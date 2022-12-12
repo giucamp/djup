@@ -707,6 +707,7 @@ namespace djup
                     }
                     else
                     {
+                        // find the edge and sets the substitutions
                         bool found = false;
                         const auto range = context.m_edges.equal_range(candidate.m_dest_node);
                         for(auto it = range.first; it != range.second; it++)
@@ -718,6 +719,7 @@ namespace djup
                                 it->second.m_candidate_ref.m_index == candidate_index &&
                                 it->second.m_candidate_ref.m_version == candidate.m_version)
                             {
+                                assert(it->second.m_substitutions.empty());
                                 it->second.m_substitutions = std::move(candidate.m_substitutions);
                                 found = true;
                                 break;
