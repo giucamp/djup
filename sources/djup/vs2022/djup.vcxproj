@@ -19,11 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\vs2019\core.vcxproj">
-      <Project>{a00ddaa3-66e9-408c-ad6e-a877b67c2b59}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\private\alphabet.h" />
     <ClInclude Include="..\private\builtin_names.h" />
     <ClInclude Include="..\private\diagnostic.h" />
@@ -68,6 +63,11 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\vs2022\core.vcxproj">
+      <Project>{a00ddaa3-66e9-408c-ad6e-a877b67c2b59}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -29,13 +29,18 @@ namespace djup
             std::string ToDotLanguage(std::string_view i_graph_name) const;
 
             uint32_t GetStartNode() const { return s_start_node_index; }
-
+            
+            /** In leaf edges m_expression is empty, and m_pattern_id is valid */
             struct Edge
             {
                 Tensor m_expression;
                 ArgumentInfo m_info;
                 Range m_argument_cardinality;
-                uint32_t m_dest_node{0};
+                union
+                {
+                    uint32_t m_dest_node;
+                    uint32_t m_pattern_id;
+                };
                 FunctionFlags m_function_flags{};
             };
 
@@ -72,9 +77,8 @@ namespace djup
             constexpr static uint32_t s_start_node_index = 0;
 
             /** Returns the destination node */
-            uint32_t AddPatternFrom(uint32_t i_pattern_id, uint32_t i_source_node, 
-                const Tensor & i_pattern, const ArgumentInfo & i_argument_info,
-                const Tensor & i_condition);
+            uint32_t AddPatternFrom(uint32_t i_source_node, const Tensor & i_pattern,
+                const ArgumentInfo & i_argument_info, const Tensor & i_condition);
 
             Edge * AddEdge(uint32_t i_source_node, const Tensor & i_expression);
 

@@ -108,11 +108,12 @@ namespace djup
             }
 
             {
-                //g_enable_graphviz = true;
+                g_enable_graphviz = true;
                 auto target =  "f(Cos(2,4), Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
                 auto pattern = "f(Cos(2,4), Sin(real x..., real y...), Sin(real z..., real w...))"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
                 DJUP_EXPECTS(solutions == 20);
+                g_enable_graphviz = false;
             }
 
             {
@@ -210,11 +211,13 @@ namespace djup
             DJUP_EXPECTS(!Is("1.2", "int"));
 
             Namespace test_namespace("Test", Namespace::Root());
+
             test_namespace.AddSubstitutionAxiom("2+3", "5");
             test_namespace.AddSubstitutionAxiom("0 * real",             "0");
             test_namespace.AddSubstitutionAxiom("f(Sin(5, real a))",    "g((4, a)...)");
             test_namespace.AddSubstitutionAxiom("f(Sin(5, 7, real a...))",    "g((4, 6, a)...)");
             test_namespace.AddSubstitutionAxiom("f(5, 12, real a)",    "g((4, 6, 12, a)...)");
+            test_namespace.AddSubstitutionAxiom("real x + real y + 5", "z");
 
 
             test_namespace.AddSubstitutionAxiom("f((3+1), 4, real x..., 5, 6)",    "g((4, a)...)");

@@ -26,6 +26,8 @@ namespace djup
             void FindMatches(const DiscriminationNet & i_discrimination_net, 
                 const Tensor & i_target, const Tensor & i_condition);
 
+            std::string ToDotLanguage(std::string_view i_graph_name) const;
+
         private:
 
             struct Node;
@@ -52,9 +54,17 @@ namespace djup
 
         private:
 
-            void AddEdge(uint32_t i_source_node, uint32_t i_dest_node, std::vector<Substitution> && i_substitutions);
+            void AddCandidate( uint32_t i_start_node, uint32_t i_end_node,
+                Span<const Tensor> i_targets, uint32_t i_discrimination_node,
+                uint32_t i_open, uint32_t i_close, uint32_t i_repetitions = std::numeric_limits<uint32_t>::max());
 
             bool MatchCandidate(const DiscriminationNet & i_discrimination_net, Candidate & i_candidate);
+
+            bool IsCandidateRefValid(CandidateRef i_ref) const;
+
+            void RemoveNode(uint32_t i_node_index);
+
+            void RemoveEdge(uint32_t i_start_node, uint32_t i_dest_node, CandidateRef i_candidate_ref);
 
         private:
 
@@ -62,7 +72,7 @@ namespace djup
             constexpr static uint32_t s_end_node_index = 1;
 
             std::vector<Candidate> m_candidates;
-            std::vector<Node> m_graph_nodes;
+            std::vector<Node> m_nodes;
             std::unordered_multimap<uint32_t, Edge> m_edges; // the key is the destination node
             uint32_t m_next_candidate_version{};
             #if DBG_CREATE_GRAPHVIZ_SVG

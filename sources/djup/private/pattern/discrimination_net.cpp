@@ -8,6 +8,7 @@
 #include <private/pattern/pattern_info.h>
 #include <private/builtin_names.h>
 #include <private/expression.h>
+#include <private/substitute_by_predicate.h>
 #include <core/flags.h>
 #include <core/to_string.h>
 #include <algorithm> // for min, max
@@ -16,17 +17,68 @@ namespace djup
 {
     namespace pattern
     {
+        Tensor PreprocessPattern(const Tensor & i_pattern)
+        {
+            return SubstituteByPredicate(i_pattern, [](const Tensor & i_candidate){
+                FunctionFlags flags = GetFunctionFlags(i_candidate.GetExpression()->GetName());
+
+                bool some_substitution = false;
+                std::vector<Tensor> new_arguments;
+
+                const std::vector<Tensor> & arguments = i_candidate.GetExpression()->GetArguments();
+                const size_t argument_count = arguments.size();
+
+                // substitute identifiers in associative functions with AssociativeIdentifier()
+                if(HasFlag(flags, FunctionFlags::Associative))
+                {
+                    size_t index = 0;
+
+                    for(; index < argument_count; index++)
+                    {
+                        const Tensor & argument = arguments[index];
+                        if(IsIdentifier(argument))
+                        {
+                            new_arguments = arguments;
+                            some_substitution = true;
+                            break;
+                        }
+                    }
+
+                    for(; index < argument_count; index++)
+                    {
+                        const Tensor & argument = arguments[index];
+                        if(IsIdentifier(argument))
+                        {
+                            new_arguments[index] = MakeExpression(builtin_names::AssociativeIdentifier, 
+                                {argument}, 
+                                argument.GetExpression()->GetMetadata());
+                        }
+                    }
+                }
+
+                if(some_substitution)
+                    return MakeExpression(i_candidate.GetExpression()->GetName(), new_arguments, i_candidate.GetExpression()->GetMetadata());
+                else
+                    return i_candidate;
+            });
+        }
+
         void DiscriminationNet::AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition)
         {
             ArgumentInfo argument_info;
             argument_info.m_cardinality = {1, 1};
             argument_info.m_remaining = {0, 0};
-            AddPatternFrom(i_pattern_id, s_start_node_index, i_pattern, argument_info, i_condition);
+            uint32_t last_node = AddPatternFrom(s_start_node_index, PreprocessPattern(i_pattern), argument_info, i_condition);
+
+            Edge * leaf_edge = AddEdge(last_node, {});
+            leaf_edge->m_pattern_id = i_pattern_id;
         }
 
-        uint32_t DiscriminationNet::AddPatternFrom(uint32_t i_pattern_id, 
-            uint32_t i_source_node, const Tensor & i_pattern, const ArgumentInfo & i_argument_info, const Tensor & i_condition)
+        uint32_t DiscriminationNet::AddPatternFrom(uint32_t i_source_node, 
+            const Tensor & i_pattern, const ArgumentInfo & i_argument_info, const Tensor & i_condition)
         {
+            assert(!IsEmpty(i_pattern));
+
             const PatternInfo pattern_info = BuildPatternInfo(i_pattern);
 
             Edge * edge = AddEdge(i_source_node, i_pattern);
@@ -42,7 +94,7 @@ namespace djup
                 Span<const Tensor> parameters = i_pattern.GetExpression()->GetArguments();
                 for(size_t i = 0; i < parameters.size(); i++)
                 {
-                    curr_node = AddPatternFrom(i_pattern_id, curr_node, parameters[i], pattern_info.m_arguments[i], i_condition);
+                    curr_node = AddPatternFrom(curr_node, parameters[i], pattern_info.m_arguments[i], i_condition);
                 }
             }
 
@@ -66,11 +118,15 @@ namespace djup
                 }
             }
 
-            uint32_t new_node = ++m_last_node_index;
-
             Edge new_edge;
-            new_edge.m_expression = i_expression;
-            new_edge.m_dest_node = new_node;
+
+            if (!IsEmpty(i_expression)) // if it's not a leaf edge
+            {
+                new_edge.m_expression = i_expression;
+                uint32_t new_node = ++m_last_node_index;
+                new_edge.m_dest_node = new_node;
+            }
+            
             auto res = m_edges.insert(std::pair(i_source_node, std::move(new_edge)));
             return &res->second;
         }
@@ -90,6 +146,7 @@ namespace djup
 
             const std::string escaped_newline = "\\n";
 
+            // nodes
             for(uint32_t i = 0; i <= m_last_node_index; i++)
             {
                 dest << "v" << i << "[label = \"";
@@ -101,27 +158,49 @@ namespace djup
                 dest.NewLine();
             }
 
+            // leaf nodes
+            for (const auto& edge : m_edges)
+            {
+                if (IsEmpty(edge.second.m_expression))
+                {
+                    dest << "l" << edge.second.m_pattern_id << "[shape = box, label = \"";
+                    dest << edge.second.m_pattern_id << "\"]";
+
+                    dest.NewLine();
+                }
+            }
+
+            // edges
             for(const auto & edge : m_edges)
             {
-                std::string name;
-                if(IsConstant(edge.second.m_expression) || IsIdentifier(edge.second.m_expression))
-                    name = ToSimplifiedStringForm(edge.second.m_expression);
+                if (!IsEmpty(edge.second.m_expression))
+                {
+                    std::string name;
+                    if (IsConstant(edge.second.m_expression) || IsIdentifier(edge.second.m_expression))
+                        name = ToSimplifiedStringForm(edge.second.m_expression);
+                    else
+                        name = edge.second.m_expression.GetExpression()->GetName().AsString();
+
+                    if (edge.second.m_info.m_cardinality != Range{ 1, 1 })
+                        name += escaped_newline + "card: " + edge.second.m_info.m_cardinality.ToString();
+
+                    if (edge.second.m_argument_cardinality != Range{ 0, 0 })
+                        name += escaped_newline + "args: " + edge.second.m_argument_cardinality.ToString();
+
+                    name += escaped_newline + "rem: " + edge.second.m_info.m_remaining.ToString();
+
+                    std::string color = "black";
+
+                    dest << 'v' << edge.first << " -> v" << edge.second.m_dest_node
+                        << "[style=\"solid\", color=\"" << color << "\", label=\"" << name << "\"]" << ';';
+                }
                 else
-                    name = edge.second.m_expression.GetExpression()->GetName().AsString();
+                {
+                    std::string color = "black";
 
-                if(edge.second.m_info.m_cardinality != Range{1, 1})
-                    name += escaped_newline + "card: " + edge.second.m_info.m_cardinality.ToString();
-
-                if(edge.second.m_argument_cardinality != Range{0, 0})
-                    name += escaped_newline + "args: " + edge.second.m_argument_cardinality.ToString();
-
-                name += escaped_newline + "rem: " + edge.second.m_info.m_remaining.ToString();
-
-                std::string color = "black";
-
-                dest << 'v' << edge.first << " -> v" << edge.second.m_dest_node
-                    << "[style=\"dashed\", color=\"" << color << "\", label=\"" << name << "\"]"  << ';';
-
+                    dest << 'v' << edge.first << " -> l" << edge.second.m_pattern_id
+                        << "[style=\"dashed\", color=\"" << color << "\"]" << ';';
+                }
                 dest.NewLine();
             }
 
