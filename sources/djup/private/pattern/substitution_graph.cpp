@@ -31,7 +31,6 @@ namespace djup
 
         struct SubstitutionGraph::Node
         {
-            std::string m_debug_name;
             size_t m_outgoing_edges{};
         };
 
@@ -203,7 +202,6 @@ namespace djup
 
                     start_node = end_node;
                 }
-                
             }
 
         private:
@@ -390,11 +388,7 @@ namespace djup
             m_candidates.push_back(std::move(first_candidate));
 
             m_nodes.resize(2);
-            m_nodes[s_start_node_index].m_debug_name = "Start";
-            m_nodes[s_end_node_index].m_debug_name = "End";
             
-
-
             do {
             
                 Candidate candidate = std::move(m_candidates.back());
