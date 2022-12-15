@@ -6,6 +6,7 @@
 
 #pragma once
 #include <private/expression.h>
+#include <private/pattern/discrimination_net.h>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -16,8 +17,6 @@ namespace djup
 {
     namespace pattern
     {
-        class DiscriminationNet;
-
         class SubstitutionGraph
         {
 
@@ -49,16 +48,18 @@ namespace djup
                 uint32_t m_close{};
             };
             
-            class LinearPath;
-            friend class LinearPath;
+            class EdgeChain;
 
         private:
 
             void AddCandidate( uint32_t i_start_node, uint32_t i_end_node,
-                Span<const Tensor> i_targets, uint32_t i_discrimination_node,
-                uint32_t i_open, uint32_t i_close, uint32_t i_repetitions = std::numeric_limits<uint32_t>::max());
+                Span<const Tensor> i_targets, uint32_t i_repetitions,
+                uint32_t i_open, uint32_t i_close);
 
             bool MatchCandidate(const DiscriminationNet & i_discrimination_net, Candidate & i_candidate);
+
+            bool MatchDiscriminationEdge(const DiscriminationNet & i_discrimination_net,
+                Candidate& i_candidate, const DiscriminationNet::Edge & i_discrimination_edge);
 
             bool IsCandidateRefValid(CandidateRef i_ref) const;
 
@@ -71,10 +72,20 @@ namespace djup
             constexpr static uint32_t s_start_node_index = 0;
             constexpr static uint32_t s_end_node_index = 1;
 
-            std::vector<Candidate> m_candidates;
+            /** Candidates are arranged in a stack because CandidateRef keeps the index of the referenced candidate. With stack, 
+                popping the top of the stack does not shift the indices of the remaining candidates. Dangling indices in 
+                CandidateRef are detected with a 'version' counter. */
+            std::vector<Candidate> m_candidate_stack;
+            
+            /** Growable-only vector of nodes. Nodes are indentified by index, so no node can be evenr removed. */
             std::vector<Node> m_nodes;
-            std::unordered_multimap<uint32_t, Edge> m_edges; // the key is the destination node
+
+            /** The key is the destination node */
+            std::unordered_multimap<uint32_t, Edge> m_edges;
+
+            /** Every candidate has a unique version. */
             uint32_t m_next_candidate_version{};
+
             #if DBG_CREATE_GRAPHVIZ_SVG
                 std::string m_graph_name;
             #endif

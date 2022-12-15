@@ -83,13 +83,13 @@ namespace djup
 
             Edge * edge = AddEdge(i_source_node, i_pattern);
             edge->m_function_flags = GetFunctionFlags(i_pattern.GetExpression()->GetName());
-            edge->m_info = i_argument_info;
-            edge->m_argument_cardinality = {0, 0};
+            edge->m_info.m_cardinality |= i_argument_info.m_cardinality;
+            edge->m_info.m_remaining |= i_argument_info.m_remaining;
             uint32_t curr_node = edge->m_dest_node;
 
             if(!IsConstant(i_pattern) && !IsIdentifier(i_pattern))
             {
-                edge->m_argument_cardinality = pattern_info.m_argument_range;
+                edge->m_argument_cardinality |= pattern_info.m_argument_range;
 
                 Span<const Tensor> parameters = i_pattern.GetExpression()->GetArguments();
                 for(size_t i = 0; i < parameters.size(); i++)
@@ -181,10 +181,10 @@ namespace djup
                     else
                         name = edge.second.m_expression.GetExpression()->GetName().AsString();
 
-                    if (edge.second.m_info.m_cardinality != Range{ 1, 1 })
+                    if (edge.second.m_info.m_cardinality != Range{ 1, 1 })  
                         name += escaped_newline + "card: " + edge.second.m_info.m_cardinality.ToString();
 
-                    if (edge.second.m_argument_cardinality != Range{ 0, 0 })
+                    if (!edge.second.m_argument_cardinality.IsEmpty())
                         name += escaped_newline + "args: " + edge.second.m_argument_cardinality.ToString();
 
                     name += escaped_newline + "rem: " + edge.second.m_info.m_remaining.ToString();

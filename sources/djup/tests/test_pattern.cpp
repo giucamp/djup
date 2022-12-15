@@ -47,13 +47,19 @@ namespace djup
             }
 
             {
-                // g_enable_graphviz = true;
-                auto target =  "Add(1 2 3 Cos(4) Sin(5))"_t;
-                auto pattern = "Add(3 2 1 Sin(real x) Cos(real y))"_t;
+                auto target =  "If(true, 1, true, 1, false, 2, 5)"_t;
+                auto pattern = "If( (bool c, real v)..., real def)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
                 DJUP_EXPECTS(solutions == 1);
             }
 
+            {
+                // g_enable_graphviz = true;
+                auto target = "Add(1 2 3 Cos(4) Sin(5))"_t;
+                auto pattern = "Add(3 2 1 Sin(real x) Cos(real y))"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
+            }
 
             /*{
                 // g_enable_graphviz = true;
@@ -108,7 +114,7 @@ namespace djup
             }
 
             {
-                g_enable_graphviz = true;
+                //g_enable_graphviz = true;
                 auto target =  "f(Cos(2,4), Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
                 auto pattern = "f(Cos(2,4), Sin(real x..., real y...), Sin(real z..., real w...))"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
@@ -212,6 +218,10 @@ namespace djup
 
             Namespace test_namespace("Test", Namespace::Root());
 
+            test_namespace.AddSubstitutionAxiom("f(real x1, real x2, real x3, real x4)", "5");
+            test_namespace.AddSubstitutionAxiom("f(real x1, real x2, real x6, real x7, real x8..., real x9)", "0");
+
+            /*
             test_namespace.AddSubstitutionAxiom("2+3", "5");
             test_namespace.AddSubstitutionAxiom("0 * real",             "0");
             test_namespace.AddSubstitutionAxiom("f(Sin(5, real a))",    "g((4, a)...)");
@@ -221,16 +231,19 @@ namespace djup
 
 
             test_namespace.AddSubstitutionAxiom("f((3+1), 4, real x..., 5, 6)",    "g((4, a)...)");
-            test_namespace.AddSubstitutionAxiom("f((3+1), 4, real x..., 9)",    "g((4, a)...)");
+            test_namespace.AddSubstitutionAxiom("f((3+1), 4, real x..., 9)",    "g((4, a)...)");*/
 
-            auto str = test_namespace.SubstitutionGraphToDotLanguage();
-            std::string dot_file_path(std::string(DBG_DEST_DIR) + "Subst.txt");
-            std::ofstream(dot_file_path) << str;
-            std::string cmd = ToString("\"", DBG_GRAPHVIZ_EXE, " -T png -O ", dot_file_path, "\"");
-            int res = std::system(cmd.c_str());
-            if(res != 0)
-                Error("The command ", cmd, " returned ", res);
-
+            auto str = test_namespace.SubstitutionGraphToDotLanguage(); 
+            bool save_it = false;
+            if (save_it)
+            {
+                std::string dot_file_path(std::string(DBG_DEST_DIR) + "Subst.txt");
+                std::ofstream(dot_file_path) << str;
+                std::string cmd = ToString("\"", DBG_GRAPHVIZ_EXE, " -T png -O ", dot_file_path, "\"");
+                int res = std::system(cmd.c_str());
+                if (res != 0)
+                    Error("The command ", cmd, " returned ", res);
+            }
 
             /*DJUP_EXPECTS(AlwaysEqual(test_namespace.Canonicalize("2+3"), "5"));
             DJUP_EXPECTS(AlwaysEqual(test_namespace.Canonicalize("0*7"), "0"));*/

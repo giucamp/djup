@@ -6,7 +6,7 @@ echo clang-8
 export CC=/usr/bin/clang-8
 export CXX=/usr/bin/clang++-8
 
-mkdir build/clang8 || false
+mkdir -p build/clang8
 pushd build/clang8
 rm -f sources/test/djup_test
 rm -f djup_test
@@ -27,7 +27,7 @@ export CC=/usr/bin/gcc-9
 export CXX=/usr/bin/g++-9
 export CXX_FLAGS=-stdlib=libc++
 
-mkdir build/gcc9 || false
+mkdir -p build/gcc9
 pushd build/gcc9
 rm -f sources/test/djup_test
 rm -f djup_test

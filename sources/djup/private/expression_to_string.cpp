@@ -17,6 +17,20 @@ namespace djup
         {
             i_dest << i_source.GetExpression()->GetName();
         }
+
+        void TensorSpanToString(StringBuilder& i_dest, Span<const Tensor> i_tensors)
+        {
+            i_dest << '(';
+
+            for (size_t i = 0; i < i_tensors.size(); i++)
+            {
+                if (i != 0)
+                    i_dest << ", ";
+                ToSimplifiedStringForm(i_dest, i_tensors[i]);
+            }
+
+            i_dest << ')';
+        }
     }
 
     void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source)
@@ -41,7 +55,10 @@ namespace djup
             }
             else if(expr.GetName() == builtin_names::RepetitionsZeroToMany)
             {
-                ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
+                if(expr.GetArguments().size() == 1)
+                    ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
+                else
+                    TensorSpanToString(i_dest, expr.GetArguments());
                 i_dest << "...";
             }
             else if(expr.GetName() == builtin_names::RepetitionsOneToMany)
@@ -61,16 +78,7 @@ namespace djup
                 auto arguments = Span(expr.GetArguments());
                 if(!arguments.empty())
                 {
-                    i_dest << '(';
-
-                    for (size_t i = 0; i < arguments.size(); i++)
-                    {
-                        if(i != 0)
-                            i_dest << ", ";
-                        ToSimplifiedStringForm(i_dest, arguments[i]);
-                    }
-
-                    i_dest << ')';
+                    TensorSpanToString(i_dest, arguments);
                 }
             }
         }

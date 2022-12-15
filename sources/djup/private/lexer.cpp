@@ -35,9 +35,9 @@ namespace djup
             i_char >= 0x7F;
     }
 
-    bool IsAlphaOrUnderscore(uint32_t i_char)
+    bool IsAlphaNumOrUnderscore(uint32_t i_char)
     {
-        return IsAlpha(i_char) || i_char == '_';
+        return IsAlpha(i_char) || i_char == '_' || IsDigit(i_char);
     }
 
     namespace
@@ -147,9 +147,9 @@ namespace djup
         Token ParseName(std::string_view & io_source)
         {
             assert(!io_source.empty());
-            assert(IsAlpha(io_source.front()));
+            assert(IsAlpha(io_source.front()) || io_source.front() == '_');
 
-            while(!io_source.empty() && IsAlphaOrUnderscore(io_source.front()))
+            while(!io_source.empty() && IsAlphaNumOrUnderscore(io_source.front()))
             {
                 io_source.remove_prefix(1);
             }
@@ -194,7 +194,7 @@ namespace djup
                 return ParseNumericLiteral(io_source);
             else if(TryParseWholeString(io_source, "true") || TryParseWholeString(io_source, "false"))
                 return Token{ SymbolId::BoolLiteral };
-            else if(IsAlpha(io_source.front()))
+            else if(IsAlpha(io_source.front()) || io_source.front() == '_')
                 return ParseName(io_source);
             else
                 Error("Lexer - unexpected byte: ", io_source.front());
