@@ -41,7 +41,7 @@ add_library(djup STATIC
 	tests/test_djup.cpp
 	tests/test_lexer.cpp
 	tests/test_parse.cpp
-	tests/test_pattern.cpp
+	tests/test_old_pattern.cpp
 	tests/test_tensor_to_string.cpp
 )
 

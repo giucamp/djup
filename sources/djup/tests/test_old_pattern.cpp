@@ -18,9 +18,9 @@ namespace djup
 {
     namespace tests
     {
-        void Pattern()
+        void OldPattern()
         {
-            Print("Test: djup - Pattern Matching...");
+            Print("Test: djup - Old Pattern Matching...");
 
             {
                 //g_enable_graphviz = true;

@@ -13,16 +13,16 @@ namespace djup
         void Lexer();
         void TensorToString();
         void Parse();
-        void Pattern();
+        void OldPattern();
 
         void Djup()
         {
-            PrintLn("Test: Djup...");
+            PrintLn("Test: djup...");
 
             Lexer();
             TensorToString();
             Parse();
-            Pattern();
+            OldPattern();
 
             PrintLn("successful");
         }

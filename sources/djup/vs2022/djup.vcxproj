@@ -58,7 +58,7 @@
     <ClCompile Include="..\tests\test_djup.cpp" />
     <ClCompile Include="..\tests\test_lexer.cpp" />
     <ClCompile Include="..\tests\test_parse.cpp" />
-    <ClCompile Include="..\tests\test_pattern.cpp" />
+    <ClCompile Include="..\tests\test_old_pattern.cpp" />
     <ClCompile Include="..\tests\test_tensor_to_string.cpp" />
   </ItemGroup>
   <ItemGroup>

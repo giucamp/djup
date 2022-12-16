@@ -101,7 +101,7 @@
     <ClCompile Include="..\tests\test_djup.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\tests\test_pattern.cpp">
+    <ClCompile Include="..\tests\test_old_pattern.cpp">
       <Filter>tests</Filter>
     </ClCompile>
     <ClCompile Include="..\private\expression_to_string.cpp">
