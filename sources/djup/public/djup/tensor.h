@@ -9,6 +9,12 @@
 #include <core/span.h>
 #include <core/numeric_cast.h>
 
+#ifdef _NDEBUG
+    #define DJUP_DEBUG_STRING 0
+#else
+    #define DJUP_DEBUG_STRING 1
+#endif
+
 namespace djup
 {
     class Expression;

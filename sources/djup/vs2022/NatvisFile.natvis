@@ -17,7 +17,7 @@
     <DisplayString>{m_name}</DisplayString>
   </Type>
   <Type Name="djup::Tensor">
-    <DisplayString>{m_expression._Ptr->m_name}({m_expression._Ptr->m_arguments.size()})</DisplayString>
+    <DisplayString>{m_expression._Ptr->m_debug_string}</DisplayString>
     <Expand>
       <Item Name="[args]" ExcludeView="simple">m_expression._Ptr->m_arguments</Item>
     </Expand>

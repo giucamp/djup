@@ -33,54 +33,65 @@ namespace djup
         }
     }
 
+    void ToSimplifiedStringForm(StringBuilder& i_dest, const Expression & i_source)
+    {
+        if (i_source.GetName() == builtin_names::Identifier)
+        {
+            const Expression& first_arg = *i_source.GetArgument(0).GetExpression();
+            const Expression& second_arg = *i_source.GetArgument(1).GetExpression();
+            assert(first_arg.GetName() == builtin_names::TensorType);
+
+            i_dest << first_arg.GetArgument(0).GetExpression()->GetName();
+            i_dest << ' ';
+            i_dest << second_arg.GetName();
+        }
+        else if (i_source.GetName() == builtin_names::Literal)
+        {
+            ToSimplifiedStringForm(i_dest, i_source.GetArgument(0));
+        }
+        else if (i_source.GetName() == builtin_names::RepetitionsZeroToMany)
+        {
+            if (i_source.GetArguments().size() == 1)
+                ToSimplifiedStringForm(i_dest, i_source.GetArgument(0));
+            else
+                TensorSpanToString(i_dest, i_source.GetArguments());
+            i_dest << "...";
+        }
+        else if (i_source.GetName() == builtin_names::RepetitionsOneToMany)
+        {
+            ToSimplifiedStringForm(i_dest, i_source.GetArgument(0));
+            i_dest << "..";
+        }
+        else if (i_source.GetName() == builtin_names::RepetitionsZeroToOne)
+        {
+            ToSimplifiedStringForm(i_dest, i_source.GetArgument(0));
+            i_dest << "?";
+        }
+        else
+        {
+            i_dest << i_source.GetName();
+
+            auto arguments = Span(i_source.GetArguments());
+            if (!arguments.empty())
+            {
+                TensorSpanToString(i_dest, arguments);
+            }
+        }
+    }
+
+    std::string ToSimplifiedStringForm(const Expression& i_source)
+    {
+        StringBuilder dest;
+        ToSimplifiedStringForm(dest, i_source);
+        return dest.StealString();
+    }
+
     void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source)
     {
         if(!IsEmpty(i_source))
         {
             const Expression & expr = *i_source.GetExpression();
-
-            if(expr.GetName() == builtin_names::Identifier)
-            {
-                const Expression & first_arg = *expr.GetArgument(0).GetExpression();
-                const Expression & second_arg = *expr.GetArgument(1).GetExpression();
-                assert(first_arg.GetName() == builtin_names::TensorType);
-                
-                i_dest << first_arg.GetArgument(0).GetExpression()->GetName();
-                i_dest << ' ';
-                i_dest << second_arg.GetName();
-            }
-            else if(expr.GetName() == builtin_names::Literal)
-            {
-                ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
-            }
-            else if(expr.GetName() == builtin_names::RepetitionsZeroToMany)
-            {
-                if(expr.GetArguments().size() == 1)
-                    ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
-                else
-                    TensorSpanToString(i_dest, expr.GetArguments());
-                i_dest << "...";
-            }
-            else if(expr.GetName() == builtin_names::RepetitionsOneToMany)
-            {
-                ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
-                i_dest << "..";
-            }
-            else if(expr.GetName() == builtin_names::RepetitionsZeroToOne)
-            {
-                ToSimplifiedStringForm(i_dest, expr.GetArgument(0));
-                i_dest << "?";
-            }
-            else
-            {
-                i_dest << expr.GetName();
-
-                auto arguments = Span(expr.GetArguments());
-                if(!arguments.empty())
-                {
-                    TensorSpanToString(i_dest, arguments);
-                }
-            }
+            ToSimplifiedStringForm(i_dest, expr);
         }
     }
 

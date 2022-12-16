@@ -48,6 +48,9 @@ namespace djup
         Name m_name;
         std::vector<Tensor> m_arguments;
         std::optional<ExpressionMetadata> m_metadata;
+        #if DJUP_DEBUG_STRING
+            std::string m_debug_string;
+        #endif
     };
 
     inline Hash & operator << (Hash & i_dest, const Expression & i_src)
@@ -76,6 +79,8 @@ namespace djup
     bool NameIs(const Tensor & i_tensor, const ConstexprName & i_name);
 
     void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source);
+
+    std::string ToSimplifiedStringForm(const Expression& i_source);
 
     enum class FunctionFlags : uint32_t
     {

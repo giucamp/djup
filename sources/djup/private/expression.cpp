@@ -56,6 +56,10 @@ namespace djup
             hash |= bit_reverse<decltype(hash)>(0);
 
         m_hash = HashFromValue(hash);
+
+        #if DJUP_DEBUG_STRING
+            m_debug_string = ToSimplifiedStringForm(*this);
+        #endif
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src)
