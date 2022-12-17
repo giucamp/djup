@@ -21,11 +21,6 @@ namespace djup
 
             void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
 
-            void FindMatches(const Tensor & i_target, std::vector<PatternMatch> & o_matches) const
-            {
-
-            }
-
             std::string ToDotLanguage(std::string_view i_graph_name) const;
 
             uint32_t GetStartNode() const { return s_start_node_index; }
@@ -49,20 +44,17 @@ namespace djup
             public:
 
                 EdgeSet(DiscriminationNet const & i_net, uint32_t i_from_node)
-                    : m_net(i_net), m_from_node(i_from_node)
                 {
-                    auto res = m_net.m_edges.equal_range(i_from_node);
+                    auto res = i_net.m_edges.equal_range(i_from_node);
                     m_begin = res.first;
                     m_end = res.second;
                 }
 
                 auto begin() const { return m_begin; }
                 
-                auto end() const { return m_begin; }
+                auto end() const { return m_end; }
 
             private:
-                DiscriminationNet const & m_net;
-                uint32_t const m_from_node;
                 std::unordered_multimap<uint32_t, Edge>::const_iterator m_begin;
                 std::unordered_multimap<uint32_t, Edge>::const_iterator m_end;
             };

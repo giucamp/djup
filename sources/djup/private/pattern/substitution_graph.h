@@ -22,6 +22,10 @@ namespace djup
 
         public:
 
+            SubstitutionGraph();
+
+            ~SubstitutionGraph();
+
             void FindMatches(const DiscriminationNet & i_discrimination_net, 
                 const Tensor & i_target, const Tensor & i_condition);
 

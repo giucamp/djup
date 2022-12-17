@@ -14,6 +14,10 @@ namespace djup
 {
     namespace pattern
     {
+        SubstitutionGraph::SubstitutionGraph() = default;
+
+        SubstitutionGraph::~SubstitutionGraph() = default;
+
         struct SubstitutionGraph::Node
         {
             uint32_t m_outgoing_edges{};
@@ -168,22 +172,9 @@ namespace djup
                     {
                         --i;
 
-                        if (i == 0)
-                        {
-                            i_substitution_graph.m_nodes[end_node].m_discrimination_node = i_next_discrimination_node;
-                        }
-
-                        uint32_t start_node;
-                        if (i == 0)
-                        {
-                            start_node = m_start_node;
-                        }
-                        else
-                        {
-                            const uint32_t new_node = NumericCast<uint32_t>(i_substitution_graph.m_nodes.size());
-                            i_substitution_graph.m_nodes.emplace_back();
-                            start_node = new_node;
-                        }
+                        const uint32_t new_node = NumericCast<uint32_t>(i_substitution_graph.m_nodes.size());
+                        i_substitution_graph.m_nodes.emplace_back();
+                        uint32_t start_node = new_node;
 
                         i_substitution_graph.AddCandidate(start_node, end_node,
                             m_edges[i].m_targets, m_edges[i].m_repetitions, m_open[i], m_close[i]);
@@ -191,29 +182,10 @@ namespace djup
                         end_node = start_node;
                     }
 
-                    #if 0
-                    uint32_t start_node = m_start_node;
+                    i_substitution_graph.m_nodes[end_node].m_discrimination_node = i_next_discrimination_node;
 
-                    for (uint32_t i = 0; i < m_edge_count; i++)
-                    {
-                        uint32_t end_node;
-                        if (i == m_edge_count - 1)
-                        {
-                            end_node = m_end_node;
-                        }
-                        else
-                        {
-                            const uint32_t intermediate_node = NumericCast<uint32_t>(i_substitution_graph.m_nodes.size());
-                            i_substitution_graph.m_nodes.emplace_back();
-                            end_node = intermediate_node;
-                        }
-
-                        i_substitution_graph.AddCandidate(start_node, end_node, 
-                            m_edges[i].m_targets, m_edges[i].m_repetitions, m_open[i], m_close[i]);
-
-                        start_node = end_node;
-                    }
-                    #endif
+                    i_substitution_graph.m_edges.insert({ end_node, { m_start_node } });
+                    i_substitution_graph.m_nodes[m_start_node].m_outgoing_edges++;
                 }
             }
 
@@ -221,14 +193,14 @@ namespace djup
             const uint32_t m_start_node{};
             const uint32_t m_end_node{};
 
-            struct Edge
+            struct Section
             {
                 Span<const Tensor> m_targets;
                 uint32_t m_repetitions{};
             };
             
             static constexpr uint32_t s_max_edges = 3;
-            Edge m_edges[s_max_edges];
+            Section m_edges[s_max_edges];
             uint32_t m_open[s_max_edges]{};
             uint32_t m_close[s_max_edges]{};
             uint32_t m_edge_count{};
@@ -330,7 +302,7 @@ namespace djup
                         EdgeChain path(i_candidate);
 
                         // match content
-                        path.AddEdge(target.GetExpression()->GetArguments(), i_discrimination_edge.m_dest_node);
+                        path.AddEdge(target.GetExpression()->GetArguments());
 
                         // rest of this repetition
                         //const size_t remaining_in_pattern = pattern.m_pattern.size() - (pattern_index + 1);
@@ -390,14 +362,10 @@ namespace djup
         void SubstitutionGraph::FindMatches(const DiscriminationNet & i_discrimination_net,
             const Tensor & i_target, const Tensor & i_condition)
         {
-            Candidate first_candidate;
-            first_candidate.m_start_node = s_start_node_index;
-            first_candidate.m_end_node = s_end_node_index;
-            first_candidate.m_targets = {i_target, 1};
-            m_candidate_stack.push_back(std::move(first_candidate));
-
             m_nodes.resize(2);
             m_nodes[s_start_node_index].m_discrimination_node = i_discrimination_net.GetStartNode();
+
+            AddCandidate(s_start_node_index, s_end_node_index, {i_target}, std::numeric_limits<uint32_t>::max(), 0, 0);
             
             do {
             
@@ -411,7 +379,15 @@ namespace djup
                 {
                     const bool match = MatchCandidate(i_discrimination_net, candidate);
 
-
+                    if (!match)
+                    {
+                        RemoveEdge(candidate.m_start_node, candidate.m_end_node,
+                            { candidate_index, candidate.m_version });
+                    }
+                    else
+                    {
+                        // set substitutions
+                    }
                 }
 
             } while(!m_candidate_stack.empty());

@@ -5,6 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/namespace.h>
+#include <private/pattern/substitution_graph.h>
 #include <private/expression.h>
 #include <core/algorithms.h>
 
@@ -97,7 +98,11 @@ namespace djup
     Tensor Namespace::ApplySubstitutionAxioms(const Tensor & i_source) const
     {
         std::vector<PatternMatch> matches;
-        m_substitution_axioms_patterns.FindMatches(i_source, matches);
+
+        pattern::SubstitutionGraph substitution_graph;
+        
+        substitution_graph.FindMatches(m_substitution_axioms_patterns, i_source, {});
+
         if(!matches.empty())
         {
             const PatternMatch & match = matches[0];
@@ -111,7 +116,11 @@ namespace djup
     Tensor Namespace::ApplyTypeInferenceAxioms(const Tensor & i_source) const
     {
         std::vector<PatternMatch> matches;
-        m_type_inference_axioms_patterns.FindMatches(i_source, matches);
+
+        pattern::SubstitutionGraph substitution_graph;
+
+        substitution_graph.FindMatches(m_type_inference_axioms_patterns, i_source, {});
+
         if(!matches.empty())
         {
             const PatternMatch & match = matches[0];
@@ -127,12 +136,12 @@ namespace djup
 
     Tensor Namespace::Canonicalize(const Tensor & i_source) const
     {
-        Tensor result = i_source;
+        Tensor result(i_source);
 
         // loop until the expression does not change
         const Expression * prev_expr = result.GetExpression().get();
         do {
-            result = ApplyTypeInferenceAxioms(result);
+            //result = ApplyTypeInferenceAxioms(result);
 
             prev_expr = result.GetExpression().get();
             result = ApplySubstitutionAxioms(result);

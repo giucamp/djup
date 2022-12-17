@@ -14,6 +14,7 @@ namespace djup
         void TensorToString();
         void Parse();
         void OldPattern();
+        void Pattern();
 
         void Djup()
         {
@@ -23,6 +24,7 @@ namespace djup
             TensorToString();
             Parse();
             OldPattern();
+            Pattern();
 
             PrintLn("successful");
         }
