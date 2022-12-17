@@ -23,12 +23,11 @@ namespace djup
 
         public:
 
-            SubstitutionGraph();
+            SubstitutionGraph(const DiscriminationNet & i_discrimination_net);
 
             ~SubstitutionGraph();
 
-            void FindMatches(const DiscriminationNet & i_discrimination_net, 
-                const Tensor& i_target, std::function<void()> i_step_callback = {});
+            void FindMatches(const Tensor& i_target, std::function<void()> i_step_callback = {});
 
             std::string ToDotLanguage(std::string_view i_graph_name) const;
 
@@ -69,6 +68,8 @@ namespace djup
 
             bool IsCandidateRefValid(CandidateRef i_ref) const;
 
+            uint32_t NewNode();
+
             void RemoveNode(uint32_t i_node_index);
 
             void RemoveEdge(uint32_t i_start_node, uint32_t i_dest_node, CandidateRef i_candidate_ref);
@@ -77,6 +78,8 @@ namespace djup
 
             constexpr static uint32_t s_start_node_index = 0;
             constexpr static uint32_t s_end_node_index = 1;
+
+            const DiscriminationNet & m_discrimination_net;
 
             /** Candidates are arranged in a stack because CandidateRef keeps the index of the referenced candidate. With stack, 
                 popping the top of the stack does not shift the indices of the remaining candidates. Dangling indices in 

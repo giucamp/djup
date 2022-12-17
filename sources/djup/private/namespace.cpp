@@ -99,9 +99,9 @@ namespace djup
     {
         std::vector<PatternMatch> matches;
 
-        pattern::SubstitutionGraph substitution_graph;
+        pattern::SubstitutionGraph substitution_graph(m_substitution_axioms_patterns);
         
-        substitution_graph.FindMatches(m_substitution_axioms_patterns, i_source);
+        substitution_graph.FindMatches(i_source);
 
         if(!matches.empty())
         {
@@ -117,9 +117,9 @@ namespace djup
     {
         std::vector<PatternMatch> matches;
 
-        pattern::SubstitutionGraph substitution_graph;
+        pattern::SubstitutionGraph substitution_graph(m_type_inference_axioms_patterns);
 
-        substitution_graph.FindMatches(m_type_inference_axioms_patterns, i_source);
+        substitution_graph.FindMatches(i_source);
 
         if(!matches.empty())
         {

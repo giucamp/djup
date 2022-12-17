@@ -39,16 +39,16 @@ namespace djup
 
             discrimination_net.AddPattern(2, "f(1, real y, 4)", true);
 
-            pattern::SubstitutionGraph substitution_graph;
-
             bool save_it = true;
             if (save_it)
             {
                 SaveGraph("D:\\repos\\djup\\tests\\", "discr.txt", discrimination_net.ToDotLanguage("discr"));
             }
 
+            pattern::SubstitutionGraph substitution_graph(discrimination_net);
+
             int step = 0;
-            substitution_graph.FindMatches(discrimination_net, "f(1, 2, 3, 4)", [&] {
+            substitution_graph.FindMatches("f(1, 2, 3, 4)", [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
                 SaveGraph("D:\\repos\\djup\\tests\\subst\\", name + ".txt", substitution_graph.ToDotLanguage(name));
             });
