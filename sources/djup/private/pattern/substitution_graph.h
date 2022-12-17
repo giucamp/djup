@@ -12,6 +12,7 @@
 #include <string>
 #include <cstdint>
 #include <limits>
+#include <functional>
 
 namespace djup
 {
@@ -27,7 +28,7 @@ namespace djup
             ~SubstitutionGraph();
 
             void FindMatches(const DiscriminationNet & i_discrimination_net, 
-                const Tensor & i_target, const Tensor & i_condition);
+                const Tensor& i_target, std::function<void()> i_step_callback = {});
 
             std::string ToDotLanguage(std::string_view i_graph_name) const;
 
@@ -60,7 +61,8 @@ namespace djup
                 Span<const Tensor> i_targets, uint32_t i_repetitions,
                 uint32_t i_open, uint32_t i_close);
 
-            bool MatchCandidate(const DiscriminationNet & i_discrimination_net, Candidate & i_candidate);
+            bool MatchCandidate(const DiscriminationNet & i_discrimination_net,
+                Candidate & i_candidate, std::function<void()> i_step_callback);
 
             bool MatchDiscriminationEdge(const DiscriminationNet & i_discrimination_net,
                 Candidate& i_candidate, const DiscriminationNet::Edge & i_discrimination_edge);

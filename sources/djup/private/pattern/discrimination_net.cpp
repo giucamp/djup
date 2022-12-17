@@ -107,7 +107,7 @@ namespace djup
             for(auto it = range.first; it != range.second; it++)
             {
                 bool same;
-                if(IsConstant(i_expression) || IsIdentifier(i_expression))
+                if(IsConstant(it->second.m_expression) || IsIdentifier(it->second.m_expression))
                     same = AlwaysEqual(it->second.m_expression, i_expression);
                 else
                     same = it->second.m_expression.GetExpression()->GetName() == i_expression.GetExpression()->GetName();

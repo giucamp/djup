@@ -4,7 +4,7 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <private/pattern_match.h>
+#include <private/old_pattern_match.h>
 #include <private/builtin_names.h>
 #include <private/substitute_by_predicate.h>
 #include <private/expression.h>

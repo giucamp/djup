@@ -4,42 +4,54 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <private/namespace.h>
+#include <private/pattern/discrimination_net.h>
+#include <private/pattern/substitution_graph.h>
 #include <core/diagnostic.h>
 #include <fstream>
-
-#define DBG_CREATE_GRAPHVIZ_SVG         1
-#define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""
-#define DBG_DEST_DIR                    "D:\\repos\\djup\\tests\\"
-
-extern bool g_enable_graphviz;
+#include <filesystem>
 
 namespace djup
 {
     namespace tests
     {
-        void Pattern()
+        namespace
         {
-            Print("Test: djup - Pattern Matching...");
-            Namespace test_namespace("Test", Namespace::Root());
-
-            test_namespace.AddSubstitutionAxiom("f(1, 2, real x, 4)", "5");
-
-            test_namespace.AddSubstitutionAxiom("f(1, real y, 4)", "5");
-
-            auto str = test_namespace.SubstitutionGraphToDotLanguage();
-            bool save_it = false;
-            if (save_it)
+            void SaveGraph(std::string i_dir, std::string i_name, std::string i_dot)
             {
-                std::string dot_file_path(std::string(DBG_DEST_DIR) + "Subst.txt");
-                std::ofstream(dot_file_path) << str;
-                std::string cmd = ToString("\"", DBG_GRAPHVIZ_EXE, " -T png -O ", dot_file_path, "\"");
+                std::string dot_file_path(i_dir + i_name);
+                std::ofstream(dot_file_path) << i_dot;
+                std::string cmd = ToString("\"", "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\"", " -T png -O ", dot_file_path, "\"");
                 int res = std::system(cmd.c_str());
                 if (res != 0)
                     Error("The command ", cmd, " returned ", res);
+
+                std::filesystem::remove(dot_file_path);
+            }
+        }
+
+        void Pattern()
+        {
+            Print("Test: djup - Pattern Matching...");
+            
+            pattern::DiscriminationNet discrimination_net;
+
+            discrimination_net.AddPattern(1, "f(1, 2, real x, 4)", true);
+
+            discrimination_net.AddPattern(2, "f(1, real y, 4)", true);
+
+            pattern::SubstitutionGraph substitution_graph;
+
+            bool save_it = true;
+            if (save_it)
+            {
+                SaveGraph("D:\\repos\\djup\\tests\\", "discr.txt", discrimination_net.ToDotLanguage("discr"));
             }
 
-            test_namespace.Canonicalize("f(1, 2, 3, 4)");
+            int step = 0;
+            substitution_graph.FindMatches(discrimination_net, "f(1, 2, 3, 4)", [&] {
+                std::string name = step == 0 ? "Initial" : ToString("Step_", step);
+                SaveGraph("D:\\repos\\djup\\tests\\subst\\", name + ".txt", substitution_graph.ToDotLanguage(name));
+            });
 
             /*
             test_namespace.AddSubstitutionAxiom("2+3", "5");

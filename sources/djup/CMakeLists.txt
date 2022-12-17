@@ -19,10 +19,9 @@ add_library(djup STATIC
 	private/name.h
 	private/namespace.h
 	private/parser.h
-	private/pattern_match.h
+	private/old_pattern_match.h
 	private/standard_scope.h
 	private/substitute_by_predicate.h
-	private/substitutions_tree.h
 	private/tensor_map.h
 	private/constant_shape.cpp
 	private/expression.cpp
@@ -33,9 +32,8 @@ add_library(djup STATIC
 	private/name.cpp
 	private/namespace.cpp
 	private/parser.cpp
-	private/pattern_match.cpp
+	private/old_pattern_match.cpp
 	private/standard_namespace.cpp
-	private/substitutions_tree.cpp
 	private/tensor.cpp
 	public/djup/tensor.h
 	tests/test_djup.cpp

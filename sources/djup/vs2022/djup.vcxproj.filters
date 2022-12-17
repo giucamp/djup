@@ -54,10 +54,7 @@
     <ClInclude Include="..\private\tensor_map.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\pattern_match.h">
-      <Filter>private</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\substitutions_tree.h">
+    <ClInclude Include="..\private\old_pattern_match.h">
       <Filter>private</Filter>
     </ClInclude>
     <ClInclude Include="..\private\pattern\discrimination_net.h">
@@ -119,10 +116,7 @@
     <ClCompile Include="..\private\is.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\pattern_match.cpp">
-      <Filter>private</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\substitutions_tree.cpp">
+    <ClCompile Include="..\private\old_pattern_match.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\pattern\discrimination_net.cpp">

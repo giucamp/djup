@@ -101,7 +101,7 @@ namespace djup
 
         pattern::SubstitutionGraph substitution_graph;
         
-        substitution_graph.FindMatches(m_substitution_axioms_patterns, i_source, {});
+        substitution_graph.FindMatches(m_substitution_axioms_patterns, i_source);
 
         if(!matches.empty())
         {
@@ -119,7 +119,7 @@ namespace djup
 
         pattern::SubstitutionGraph substitution_graph;
 
-        substitution_graph.FindMatches(m_type_inference_axioms_patterns, i_source, {});
+        substitution_graph.FindMatches(m_type_inference_axioms_patterns, i_source);
 
         if(!matches.empty())
         {
@@ -141,7 +141,7 @@ namespace djup
         // loop until the expression does not change
         const Expression * prev_expr = result.GetExpression().get();
         do {
-            //result = ApplyTypeInferenceAxioms(result);
+            result = ApplyTypeInferenceAxioms(result);
 
             prev_expr = result.GetExpression().get();
             result = ApplySubstitutionAxioms(result);

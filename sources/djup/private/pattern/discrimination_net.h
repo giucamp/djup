@@ -5,11 +5,10 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
-#include <limits>
-#include <unordered_map>
 #include <djup/tensor.h>
-#include <private/pattern_match.h>
+#include <private/old_pattern_match.h>
 #include <private/pattern/pattern_info.h>
+#include <unordered_map>
 
 namespace djup
 {
