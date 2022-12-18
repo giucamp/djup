@@ -35,22 +35,36 @@ namespace djup
             
             pattern::DiscriminationNet discrimination_net;
 
-            discrimination_net.AddPattern(1, "f(1, 2, real x, 4)", true);
+            // discrimination_net.AddPattern(1, "g(3 f(1, 2, real x, 4), 8)");
 
-            discrimination_net.AddPattern(2, "f(1, real y, 4)", true);
+            // discrimination_net.AddPattern(2, "g(3 f(1, real y, 4), 11)");
+
+            discrimination_net.AddPattern(1, "f(1, 2, real x, 4)");
+
+            discrimination_net.AddPattern(2, "f(1, real y, 4)");
+
+
+            //discrimination_net.AddPattern(3, "f(1, real y, g(real z, 7, real w))");
+
+            //discrimination_net.AddPattern(4, "f(1, real y, g(real z, 1, 2, 3), 7, 2)");
 
             bool save_it = true;
             if (save_it)
             {
-                SaveGraph("D:\\repos\\djup\\tests\\", "discr.txt", discrimination_net.ToDotLanguage("discr"));
+                SaveGraph("D:\\repos\\djup\\tests\\", "discr", discrimination_net.ToDotLanguage("discr"));
             }
 
             pattern::SubstitutionGraph substitution_graph(discrimination_net);
 
+            for(auto file : std::filesystem::directory_iterator("D:\\repos\\djup\\tests\\subst"))
+                if(file.is_regular_file())
+                    std::filesystem::remove(file.path());
+
             int step = 0;
             substitution_graph.FindMatches("f(1, 2, 3, 4)", [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
-                SaveGraph("D:\\repos\\djup\\tests\\subst\\", name + ".txt", substitution_graph.ToDotLanguage(name));
+                SaveGraph("D:\\repos\\djup\\tests\\subst\\", name, substitution_graph.ToDotLanguage(name));
+                step++;
             });
 
             /*

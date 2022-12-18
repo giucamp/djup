@@ -18,7 +18,7 @@ namespace djup
         {
         public:
 
-            void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition);
+            void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition = true);
 
             std::string ToDotLanguage(std::string_view i_graph_name) const;
 
