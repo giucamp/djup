@@ -218,10 +218,10 @@ namespace djup
 
             Namespace test_namespace("Test", Namespace::Root());
 
-            test_namespace.AddSubstitutionAxiom("f(real x1, real x2, real x3, real x4)", "5");
+            /*test_namespace.AddSubstitutionAxiom("f(real x1, real x2, real x3, real x4)", "5");
             test_namespace.AddSubstitutionAxiom("f(real x1, real x2, real x6, real x7, real x8..., real x9)", "0");
 
-            /*
+            
             test_namespace.AddSubstitutionAxiom("2+3", "5");
             test_namespace.AddSubstitutionAxiom("0 * real",             "0");
             test_namespace.AddSubstitutionAxiom("f(Sin(5, real a))",    "g((4, a)...)");

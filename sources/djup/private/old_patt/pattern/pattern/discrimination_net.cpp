@@ -99,9 +99,9 @@ namespace djup
 
             for (size_t i = 0; i < patterns.size(); i++)
             {
-                if (!IsLiteral(patterns[i]) && !IsIdentifier(patterns[i]))
+                if (!IsConstant(patterns[i]) && !IsIdentifier(patterns[i]))
                 {
-                    //if (!IsRepetition(patterns[i]))
+                    if (!IsRepetition(patterns[i]))
                     {
                         const PatternInfo pattern_info = BuildPatternInfo(patterns[i]);
 
@@ -143,7 +143,7 @@ namespace djup
                 assert(!IsEmpty(i_first_patterns[i]));
                 assert(!IsEmpty(i_second_patterns[i]));
 
-                if (IsLiteral(i_first_patterns[i]) || IsIdentifier(i_first_patterns[i]))
+                if (IsConstant(i_first_patterns[i]) || IsIdentifier(i_first_patterns[i]))
                 {
                     if (!AlwaysEqual(i_first_patterns[i], i_second_patterns[i]))
                         return false;
@@ -205,7 +205,7 @@ namespace djup
                 {
                     const Tensor& pattern = edge.second.m_patterns[i];
 
-                    if (IsLiteral(pattern) || IsIdentifier(pattern) || IsRepetition(pattern))
+                    if (IsConstant(pattern) || IsIdentifier(pattern) || IsRepetition(pattern))
                         text += ToSimplifiedStringForm(pattern);
                     else
                         text += pattern.GetExpression()->GetName().AsString();

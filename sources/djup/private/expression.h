@@ -82,7 +82,7 @@ namespace djup
 
     std::string ToSimplifiedStringForm(const Expression& i_source);
 
-    enum class FunctionFlags : uint32_t
+    enum class FunctionFlags : uint16_t
     {
         None = 0,
         Associative = 1 << 0,

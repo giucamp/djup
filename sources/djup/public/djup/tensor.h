@@ -91,6 +91,8 @@ namespace djup
 
     bool IsConstant(const Tensor & i_tensor);
 
+    bool IsLiteral(const Tensor& i_tensor);
+
     bool IsTensorType(const Tensor & i_tensor);
 
     bool IsIdentifier(const Tensor & i_tensor);

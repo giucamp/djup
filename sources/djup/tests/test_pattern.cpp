@@ -39,14 +39,21 @@ namespace djup
 
             // discrimination_net.AddPattern(2, "g(3 f(1, real y, 4), 11)");
 
-            discrimination_net.AddPattern(1, "f(1, 2, real x, 4)");
+            // discrimination_net.AddPattern(1, "f(1, 2, real x, 4)");
 
-            discrimination_net.AddPattern(2, "f(1, real y, 4)");
+            // discrimination_net.AddPattern(2, "f(1, real y, 4)");
 
 
-            //discrimination_net.AddPattern(3, "f(1, real y, g(real z, 7, real w))");
+            /*discrimination_net.AddPattern(10, "f(1, h(1, real x..., 55, real y), g(real z, 7, real w), 7)");
+
+
+            discrimination_net.AddPattern(11, "f(1, h(1, real x..., 55, real y), g(real z, 7), 7)");
+
+            discrimination_net.AddPattern(12, "f(1, h(3, real x..., 55, real y), g(real z, 7), 7)");*/
 
             //discrimination_net.AddPattern(4, "f(1, real y, g(real z, 1, 2, 3), 7, 2)");
+
+            discrimination_net.AddPattern(1, "g(3 f(real y, 2, h(real x), 4), 8)");
 
             bool save_it = true;
             if (save_it)
@@ -61,7 +68,7 @@ namespace djup
                     std::filesystem::remove(file.path());
 
             int step = 0;
-            substitution_graph.FindMatches("f(1, 2, 3, 4)", [&] {
+            substitution_graph.FindMatches("g(3 f(1+2, 2, h(3*2 + 5), 4), 8)", [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
                 SaveGraph("D:\\repos\\djup\\tests\\subst\\", name, substitution_graph.ToDotLanguage(name));
                 step++;

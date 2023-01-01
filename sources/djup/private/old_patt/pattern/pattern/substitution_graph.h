@@ -34,7 +34,6 @@ namespace djup
         private:
 
             struct Node;
-            struct CandidateData;
             struct Candidate;
             struct Substitution;
             
@@ -57,9 +56,8 @@ namespace djup
 
         private:
 
-            void AddCandidate(uint32_t i_start_node, uint32_t i_end_node, CandidateData i_new_candidate_data);
-
-            void AddCandidates(uint32_t i_start_node, uint32_t i_end_node, Span<CandidateData> i_new_candidates);
+            void AddCandidate( uint32_t i_start_node, uint32_t i_end_node, size_t i_token_index,
+                uint32_t i_repetitions, uint32_t i_open, uint32_t i_close);
 
             void MatchCandidate(const DiscriminationNet & i_discrimination_net,
                 Candidate & i_candidate, std::function<void()> i_step_callback);
@@ -96,8 +94,7 @@ namespace djup
             /** Every candidate has a unique version. */
             uint32_t m_next_candidate_version{};
 
-            // std::vector<Span<const Tensor>> m_tokens;
-            // std::string m_tokens_str;
+            std::vector<Span<const Tensor>> m_tokens;
 
             #if DBG_CREATE_GRAPHVIZ_SVG
                 std::string m_graph_name;

@@ -290,6 +290,11 @@ namespace djup
         return NameIs(i_tensor, builtin_names::Identifier);
     }
 
+    bool IsLiteral(const Tensor& i_tensor)
+    {
+        return NameIs(i_tensor, builtin_names::Literal);
+    }
+
     bool IsTensorType(const Tensor & i_tensor)
     {
         return NameIs(i_tensor, builtin_names::TensorType);
