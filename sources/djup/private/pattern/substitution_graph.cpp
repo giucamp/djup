@@ -36,18 +36,18 @@ namespace djup
 
                 return result;
             }
+        }
 
-            std::string TensorSpanToString(Span<const Tensor> i_tensor)
+        std::string TensorSpanToString(Span<const Tensor> i_tensor)
+        {
+            std::string result;
+            for (size_t i = 0; i < i_tensor.size(); i++)
             {
-                std::string result;
-                for (size_t i = 0; i < i_tensor.size(); i++)
-                {
-                    if (i != 0)
-                        result += ", ";
-                    result += ToSimplifiedStringForm(i_tensor[i]);
-                }
-                return result;
+                if (i != 0)
+                    result += ", ";
+                result += ToSimplifiedStringForm(i_tensor[i]);
             }
+            return result;
         }
 
         SubstitutionGraph::SubstitutionGraph(const DiscriminationNet & m_discrimination_net)
@@ -308,6 +308,7 @@ namespace djup
         bool SubstitutionGraph::MatchDiscriminationEdge(const DiscriminationNet & m_discrimination_net,
             const Candidate & i_candidate, const DiscriminationNet::Edge & i_discrimination_edge)
         {
+        #if 0
             const bool nest_index = i_candidate.m_data.m_repetitions != std::numeric_limits<uint32_t>::max();
             const uint32_t repetitions = nest_index ? i_candidate.m_data.m_repetitions : 1;
 
@@ -440,7 +441,7 @@ namespace djup
             }
 
             AddEdge(i_candidate.m_start_node, i_candidate.m_end_node, {}, i_candidate.m_data.m_open, i_candidate.m_data.m_close);
-
+        #endif
             return true;
         }
 
@@ -581,11 +582,13 @@ namespace djup
                     label = TensorSpanToString(targets.subspan(candidate.m_data.m_target_offset));
                     label += "\\nis\\n";
 
+                #if 0
                     for (auto edge_it : m_discrimination_net.EdgesFrom(candidate.m_data.m_discrimination_node))
                     {
                         label += TensorSpanToString(Span(edge_it.second.m_patterns).subspan(candidate.m_data.m_pattern_offset));
                         label += "\\n";
                     }
+                #endif
                     
                     if (candidate.m_data.m_repetitions != std::numeric_limits<uint32_t>::max())
                         label += ToString(" (", candidate.m_data.m_repetitions, " times)\\n");

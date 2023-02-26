@@ -22,15 +22,14 @@ namespace djup
 
             uint32_t GetStartNode() const { return s_start_node_index; }
             
-            /** In leaf edges m_expression is empty, and m_pattern_id is valid */
+            /** In leaf edges m_pattern is empty, and m_pattern_id is valid */
             struct Edge
             {
-                std::vector<Tensor> m_patterns;
-                Range m_cardinality;
-                std::vector<ArgumentInfo> m_argument_infos;
-
+                Tensor m_pattern;
+                Range m_argument_cardinality;
+                Range m_remaining;
                 FunctionFlags m_function_flags{};
-                bool m_is_leaf = false;
+                bool m_is_leaf{ false };
 
                 union
                 {
@@ -70,13 +69,12 @@ namespace djup
 
             constexpr static uint32_t s_start_node_index = 0;
 
-            static bool SamePatterns(Span<const Tensor> i_first_patterns, Span<const Tensor> i_second_patterns);
+            static bool SamePattern(const Tensor & i_first_pattern, const Tensor & i_second_pattern);
 
             /** Returns the destination node */
-            Edge * AddPatternFrom(uint32_t i_source_node, Span<const Tensor> i_patterns, 
-                const PatternInfo & i_pattern_info);
+            Edge * AddPatternFrom(uint32_t i_source_node, const Tensor& i_pattern);
 
-            Edge * AddEdge(uint32_t i_source_node, Span<const Tensor> i_patterns);
+            Edge * AddEdge(uint32_t i_source_node, const Tensor& i_pattern);
 
             std::unordered_multimap<uint32_t, Edge> m_edges; /* The key is the source node index */
             
