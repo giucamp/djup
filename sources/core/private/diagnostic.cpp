@@ -43,7 +43,7 @@ namespace djup
     void Expects(bool i_expr, const char * i_cpp_source_code)
     {
         if(!i_expr)
-            Error("Expects - ", i_cpp_source_code, " is false");
+            Error("Expects failed - ", i_cpp_source_code, " is false");
     }
 
     void ExpectsError(const std::function<void()> & i_function,

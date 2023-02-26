@@ -42,8 +42,11 @@ namespace djup
             assert(first_arg.GetName() == builtin_names::TensorType);
 
             i_dest << first_arg.GetArgument(0).GetExpression()->GetName();
-            i_dest << ' ';
-            i_dest << second_arg.GetName();
+            if (!second_arg.GetName().IsEmpty())
+            {
+                i_dest << ' ';
+                i_dest << second_arg.GetName();
+            }
         }
         else if (i_source.GetName() == builtin_names::Literal)
         {

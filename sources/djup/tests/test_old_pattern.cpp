@@ -78,6 +78,14 @@ namespace djup
             }
 
             {
+                //g_enable_graphviz = true;
+                auto target = "3"_t;
+                auto pattern = "real y"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                DJUP_EXPECTS(solutions == 1);
+            }
+
+            {
                 auto target =  "2"_t;
                 auto pattern = "2"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);

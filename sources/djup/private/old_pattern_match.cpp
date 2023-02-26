@@ -719,6 +719,8 @@ namespace djup
                                 it->second.m_candidate_ref.m_index == candidate_index &&
                                 it->second.m_candidate_ref.m_version == candidate.m_version)
                             {
+                                it->second.m_candidate_ref = {};
+
                                 assert(it->second.m_substitutions.empty());
                                 it->second.m_substitutions = std::move(candidate.m_substitutions);
                                 found = true;

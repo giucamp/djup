@@ -36,6 +36,18 @@ namespace djup
 
                 return result;
             }
+
+            std::string TensorSpanToString(Span<const Tensor> i_tensor)
+            {
+                std::string result;
+                for (size_t i = 0; i < i_tensor.size(); i++)
+                {
+                    if (i != 0)
+                        result += ", ";
+                    result += ToSimplifiedStringForm(i_tensor[i]);
+                }
+                return result;
+            }
         }
 
         SubstitutionGraph::SubstitutionGraph(const DiscriminationNet & m_discrimination_net)
@@ -60,9 +72,10 @@ namespace djup
         struct SubstitutionGraph::CandidateData
         {
             uint16_t m_pattern_offset{};
+            uint16_t m_target_offset{};
 
             Span<const Tensor> m_targets;
-
+            
             uint32_t m_discrimination_node{ std::numeric_limits<uint32_t>::max() };
 
             uint32_t m_repetitions_offset{};
@@ -103,10 +116,8 @@ namespace djup
 
             const uint32_t new_candidate_index = NumericCast<uint32_t>(m_candidate_stack.size());
             CandidateRef candidate_ref{ new_candidate_index, candidate.m_version };
-            
-            m_edges.insert({ i_end_node, Edge{i_start_node, candidate_ref, {},
-                i_new_candidate_data.m_open, i_new_candidate_data.m_close } });
-            m_nodes[i_start_node].m_outgoing_edges++;
+
+            AddEdge(i_start_node, i_end_node, candidate_ref, i_new_candidate_data.m_open, i_new_candidate_data.m_close);
 
             m_candidate_stack.push_back(std::move(candidate));
         }
@@ -170,6 +181,13 @@ namespace djup
                     }
                 }
             }
+        }
+
+        void SubstitutionGraph::AddEdge(uint32_t i_start_node, uint32_t i_end_node,
+            CandidateRef i_candidate_ref, uint32_t i_open, uint32_t i_close)
+        {
+            m_edges.insert({ i_end_node, Edge{i_start_node, i_candidate_ref, {}, i_open, i_close } });
+            m_nodes[i_start_node].m_outgoing_edges++;
         }
 
         void SubstitutionGraph::RemoveEdge(uint32_t i_start_node, uint32_t i_dest_node, CandidateRef i_candidate_ref)
@@ -288,7 +306,7 @@ namespace djup
         };
 
         bool SubstitutionGraph::MatchDiscriminationEdge(const DiscriminationNet & m_discrimination_net,
-            Candidate & i_candidate, const DiscriminationNet::Edge & i_discrimination_edge)
+            const Candidate & i_candidate, const DiscriminationNet::Edge & i_discrimination_edge)
         {
             const bool nest_index = i_candidate.m_data.m_repetitions != std::numeric_limits<uint32_t>::max();
             const uint32_t repetitions = nest_index ? i_candidate.m_data.m_repetitions : 1;
@@ -302,7 +320,7 @@ namespace djup
             if (!i_discrimination_edge.m_cardinality.IsWithin(targets.size()))
                 return false;
 
-            size_t target_index = 0;
+            size_t target_index = i_candidate.m_data.m_pattern_offset;
             for (uint32_t repetition = i_candidate.m_data.m_repetitions_offset; repetition < repetitions; repetition++)
             {
                 const size_t pattern_size = i_discrimination_edge.m_patterns.size();
@@ -380,9 +398,6 @@ namespace djup
                     }
                     else
                     {
-                        /*if (target_index >= i_candidate.m_target_arguments.size())
-                            return false;*/
-
                         const Tensor& target = targets[target_index];
 
                         if (IsConstant(pattern))
@@ -403,44 +418,34 @@ namespace djup
                             if (pattern.GetExpression()->GetName() != target.GetExpression()->GetName())
                                 return false;
 
-                            CandidateData candidate_data;
-                            candidate_data.m_discrimination_node = i_discrimination_edge.m_dest_node;
-                            candidate_data.m_open = i_candidate.m_data.m_open;
-                            candidate_data.m_close = i_candidate.m_data.m_close;
-                            candidate_data.m_targets = target.GetExpression()->GetArguments();
+                            CandidateData args_candidate;
+                            args_candidate.m_discrimination_node = i_discrimination_edge.m_dest_node;
+                            args_candidate.m_open = i_candidate.m_data.m_open;
+                            args_candidate.m_targets = target.GetExpression()->GetArguments();
 
-                            AddCandidate(i_candidate.m_start_node, i_candidate.m_end_node, candidate_data);
+                            CandidateData continuation_candidate = i_candidate.m_data;
+                            continuation_candidate.m_pattern_offset = pattern_index + 1;
+                            continuation_candidate.m_target_offset = target_index + 1;
+                            continuation_candidate.m_repetitions_offset = repetition;
+                            continuation_candidate.m_open = 0;
 
-                            {
-                                /*
-                                LinearPath path(i_context, i_candidate);
+                            const uint32_t middle_node = NewNode();
+                            AddCandidate(i_candidate.m_start_node, middle_node, continuation_candidate);
+                            AddCandidate(middle_node, i_candidate.m_end_node, args_candidate);
 
-                                // match content
-                                path.AddEdge(target.GetExpression()->GetArguments(),
-                                    PatternSegment{ pattern_info.m_flags,
-                                        pattern.GetExpression()->GetArguments(),
-                                        pattern_info.m_arguments });
-
-                                // rest of this repetition
-                                const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
-                                path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern),
-                                    PatternSegment{ pattern_info.m_flags,
-                                        i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                                        i_candidate.m_pattern.m_arguments.subspan(pattern_index + 1) });
-
-                                // remaining repetitions
-                                const size_t target_start = target_index + 1 + remaining_in_pattern;
-                                path.AddEdge(i_candidate.m_target_arguments.subspan(target_start),
-                                    i_candidate.m_pattern, false, repetitions - (repetition + 1));*/
-                            }
+                            return true;
                         }
                     }
                 }
             }
+
+            AddEdge(i_candidate.m_start_node, i_candidate.m_end_node, {}, i_candidate.m_data.m_open, i_candidate.m_data.m_close);
+
+            return true;
         }
 
         void SubstitutionGraph::MatchCandidate(const DiscriminationNet & m_discrimination_net, 
-            Candidate & i_candidate, std::function<void()> i_step_callback)
+            Candidate && i_candidate, std::function<void()> i_step_callback)
         {
             const uint32_t discrimination_node = i_candidate.m_data.m_discrimination_node;
             assert(discrimination_node != std::numeric_limits<uint32_t>::max());
@@ -450,40 +455,20 @@ namespace djup
             
             for (auto edge_it : m_discrimination_net.EdgesFrom(discrimination_node))
             {
-                if (MatchDiscriminationEdge(m_discrimination_net, i_candidate, edge_it.second))
+                if (!MatchDiscriminationEdge(m_discrimination_net, i_candidate, edge_it.second))
                 {
-                    //AddCandidate(i_candidate.m_start_node, i_candidate.m_end_node, );
-                }
 
-                if(i_step_callback)
-                    i_step_callback();
+                }
             }
 
             RemoveEdge(i_candidate.m_start_node, i_candidate.m_end_node, { candidate_index, i_candidate.m_version });
+
+            if (i_step_callback)
+                i_step_callback();
         }
 
         void SubstitutionGraph::FindMatches(const Tensor & i_target, std::function<void()> i_step_callback)
         {
-            /*m_tokens = Tokenize(i_target);
-            assert(!m_tokens.empty());
-
-            for (auto token : m_tokens)
-            {
-                bool f = true;
-                for (auto expr : token)
-                {
-                    if(!f)
-                        m_tokens_str += ", ";
-                    if(IsLiteral(expr))
-                        m_tokens_str += ToSimplifiedStringForm(expr);
-                    else
-                        m_tokens_str += expr.GetExpression()->GetName().AsString();
-                    f = false;
-                }
-
-                m_tokens_str += "\r\n";
-            }*/
-
             m_nodes.resize(2);
             m_nodes[s_start_node_index].m_outgoing_edges++;
 
@@ -502,7 +487,7 @@ namespace djup
 
                 if(!candidate.m_decayed)
                 {
-                    MatchCandidate(m_discrimination_net, candidate, i_step_callback);
+                    MatchCandidate(m_discrimination_net, std::move(candidate), i_step_callback);
                 }
 
             } while(!m_candidate_stack.empty());
@@ -592,18 +577,20 @@ namespace djup
 
                     std::string label;
                     const Span<const Tensor> targets = candidate.m_data.m_targets;
-                    if (!targets.empty())
+                    
+                    label = TensorSpanToString(targets.subspan(candidate.m_data.m_target_offset));
+                    label += "\\nis\\n";
+
+                    for (auto edge_it : m_discrimination_net.EdgesFrom(candidate.m_data.m_discrimination_node))
                     {
-                        label.clear();
-                        for (size_t i = 0; i < targets.size(); i++)
-                        {
-                            if (i)
-                                label += ", ";
-                            label += ToSimplifiedStringForm(targets[i]);
-                        }
-                        if (candidate.m_data.m_repetitions != std::numeric_limits<uint32_t>::max())
-                            label += ToString(" (", candidate.m_data.m_repetitions, " times)");
+                        label += TensorSpanToString(Span(edge_it.second.m_patterns).subspan(candidate.m_data.m_pattern_offset));
+                        label += "\\n";
                     }
+                    
+                    if (candidate.m_data.m_repetitions != std::numeric_limits<uint32_t>::max())
+                        label += ToString(" (", candidate.m_data.m_repetitions, " times)\\n");
+                    
+                    label += ToString("d: ", candidate.m_data.m_discrimination_node);
 
                     std::string color = "black";
                     if (&candidate == next_candidate)

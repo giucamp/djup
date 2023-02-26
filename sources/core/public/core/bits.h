@@ -76,7 +76,7 @@ namespace djup
         return UINT(1) << (std::numeric_limits<UINT>::digits - i_reverse_index - 1);
     }
 
-    /** Returns an unsigned integer in which only the bits from i_index to i_index + i_count (exluded) are .
+    /** Returns an unsigned integer in which only the bits from i_index to i_index + i_count (exluded) are 1.
         The most significant bit has index 0. 
 
         static_assert(bits_reverse<uint8_t>(0, 1) == 128);
