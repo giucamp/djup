@@ -77,6 +77,7 @@ namespace djup
             Span<const Tensor> m_targets;
             
             uint32_t m_discrimination_node{ std::numeric_limits<uint32_t>::max() };
+            const DiscriminationNet::Edge* m_discrimination_edge{nullptr};
 
             uint32_t m_repetitions_offset{};
             uint32_t m_repetitions{ std::numeric_limits<uint32_t>::max() };
@@ -420,14 +421,17 @@ namespace djup
 
                             CandidateData args_candidate;
                             args_candidate.m_discrimination_node = i_discrimination_edge.m_dest_node;
+                            args_candidate.m_discrimination_edge = nullptr;
                             args_candidate.m_open = i_candidate.m_data.m_open;
                             args_candidate.m_targets = target.GetExpression()->GetArguments();
 
                             CandidateData continuation_candidate = i_candidate.m_data;
+                            continuation_candidate.m_discrimination_edge = &i_discrimination_edge;
                             continuation_candidate.m_pattern_offset = pattern_index + 1;
                             continuation_candidate.m_target_offset = target_index + 1;
                             continuation_candidate.m_repetitions_offset = repetition;
                             continuation_candidate.m_open = 0;
+                            assert(continuation_candidate.m_pattern_offset <= continuation_candidate.m_discrimination_edge->m_patterns.size());
 
                             const uint32_t middle_node = NewNode();
                             AddCandidate(i_candidate.m_start_node, middle_node, continuation_candidate);
@@ -453,11 +457,15 @@ namespace djup
             // MatchCandidate may add other candidates, take the index before
             const uint32_t candidate_index = NumericCast<uint32_t>(m_candidate_stack.size());
             
-            for (auto edge_it : m_discrimination_net.EdgesFrom(discrimination_node))
+            if (i_candidate.m_data.m_discrimination_edge != nullptr)
             {
-                if (!MatchDiscriminationEdge(m_discrimination_net, i_candidate, edge_it.second))
+                MatchDiscriminationEdge(m_discrimination_net, i_candidate, *i_candidate.m_data.m_discrimination_edge);
+            }
+            else
+            {
+                for (const auto & edge_it : m_discrimination_net.EdgesFrom(discrimination_node))
                 {
-
+                    MatchDiscriminationEdge(m_discrimination_net, i_candidate, edge_it.second);
                 }
             }
 
@@ -581,10 +589,18 @@ namespace djup
                     label = TensorSpanToString(targets.subspan(candidate.m_data.m_target_offset));
                     label += "\\nis\\n";
 
-                    for (auto edge_it : m_discrimination_net.EdgesFrom(candidate.m_data.m_discrimination_node))
+                    if (candidate.m_data.m_discrimination_edge != nullptr)
                     {
-                        label += TensorSpanToString(Span(edge_it.second.m_patterns).subspan(candidate.m_data.m_pattern_offset));
+                        label += TensorSpanToString(Span(candidate.m_data.m_discrimination_edge->m_patterns).subspan(candidate.m_data.m_pattern_offset));
                         label += "\\n";
+                    }
+                    else
+                    {
+                        for (auto edge_it : m_discrimination_net.EdgesFrom(candidate.m_data.m_discrimination_node))
+                        {
+                            label += TensorSpanToString(Span(edge_it.second.m_patterns).subspan(candidate.m_data.m_pattern_offset));
+                            label += "\\n";
+                        }
                     }
                     
                     if (candidate.m_data.m_repetitions != std::numeric_limits<uint32_t>::max())

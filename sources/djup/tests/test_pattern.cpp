@@ -55,6 +55,7 @@ namespace djup
 
             discrimination_net.AddPattern(1, "g(3 z(real r) p(real) 5)");
             discrimination_net.AddPattern(2, "g(3 m(real r) p(real) 7)");
+            discrimination_net.AddPattern(3, "g(3 m(real r, real r1) p(real) 7)");
             bool save_it = true;
             if (save_it)
             {
@@ -68,7 +69,7 @@ namespace djup
             pattern::SubstitutionGraph substitution_graph(discrimination_net);
 
             int step = 0;
-            substitution_graph.FindMatches("g(3 z(88) 5)", [&] {
+            substitution_graph.FindMatches("g(3 z(88) p(2) 5)", [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
                 SaveGraph("D:\\repos\\djup\\tests\\subst\\", name, substitution_graph.ToDotLanguage(name));
                 step++;
