@@ -9,7 +9,7 @@
 #include <utility>
 #include <string>
 
-namespace djup
+namespace core
 {
     class StringBuilder
     {

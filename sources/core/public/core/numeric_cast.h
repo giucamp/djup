@@ -8,7 +8,7 @@
 #include <core/diagnostic.h>
 #include <type_traits>
 
-namespace djup
+namespace core
 {
     template <typename DEST_TYPE, typename SOURCE_TYPE>
         DEST_TYPE NumericCast(SOURCE_TYPE i_source)
@@ -40,4 +40,4 @@ namespace djup
         }
     }
 
-} // namespace djup
+} // namespace core

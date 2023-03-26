@@ -13,6 +13,8 @@
 
 namespace djup
 {
+    using namespace core;
+
     class ConstexprName
     {
     public:
@@ -73,22 +75,6 @@ namespace djup
     bool operator != (const Name & i_first, const ConstexprName & i_second) noexcept;
     bool operator != (const ConstexprName & i_first, const ConstexprName & i_second) noexcept;
 
-    template <> struct CharWriter<Name>
-    {
-        void operator() (CharBufferView & i_dest, const Name & i_source) noexcept
-        {
-            i_dest << i_source.AsString();
-        }
-    };
-
-    template <> struct CharWriter<ConstexprName>
-    {
-        void operator() (CharBufferView & i_dest, const ConstexprName & i_source) noexcept
-        {
-            i_dest << i_source.AsString();
-        }
-    };
-
     inline Hash & operator << (Hash & i_dest, const Name & i_source)
     {
         return i_dest << i_source.GetHash();
@@ -98,6 +84,26 @@ namespace djup
     {
         return i_dest << i_source.GetHash();
     }
+}
+
+namespace core
+{
+    template <> struct CharWriter<djup::Name>
+    {
+        void operator() (CharBufferView& i_dest, const djup::Name& i_source) noexcept
+        {
+            i_dest << i_source.AsString();
+        }
+    };
+
+    template <> struct CharWriter<djup::ConstexprName>
+    {
+        void operator() (CharBufferView& i_dest, const djup::ConstexprName& i_source) noexcept
+        {
+            i_dest << i_source.AsString();
+        }
+    };
+
 }
 
 namespace std

@@ -13,7 +13,7 @@
 #include <string_view>
 #include <type_traits>
 
-namespace djup
+namespace core
 {
     /** Primary template for a parser. The second paramater can be used in partial
         sepcializations to simplify sfinae conditions. The function operator must
@@ -285,4 +285,4 @@ namespace djup
         Expected<long double> operator()(std::string_view & i_source) noexcept;
     };
 
-} // namespace djup
+} // namespace core

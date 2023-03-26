@@ -14,7 +14,7 @@
 #include <core/pointer_iterator.h>
 #include <core/traits.h>
 
-namespace djup
+namespace core
 {
     template <typename TYPE>
         class Span

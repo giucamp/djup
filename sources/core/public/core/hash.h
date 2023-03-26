@@ -11,7 +11,7 @@
 #include <string_view>
 #include <string>
 
-namespace djup
+namespace core
 {
     // machine dependent hash
     class Hash

@@ -10,7 +10,7 @@
 #include <vector>
 #include <list>
 
-namespace djup
+namespace core
 {
     namespace tests
     {
@@ -43,22 +43,22 @@ namespace djup
             static_assert(std::string_view(ToCharArray<10>(-142).data()) == "-142");
 
             // floating point
-            DJUP_EXPECTS_EQ(std::string_view(ToCharArray<10>(42.f).data()), "42");
+            CORE_EXPECTS_EQ(std::string_view(ToCharArray<10>(42.f).data()), "42");
 
             // sequence
-            DJUP_EXPECTS_EQ(std::string_view(ToCharArray<128>(
+            CORE_EXPECTS_EQ(std::string_view(ToCharArray<128>(
                 42.f, "abc", 52).data()), "42abc52");
 
             // containers
             {
                 std::vector<int> ints{1, 2, 3};
                 char out[64];
-                DJUP_EXPECTS_EQ(ToCharsView(out, ints), "1, 2, 3");
+                CORE_EXPECTS_EQ(ToCharsView(out, ints), "1, 2, 3");
             }
             {
                 std::list<int> ints{1, 2, 3};
                 char out[64];
-                DJUP_EXPECTS_EQ(ToCharsView(out, ints), "1, 2, 3");
+                CORE_EXPECTS_EQ(ToCharsView(out, ints), "1, 2, 3");
             }
 
             PrintLn("successful");
@@ -66,4 +66,4 @@ namespace djup
 
     } // namespace tests
 
-} // namespace djup
+} // namespace core

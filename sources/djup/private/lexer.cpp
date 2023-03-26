@@ -308,11 +308,14 @@ namespace djup
     {
         return m_curr_token.m_symbol_id == SymbolId::EndOfSource;
     }
+}
 
-    void CharWriter<Lexer>::operator() (CharBufferView & i_dest, const Lexer & i_lexer) noexcept
+namespace core
+{
+    void CharWriter<djup::Lexer>::operator() (CharBufferView& i_dest, const djup::Lexer& i_lexer) noexcept
     {
-        const char * at = i_lexer.GetCurrentToken().m_source_chars.data();
-        Line const line = GetLineAt(i_lexer.GetWholeSource(), at);
+        const char* at = i_lexer.GetCurrentToken().m_source_chars.data();
+        djup::Line const line = djup::GetLineAt(i_lexer.GetWholeSource(), at);
 
         std::string const prefix = "(" + std::to_string(line.m_number) + "): ";
         i_dest << "\n" << prefix << line.m_chars;

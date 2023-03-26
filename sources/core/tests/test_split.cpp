@@ -8,7 +8,7 @@
 #include <core/diagnostic.h>
 #include <string>
 
-namespace djup
+namespace core
 {
     namespace tests
     {
@@ -18,9 +18,9 @@ namespace djup
 
             std::string expected_words[] = {"abc", "def", "fgh"};
             size_t i = 0;
-            for(auto && word : djup::Split("abc def fgh", ' '))
+            for(auto && word : core::Split("abc def fgh", ' '))
             {
-                DJUP_EXPECTS_EQ(expected_words[i], word);
+                CORE_EXPECTS_EQ(expected_words[i], word);
                 i++;
             }
 
@@ -29,4 +29,4 @@ namespace djup
 
     } // namespace tests
 
-} // namespace djup
+} // namespace core

@@ -7,7 +7,7 @@
 #pragma once
 #include <type_traits>
 
-namespace djup
+namespace core
 {
     template <typename IT_TYPE> class PointerIterator
     {

@@ -15,7 +15,7 @@
 #include <utility>
 #include <stdexcept>
 
-namespace djup
+namespace core
 {
    /** Allows to write chars to a fixed length buffer, truncating when the
         buffer is over. The char sequence is not automatically null-terminated. */
@@ -343,4 +343,4 @@ namespace djup
         return static_cast<size_t>(-writer.RemainingSize());
     }
 
-} // namespace djup
+} // namespace core

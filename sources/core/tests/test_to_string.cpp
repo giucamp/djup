@@ -7,7 +7,7 @@
 #include <core/to_string.h>
 #include <core/diagnostic.h>
 
-namespace djup
+namespace core
 {
     namespace tests
     {
@@ -17,10 +17,10 @@ namespace djup
 
             std::string dots(20000, '.');
 
-            DJUP_EXPECTS_EQ(djup::ToString("abc", 1), "abc1");
+            CORE_EXPECTS_EQ(core::ToString("abc", 1), "abc1");
 
-            DJUP_EXPECTS_EQ(
-                djup::ToString("abc", 1, "cde", dots, 1.5, "zzz"),
+            CORE_EXPECTS_EQ(
+                core::ToString("abc", 1, "cde", dots, 1.5, "zzz"),
                 "abc1cde" + dots + "1.5zzz");
 
             {
@@ -35,15 +35,15 @@ namespace djup
                 builder.Untab();
                 std::string str = builder.ShrinkAndGetString();
                 std::string test = "\n\tThis is an int8_t: 5\n\t\tThis is an uint8_t: 5\n\tThis is a char: a\n";
-                DJUP_EXPECTS_EQ(str, test);
+                CORE_EXPECTS_EQ(str, test);
             }
 
             // span
-            DJUP_EXPECTS_EQ(djup::ToString(Span({1, 2, 3})), "1, 2, 3");
+            CORE_EXPECTS_EQ(core::ToString(Span({1, 2, 3})), "1, 2, 3");
 
             PrintLn("successful");
         }
 
     } // namespace tests
 
-} // namespace djup
+} // namespace core

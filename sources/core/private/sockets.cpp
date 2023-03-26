@@ -23,7 +23,7 @@
     #include <fcntl.h>
 #endif
 
-namespace djup
+namespace core
 {
     namespace
     {

@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace djup
+namespace core
 {
     template <typename CONTAINER, typename PREDICATE>
         bool AllOf(const CONTAINER & i_container, PREDICATE i_predicate)

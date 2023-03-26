@@ -8,7 +8,7 @@
 #include <core/hash.h>
 #include <variant>
 
-namespace djup
+namespace core
 {
     template <typename... TYPES>
         Hash & operator << (Hash & i_dest, const std::variant<TYPES...> & i_source)

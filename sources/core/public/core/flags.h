@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <type_traits>
 
-namespace djup
+namespace core
 {
     template <typename ENUM_TYPE, typename = std::enable_if_t<std::is_enum_v<ENUM_TYPE>>>
         constexpr ENUM_TYPE CombineFlags(ENUM_TYPE i_first, ENUM_TYPE i_second)

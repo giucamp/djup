@@ -16,6 +16,8 @@
 
 namespace djup
 {
+    using namespace core;
+
     class ConstantShape
     {
     public:
@@ -64,11 +66,6 @@ namespace djup
         std::vector<int64_t> m_strides;
     };
 
-    template <> struct CharWriter<ConstantShape>
-    {
-        void operator() (CharBufferView & i_dest, const ConstantShape & i_source) noexcept;
-    };
-
     /* Strides[i] = Product of Dim[j], for i <= j < rank
        Strides[0] = product of all dimensions
        Strides[rank] = 1
@@ -90,4 +87,13 @@ namespace djup
 
     ConstantShape Broadcast(Span<const ConstantShape> i_shapes);
 
-} // namespace liquid
+} // namespace djup
+
+namespace core
+{
+    template <> struct CharWriter<djup::ConstantShape>
+    {
+        void operator() (CharBufferView& i_dest, const djup::ConstantShape& i_source) noexcept;
+    };
+}
+

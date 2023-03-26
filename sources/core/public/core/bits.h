@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <limits>
 
-namespace djup
+namespace core
 {
     /** Returns an unsigned integer in which only the bit with the speficied index is 1.
         The least significant bit has index 0. 

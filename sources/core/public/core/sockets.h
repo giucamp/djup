@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <utility> // for std::swap
 
-namespace djup
+namespace core
 {
     class Ip4Address
     {

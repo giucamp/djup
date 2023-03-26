@@ -10,7 +10,7 @@
     #include <Windows.h>
 #endif
 
-namespace djup
+namespace core
 {
     namespace
     {

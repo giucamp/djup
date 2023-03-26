@@ -6,18 +6,24 @@
 
 #include <core/diagnostic.h>
 
-namespace djup
+namespace core
 {
     namespace tests
     {
         void Core();
+    }
+}
 
+namespace djup
+{
+    namespace tests
+    {
         void Djup();
     }
 }
 
 int main()
 {
-    djup::tests::Core();
+    core::tests::Core();
     djup::tests::Djup();
 }

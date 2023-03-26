@@ -9,7 +9,7 @@
 #include <iterator>
 #include <stdexcept>
 
-namespace djup
+namespace core
 {
     class Split
     {
@@ -101,4 +101,4 @@ namespace djup
 
     constexpr Split::end_marker_t Split::end_marker;
 
-} // namespace djup
+} // namespace core

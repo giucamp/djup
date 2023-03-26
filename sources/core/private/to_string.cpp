@@ -9,7 +9,7 @@
 #include <assert.h>
 #include <cstring> // for memcpy
 
-namespace djup
+namespace core
 {
     StringBuilder::StringBuilder(size_t i_reserved_size, std::string_view i_new_line)
     {
@@ -86,4 +86,4 @@ namespace djup
         i_second.m_tab_pending = park;
     }
 
-} // namespace djup
+} // namespace core

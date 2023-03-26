@@ -12,7 +12,7 @@
     #include <cstdlib>
 #endif
 
-namespace djup
+namespace core
 {
     #if HAS_FLOAT_CHARCONV
 
@@ -100,4 +100,4 @@ namespace djup
 
     #endif // #if HAS_FLOAT_CHARCONV
 
-} // namespace djup
+} // namespace core

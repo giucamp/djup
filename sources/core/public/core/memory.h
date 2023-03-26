@@ -15,7 +15,7 @@
 #include <assert.h>
 #include <core/algorithms.h>
 
-namespace djup
+namespace core
 {
     /** Returns true whether the given unsigned integer number is a power of 2 (1, 2, 4, 8, ...)
         @param i_number must be > 0, otherwise the behavior is undefined */
@@ -436,4 +436,4 @@ namespace djup
         }
     }
 
-} // namespace djup
+} // namespace core

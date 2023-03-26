@@ -16,7 +16,7 @@ namespace djup
         Tensor first(i_first), second(i_second);
 
         if(!(AlwaysEqual(first, second)))
-            Error(i_source_file, "(", i_source_line, ") - DJUP_EXPECTS_EQ - first is:\n", ToSimplifiedStringForm(first),
+            Error(i_source_file, "(", i_source_line, ") - CORE_EXPECTS_EQ - first is:\n", ToSimplifiedStringForm(first),
                 ", \nsecond is:\n", ToSimplifiedStringForm(second) );
     }
 

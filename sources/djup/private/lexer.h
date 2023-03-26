@@ -97,14 +97,17 @@ namespace djup
         std::string_view m_whole_source;
     };
 
-    template <> struct CharWriter<Lexer>
-    {
-        void operator() (CharBufferView & i_dest, const Lexer & i_source) noexcept;
-    };
-
     bool IsSpace(uint32_t i_char);
     bool IsDigit(uint32_t i_char);
     bool IsAlpha(uint32_t i_char);
     bool IsAlphaOrUnderscore(uint32_t i_char);
 
 } // namespace djup
+
+namespace core
+{
+    template <> struct CharWriter<djup::Lexer>
+    {
+        void operator() (CharBufferView& i_dest, const djup::Lexer& i_source) noexcept;
+    };
+}

@@ -17,6 +17,8 @@
 
 namespace djup
 {
+    using namespace core;
+
     class Expression;
 
     class Tensor

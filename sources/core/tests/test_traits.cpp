@@ -10,7 +10,7 @@
 #include <deque>
 #include <list>
 
-namespace djup
+namespace core
 {
     namespace tests
     {
@@ -43,4 +43,4 @@ namespace djup
 
     } // namespace tests
 
-} // namespace djup
+} // namespace core

@@ -17,7 +17,7 @@ namespace djup
 
             Tensor a("real a");
             Tensor b("real b");
-            DJUP_EXPECTS_EQ(ToSimplifiedStringForm(a + b * 2), 
+            CORE_EXPECTS_EQ(ToSimplifiedStringForm(a + b * 2), 
                 "Add(Mul(2, real b), real a)");
 
             PrintLn("successful");

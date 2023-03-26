@@ -9,7 +9,7 @@
 #include <variant>
 #include <core/to_string.h>
 
-namespace djup
+namespace core
 {
     /** Exception described by a static null-terminated string. This class is
         designed to be small, to be used with Expected without significantly
@@ -145,7 +145,7 @@ namespace djup
             const char * i_source_file, int i_source_line)
     {
         if(!(i_first == i_second))
-            Error(i_source_file, "(", i_source_line, ") - DJUP_EXPECTS_EQ - ",
+            Error(i_source_file, "(", i_source_line, ") - CORE_EXPECTS_EQ - ",
                 i_first_cpp_expr, " is ", i_first, ", ",
                 i_second_cpp_expr, " is ", i_second );
     }
@@ -153,9 +153,9 @@ namespace djup
     void ExpectsError(const std::function<void()> & i_function,
         const char * i_cpp_source_code, const char * i_expected_message);
 
-    #define DJUP_EXPECTS(expr) ::djup::Expects(static_cast<bool>(expr), #expr)
-    #define DJUP_EXPECTS_EQ(first, second) ::djup::ExpectsEq(first, #first, second, #second, __FILE__, __LINE__)
+    #define CORE_EXPECTS(expr) ::core::Expects(static_cast<bool>(expr), #expr)
+    #define CORE_EXPECTS_EQ(first, second) ::core::ExpectsEq(first, #first, second, #second, __FILE__, __LINE__)
 
-    #define DJUP_EXPECTS_ERROR(expr, expected_error) \
-        ::djup::ExpectsError([&]{ (void)(expr); }, #expr, expected_error);
+    #define CORE_EXPECTS_ERROR(expr, expected_error) \
+        ::core::ExpectsError([&]{ (void)(expr); }, #expr, expected_error);
 }

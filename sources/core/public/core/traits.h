@@ -9,7 +9,7 @@
 #include <utility>
 #include <string_view> // for std::data and std::size
 
-namespace djup
+namespace core
 {
     #ifdef __clang__
         template<typename... TYPES> struct MakeVoid_ { typedef void type;};

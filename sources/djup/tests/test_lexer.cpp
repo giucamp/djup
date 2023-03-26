@@ -17,62 +17,62 @@ namespace djup
 
             {
                 djup::Lexer lexer("");
-                DJUP_EXPECTS(lexer.IsSourceOver());
+                CORE_EXPECTS(lexer.IsSourceOver());
             }
 
             {
                 djup::Lexer lexer(" \n\t ");
-                DJUP_EXPECTS(lexer.IsSourceOver());
+                CORE_EXPECTS(lexer.IsSourceOver());
             }
 
             {
                 djup::Lexer lexer("*1234.3e-10 1234.3e+10 {");
-                DJUP_EXPECTS(lexer.GetCurrentToken().m_symbol_id == SymbolId::Mul);
-                DJUP_EXPECTS(lexer.NextToken().m_symbol_id == SymbolId::NumericLiteral);
+                CORE_EXPECTS(lexer.GetCurrentToken().m_symbol_id == SymbolId::Mul);
+                CORE_EXPECTS(lexer.NextToken().m_symbol_id == SymbolId::NumericLiteral);
 
-                DJUP_EXPECTS(!lexer.IsSourceOver());
-                DJUP_EXPECTS_EQ(lexer.GetCurrentToken().m_source_chars, "1234.3e-10");
+                CORE_EXPECTS(!lexer.IsSourceOver());
+                CORE_EXPECTS_EQ(lexer.GetCurrentToken().m_source_chars, "1234.3e-10");
                 lexer.NextToken();
                 
-                DJUP_EXPECTS_EQ(lexer.GetCurrentToken().m_source_chars, "1234.3e+10");
+                CORE_EXPECTS_EQ(lexer.GetCurrentToken().m_source_chars, "1234.3e+10");
                 lexer.NextToken();
 
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::LeftBrace));
-                DJUP_EXPECTS(lexer.IsSourceOver());
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::LeftBrace));
+                CORE_EXPECTS(lexer.IsSourceOver());
             }
 
             // test white simmetry rule on binary operators
             {
                 djup::Lexer lexer("5 + true");
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral));
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::BinaryPlus));
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::BoolLiteral));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::BinaryPlus));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::BoolLiteral));
             }
             {
                 djup::Lexer lexer("5\t + \ttrue");
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral));
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::BinaryPlus));
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::BoolLiteral));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::BinaryPlus));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::BoolLiteral));
             }
             {
                 djup::Lexer lexer("5 +true");
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral));
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::UnaryPlus));
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::BoolLiteral));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::UnaryPlus));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::BoolLiteral));
             }
             {
                 djup::Lexer lexer("5\t+ true");
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral));
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::UnaryPlus));
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::BoolLiteral));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::UnaryPlus));
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::BoolLiteral));
             }
 
             // test m_follows_line_break
             {
                 djup::Lexer lexer("\n5\r\n\t+ true");
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral)->m_follows_line_break);
-                DJUP_EXPECTS(lexer.TryAccept(SymbolId::UnaryPlus)->m_follows_line_break);
-                DJUP_EXPECTS(!lexer.TryAccept(SymbolId::BoolLiteral)->m_follows_line_break);
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::NumericLiteral)->m_follows_line_break);
+                CORE_EXPECTS(lexer.TryAccept(SymbolId::UnaryPlus)->m_follows_line_break);
+                CORE_EXPECTS(!lexer.TryAccept(SymbolId::BoolLiteral)->m_follows_line_break);
             }
 
             PrintLn("successful");

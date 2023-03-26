@@ -10,8 +10,8 @@ namespace djup
 {
     void ValidateDimensions(Span<const int64_t> i_dimensions)
     {
-        for(size_t i = 0; i < i_dimensions.size(); i++)
-            if(i_dimensions[i] < 0)
+        for (size_t i = 0; i < i_dimensions.size(); i++)
+            if (i_dimensions[i] < 0)
                 Error("ValidateDimensions - bad shape, ", i, "-th dimension is ", i_dimensions[i]);
     }
 
@@ -33,7 +33,7 @@ namespace djup
     {
         ValidateDimensions(i_dimensions);
 
-        if(o_strides.size() != i_dimensions.size() + 1)
+        if (o_strides.size() != i_dimensions.size() + 1)
             Error("ComputeStrides - bad size of o_strides");
 
         int64_t product = 1;
@@ -54,7 +54,7 @@ namespace djup
         ValidateDimensions(i_dimensions);
         ValidateStrides(i_strides);
 
-        if(i_strides.size() != i_dimensions.size() + 1)
+        if (i_strides.size() != i_dimensions.size() + 1)
             Error("LinearIndex - The rank is ", i_dimensions.size(), ", the length of strides should be ", i_dimensions.size() + 1);
 
         if (i_indices.size() < i_dimensions.size())
@@ -72,7 +72,7 @@ namespace djup
 
             if (index < dimension)
                 linear_index += index * stride;
-            else if(dimension != 1)
+            else if (dimension != 1)
                 Error("LinearIndex - the ", i, "-th index is out of bound");
         }
         return linear_index;
@@ -112,7 +112,7 @@ namespace djup
 
     ConstantShape Broadcast(Span<const ConstantShape> i_shapes)
     {
-        if(auto result = TryBroadcast(i_shapes))
+        if (auto result = TryBroadcast(i_shapes))
             return *result;
         Error("Broadcast failure");
     }
@@ -125,7 +125,7 @@ namespace djup
 
     ConstantShape::ConstantShape(Span<const int64_t> i_initializer_list)
         : m_dimensions(i_initializer_list.begin(), i_initializer_list.end()),
-          m_strides(i_initializer_list.size() + 1)
+        m_strides(i_initializer_list.size() + 1)
     {
         ComputeStrides(m_dimensions, m_strides);
     }
@@ -135,13 +135,18 @@ namespace djup
         return djup::GetPhysicalLinearIndex(i_indices, m_dimensions, m_strides);
     }
 
-    void CharWriter<ConstantShape>::operator() (CharBufferView & i_dest, const ConstantShape & i_source) noexcept
+    Hash& operator << (Hash& i_dest, const ConstantShape& i_source)
+    {
+        {
+            return i_dest << i_source.m_dimensions;
+        }
+    }
+}
+
+namespace core
+{
+    void CharWriter<djup::ConstantShape>::operator() (CharBufferView& i_dest, const djup::ConstantShape& i_source) noexcept
     {
         i_dest << "[" << i_source.GetDimensions() << "]";
-    }
-
-    Hash & operator << (Hash & i_dest, const ConstantShape & i_source)
-    {
-        return i_dest << i_source.m_dimensions;
     }
 }

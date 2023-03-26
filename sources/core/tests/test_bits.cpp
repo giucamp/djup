@@ -7,7 +7,7 @@
 #include <core/bits.h>
 #include <core/diagnostic.h>
 
-namespace djup
+namespace core
 {
     namespace tests
     {
@@ -57,4 +57,4 @@ namespace djup
 
     } // namespace tests
 
-} // namespace djup
+} // namespace core
