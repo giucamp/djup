@@ -13,11 +13,11 @@ namespace djup
     {
         void Traits();
         void Bits();
+        void Memory();
         void ToChars();
         void FromChars();
         void ToString();
         void Split();
-        void TestQueue();
         void TestUdpSocket();
 
         void Core()
@@ -26,11 +26,11 @@ namespace djup
 
             Traits();
             Bits();
+            Memory();
             ToChars();
             FromChars();
             ToString();
             Split();
-            TestQueue();
             TestUdpSocket();
 
             PrintLn("successful");

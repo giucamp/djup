@@ -48,10 +48,10 @@
     <ClCompile Include="..\private\sockets.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\tests\test_queue.cpp">
+    <ClCompile Include="..\tests\test_bits.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\tests\test_bits.cpp">
+    <ClCompile Include="..\tests\test_memory.cpp">
       <Filter>tests</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,9 +77,6 @@
     <ClInclude Include="..\public\core\traits.h">
       <Filter>public</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\core\address.h">
-      <Filter>public</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\core\diagnostic.h">
       <Filter>public</Filter>
     </ClInclude>
@@ -98,9 +95,6 @@
     <ClInclude Include="..\public\core\flags.h">
       <Filter>public</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\core\queue.h">
-      <Filter>public</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\core\numeric_cast.h">
       <Filter>public</Filter>
     </ClInclude>
@@ -108,6 +102,9 @@
       <Filter>public</Filter>
     </ClInclude>
     <ClInclude Include="..\public\core\bits.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\memory.h">
       <Filter>public</Filter>
     </ClInclude>
   </ItemGroup>
