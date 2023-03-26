@@ -84,6 +84,14 @@ namespace djup
 
             uint32_t m_open{};
             uint32_t m_close{};
+
+            std::vector<Substitution> m_substitutions;
+
+            bool AddSubstitution(const Name& i_variable_name, const Tensor& i_value)
+            {
+                m_substitutions.emplace_back(Substitution{ i_variable_name, i_value });
+                return true;
+            }
         };
 
         struct SubstitutionGraph::Candidate
@@ -95,17 +103,10 @@ namespace djup
 
             uint32_t m_version{};
             bool m_decayed = false;
-
-            std::vector<Substitution> m_substitutions;
-
-            bool AddSubstitution(const Name& i_variable_name, const Tensor& i_value)
-            {
-                m_substitutions.emplace_back(Substitution{ i_variable_name, i_value });
-                return true;
-            }
         };
 
-        void SubstitutionGraph::AddCandidate(uint32_t i_start_node, uint32_t i_end_node, CandidateData i_new_candidate_data)
+        void SubstitutionGraph::AddCandidate(uint32_t i_start_node, uint32_t i_end_node, 
+            CandidateData i_new_candidate_data, std::vector<Substitution>&& i_substitutions)
         {
             assert(i_start_node != i_end_node);
 
@@ -118,27 +119,11 @@ namespace djup
             const uint32_t new_candidate_index = NumericCast<uint32_t>(m_candidate_stack.size());
             CandidateRef candidate_ref{ new_candidate_index, candidate.m_version };
 
-            AddEdge(i_start_node, i_end_node, candidate_ref, i_new_candidate_data.m_open, i_new_candidate_data.m_close);
+            AddEdge(i_start_node, i_end_node, candidate_ref, 
+                i_new_candidate_data.m_open, i_new_candidate_data.m_close,
+                std::move(i_substitutions));
 
             m_candidate_stack.push_back(std::move(candidate));
-        }
-
-        void SubstitutionGraph::AddCandidates(uint32_t i_start_node, uint32_t i_end_node, Span<CandidateData> i_new_candidates)
-        {
-            for (size_t i = 0; i < i_new_candidates.size(); i++)
-            {
-                /*
-                Candidate candidate;
-                candidate.m_data = i_new_candidates[i];
-
-                const uint32_t new_candidate_index = NumericCast<uint32_t>(m_candidate_stack.size());
-                CandidateRef candidate_ref{ new_candidate_index, i_new_candidate.m_version };
-                m_edges.insert({ i_new_candidate.m_end_node, Edge{i_new_candidate.m_start_node, candidate_ref, {},
-                    i_new_candidate.m_open, i_new_candidate.m_close } });
-                m_nodes[i_new_candidate.m_start_node].m_outgoing_edges++;
-
-                m_candidate_stack.push_back(std::move(i_new_candidate));*/
-            }
         }
 
         bool SubstitutionGraph::IsCandidateRefValid(CandidateRef i_ref) const
@@ -185,9 +170,10 @@ namespace djup
         }
 
         void SubstitutionGraph::AddEdge(uint32_t i_start_node, uint32_t i_end_node,
-            CandidateRef i_candidate_ref, uint32_t i_open, uint32_t i_close)
+            CandidateRef i_candidate_ref, uint32_t i_open, uint32_t i_close,
+            std::vector<Substitution>&& i_substitutions)
         {
-            m_edges.insert({ i_end_node, Edge{i_start_node, i_candidate_ref, {}, i_open, i_close } });
+            m_edges.insert({ i_end_node, Edge{i_start_node, i_candidate_ref, i_open, i_close, std::move(i_substitutions)}});
             m_nodes[i_start_node].m_outgoing_edges++;
         }
 
@@ -217,98 +203,11 @@ namespace djup
             }
         }
 
-        class SubstitutionGraph::EdgeChain
-        {
-        public: 
-
-            EdgeChain(const Candidate & i_source_candidate)
-                : m_start_node(i_source_candidate.m_start_node), 
-                  m_end_node(i_source_candidate.m_end_node)
-            {
-                assert(m_start_node != m_end_node);
-
-#if 0
-                m_open[0] = i_source_candidate.m_open;
-                m_close[s_max_edges - 1] = i_source_candidate.m_close;
-#endif
-            }
-
-            EdgeChain(const EdgeChain &) = delete;
-            EdgeChain & operator = (const EdgeChain &) = delete;
-
-            void AddEdge(Span<const Tensor> i_targets, bool i_increase_depth = false, uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
-            {
-                assert(m_edge_count < s_max_edges);
-
-                if (!i_targets.empty() && i_repetitions != 0)
-                {
-                    m_edges[m_edge_count].m_targets = i_targets;
-                    m_edges[m_edge_count].m_repetitions = i_repetitions;
-
-                    if (i_increase_depth)
-                    {
-                        m_open[m_edge_count] += 1;
-                        m_close[m_edge_count] += 1;
-                    }
-
-                    ++m_edge_count;
-                }
-            }
-
-            void Commit(SubstitutionGraph& i_substitution_graph, uint32_t i_next_discrimination_node)
-            {
-#if 0
-                if (m_edge_count > 0)
-                {
-                    if (m_edge_count < s_max_edges)
-                    {
-                        m_close[m_edge_count - 1] += m_close[s_max_edges - 1];
-                    }
-
-                    uint32_t end_node = m_end_node;
-                    
-                    uint32_t i = m_edge_count;
-
-                    while(i != 0)
-                    {
-                        --i;
-                        
-                        uint32_t start_node = i_substitution_graph.NewNode();
-
-                        i_substitution_graph.AddCandidate(start_node, end_node,
-                            m_edges[i].m_targets, m_edges[i].m_repetitions, m_open[i], m_close[i]);
-
-                        end_node = start_node;
-                    }
-
-                    i_substitution_graph.m_nodes[end_node].m_discrimination_node = i_next_discrimination_node;
-
-                    i_substitution_graph.m_edges.insert({ end_node, { m_start_node } });
-                    i_substitution_graph.m_nodes[m_start_node].m_outgoing_edges++;
-                }
-#endif
-            }
-
-        private:
-            const uint32_t m_start_node{};
-            const uint32_t m_end_node{};
-
-            struct Section
-            {
-                Span<const Tensor> m_targets;
-                uint32_t m_repetitions{};
-            };
-            
-            static constexpr uint32_t s_max_edges = 3;
-            Section m_edges[s_max_edges];
-            uint32_t m_open[s_max_edges]{};
-            uint32_t m_close[s_max_edges]{};
-            uint32_t m_edge_count{};
-        };
-
-        bool SubstitutionGraph::MatchDiscriminationEdge(const DiscriminationNet & m_discrimination_net,
+        bool SubstitutionGraph::MatchDiscriminationEdge(
             const Candidate & i_candidate, const DiscriminationNet::Edge & i_discrimination_edge)
         {
+            std::vector<Substitution> substitutions;
+
             const bool nest_index = i_candidate.m_data.m_repetitions != std::numeric_limits<uint32_t>::max();
             const uint32_t repetitions = nest_index ? i_candidate.m_data.m_repetitions : 1;
 
@@ -321,7 +220,7 @@ namespace djup
             if (!i_discrimination_edge.m_cardinality.IsWithin(targets.size()))
                 return false;
 
-            size_t target_index = i_candidate.m_data.m_pattern_offset;
+            size_t target_index = i_candidate.m_data.m_target_offset;
             for (uint32_t repetition = i_candidate.m_data.m_repetitions_offset; repetition < repetitions; repetition++)
             {
                 const size_t pattern_size = i_discrimination_edge.m_patterns.size();
@@ -369,17 +268,17 @@ namespace djup
                             candidates[0].m_close = 1;
                             candidates[0].m_repetitions = rep;
                             candidates[0].m_targets = targets.subspan(target_index, used);
-                            candidates[0].m_discrimination_node = i_discrimination_edge.m_dest_node;
-                            
-                            AddCandidate(i_candidate.m_start_node, meddle_node, candidates[0]); 
+                            candidates[0].m_discrimination_node = i_discrimination_edge.m_dest_node;                            
+                            AddCandidate(i_candidate.m_start_node, meddle_node, candidates[0], std::move(substitutions)); 
                             
                             // rest of pattern
                             candidates[1].m_close = i_candidate.m_data.m_close;
-                            candidates[1].m_pattern_offset = pattern_index;
-                            candidates[1].m_targets = targets.subspan(target_index + used);
+                            candidates[1].m_pattern_offset = pattern_index + 1;
+                            candidates[1].m_targets = targets;
+                            candidates[1].m_target_offset = target_index + used;
                             candidates[1].m_discrimination_node = i_candidate.m_data.m_discrimination_node;
-                            
-                            AddCandidate(meddle_node, i_candidate.m_end_node, candidates[1]);
+                            candidates[1].m_discrimination_edge = &i_discrimination_edge;
+                            AddCandidate(meddle_node, i_candidate.m_end_node, candidates[1], {});
 
                             /*LinearPath path(i_context, i_candidate);
 
@@ -411,8 +310,7 @@ namespace djup
                             if (!Is(target, pattern))
                                 return false; // type mismatch
 
-                            /*if (!AddSubstitution(i_candidate, GetIdentifierName(pattern), target))
-                                return false; */ // incompatible substitution
+                            substitutions.push_back({GetIdentifierName(pattern), target});
                         }
                         else
                         {
@@ -434,8 +332,8 @@ namespace djup
                             assert(continuation_candidate.m_pattern_offset <= continuation_candidate.m_discrimination_edge->m_patterns.size());
 
                             const uint32_t middle_node = NewNode();
-                            AddCandidate(i_candidate.m_start_node, middle_node, continuation_candidate);
-                            AddCandidate(middle_node, i_candidate.m_end_node, args_candidate);
+                            AddCandidate(i_candidate.m_start_node, middle_node, continuation_candidate, std::move(substitutions));
+                            AddCandidate(middle_node, i_candidate.m_end_node, args_candidate, {});
 
                             return true;
                         }
@@ -443,12 +341,14 @@ namespace djup
                 }
             }
 
-            AddEdge(i_candidate.m_start_node, i_candidate.m_end_node, {}, i_candidate.m_data.m_open, i_candidate.m_data.m_close);
+            AddEdge(i_candidate.m_start_node, i_candidate.m_end_node, {}, 
+                i_candidate.m_data.m_open, i_candidate.m_data.m_close,
+                std::move(substitutions));
 
             return true;
         }
 
-        void SubstitutionGraph::MatchCandidate(const DiscriminationNet & m_discrimination_net, 
+        void SubstitutionGraph::MatchCandidate(
             Candidate && i_candidate, std::function<void()> i_step_callback)
         {
             const uint32_t discrimination_node = i_candidate.m_data.m_discrimination_node;
@@ -459,13 +359,13 @@ namespace djup
             
             if (i_candidate.m_data.m_discrimination_edge != nullptr)
             {
-                MatchDiscriminationEdge(m_discrimination_net, i_candidate, *i_candidate.m_data.m_discrimination_edge);
+                MatchDiscriminationEdge(i_candidate, *i_candidate.m_data.m_discrimination_edge);
             }
             else
             {
                 for (const auto & edge_it : m_discrimination_net.EdgesFrom(discrimination_node))
                 {
-                    MatchDiscriminationEdge(m_discrimination_net, i_candidate, edge_it.second);
+                    MatchDiscriminationEdge(i_candidate, edge_it.second);
                 }
             }
 
@@ -483,7 +383,7 @@ namespace djup
             CandidateData root_candidate;
             root_candidate.m_discrimination_node = m_discrimination_net.GetStartNode();
             root_candidate.m_targets = {&i_target, 1};
-            AddCandidate(s_start_node_index, s_end_node_index, std::move(root_candidate));
+            AddCandidate(s_start_node_index, s_end_node_index, std::move(root_candidate), {});
             
             if (i_step_callback)
                 i_step_callback();
@@ -495,7 +395,7 @@ namespace djup
 
                 if(!candidate.m_decayed)
                 {
-                    MatchCandidate(m_discrimination_net, std::move(candidate), i_step_callback);
+                    MatchCandidate(std::move(candidate), i_step_callback);
                 }
 
             } while(!m_candidate_stack.empty());

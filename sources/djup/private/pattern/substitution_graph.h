@@ -48,24 +48,22 @@ namespace djup
             {
                 uint32_t m_source_index{};
                 CandidateRef m_candidate_ref;
-                std::vector<Substitution> m_substitutions;
                 uint32_t m_open{};
                 uint32_t m_close{};
+                std::vector<Substitution> m_substitutions;
             };
             
             class EdgeChain;
 
         private:
 
-            void AddCandidate(uint32_t i_start_node, uint32_t i_end_node, CandidateData i_new_candidate_data);
+            void AddCandidate(uint32_t i_start_node, uint32_t i_end_node, 
+                CandidateData i_new_candidate_data,
+                std::vector<Substitution> && i_substitutions);
 
-            void AddCandidates(uint32_t i_start_node, uint32_t i_end_node, Span<CandidateData> i_new_candidates);
+            void MatchCandidate(Candidate && i_candidate, std::function<void()> i_step_callback);
 
-            void MatchCandidate(const DiscriminationNet & i_discrimination_net,
-                Candidate && i_candidate, std::function<void()> i_step_callback);
-
-            bool MatchDiscriminationEdge(const DiscriminationNet & i_discrimination_net,
-                const Candidate & i_candidate, const DiscriminationNet::Edge & i_discrimination_edge);
+            bool MatchDiscriminationEdge(const Candidate & i_candidate, const DiscriminationNet::Edge & i_discrimination_edge);
 
             bool IsCandidateRefValid(CandidateRef i_ref) const;
 
@@ -74,7 +72,8 @@ namespace djup
             void RemoveNode(uint32_t i_node_index);
 
             void AddEdge(uint32_t i_start_node, uint32_t i_end_node, 
-                CandidateRef i_candidate_ref, uint32_t i_open, uint32_t i_close);
+                CandidateRef i_candidate_ref, uint32_t i_open, uint32_t i_close,
+                std::vector<Substitution>&& i_substitutions);
 
             void RemoveEdge(uint32_t i_start_node, uint32_t i_dest_node, CandidateRef i_candidate_ref);
 

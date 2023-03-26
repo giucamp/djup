@@ -53,7 +53,7 @@ namespace djup
 
             //discrimination_net.AddPattern(4, "f(1, real y, g(real z, 1, 2, 3), 7, 2)");
 
-            discrimination_net.AddPattern(1, "g(3 z(real r) p(real) 5)");
+            discrimination_net.AddPattern(1, "g(3 z(real r)... p(real) 5)");
             discrimination_net.AddPattern(2, "g(3 m(real r) p(real) 7)");
             discrimination_net.AddPattern(3, "g(3 m(real r, real r1) p(real) 7)");
             bool save_it = true;
