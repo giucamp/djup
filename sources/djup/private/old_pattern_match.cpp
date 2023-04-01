@@ -56,7 +56,7 @@ namespace djup
             }
         };
 
-        std::string TensorListToString(Span<const Tensor> i_tensors)
+        static std::string TensorListToString(Span<const Tensor> i_tensors)
         {
             std::string result;
             for(size_t i = 0; i < i_tensors.size(); i++)

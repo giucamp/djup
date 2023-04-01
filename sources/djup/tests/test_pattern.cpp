@@ -34,25 +34,6 @@ namespace djup
             Print("Test: djup - Pattern Matching...");
             
             pattern::DiscriminationNet discrimination_net;
-
-            // discrimination_net.AddPattern(1, "g(3 f(1, 2, real x, 4), 8)");
-
-            // discrimination_net.AddPattern(2, "g(3 f(1, real y, 4), 11)");
-
-            // discrimination_net.AddPattern(1, "f(1, 2, real x, 4)");
-
-            // discrimination_net.AddPattern(2, "f(1, real y, 4)");
-
-
-            /*discrimination_net.AddPattern(10, "f(1, h(1, real x..., 55, real y), g(real z, 7, real w), 7)");
-
-
-            discrimination_net.AddPattern(11, "f(1, h(1, real x..., 55, real y), g(real z, 7), 7)");
-
-            discrimination_net.AddPattern(12, "f(1, h(3, real x..., 55, real y), g(real z, 7), 7)");*/
-
-            //discrimination_net.AddPattern(4, "f(1, real y, g(real z, 1, 2, 3), 7, 2)");
-
             discrimination_net.AddPattern(1, "g(3 z(real r)... p(real) 5)");
             discrimination_net.AddPattern(2, "g(3 m(real r) p(real) 7)");
             discrimination_net.AddPattern(3, "g(3 m(real r, real r1) p(real) 7)");
@@ -67,7 +48,6 @@ namespace djup
                     std::filesystem::remove(file.path());
 
             pattern::SubstitutionGraph substitution_graph(discrimination_net);
-
             int step = 0;
             substitution_graph.FindMatches("g(3 z(88) p(2) 5)", [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
