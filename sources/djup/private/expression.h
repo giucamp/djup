@@ -78,9 +78,11 @@ namespace djup
 
     bool NameIs(const Tensor & i_tensor, const ConstexprName & i_name);
 
-    void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source);
+    void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source, 
+        size_t i_depth = std::numeric_limits<size_t>::max());
 
-    std::string ToSimplifiedStringForm(const Expression& i_source);
+    std::string ToSimplifiedStringForm(const Expression& i_source,
+        size_t i_depth = std::numeric_limits<size_t>::max());
 
     enum class FunctionFlags : uint16_t
     {

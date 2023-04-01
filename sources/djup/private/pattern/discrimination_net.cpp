@@ -17,6 +17,21 @@ namespace djup
 {
     namespace pattern
     {
+        namespace
+        {
+            std::string TensorSpanToString(Span<const Tensor> i_tensor, size_t i_depth)
+            {
+                std::string result;
+                for (size_t i = 0; i < i_tensor.size(); i++)
+                {
+                    if (i != 0)
+                        result += ", ";
+                    result += ToSimplifiedStringForm(i_tensor[i], i_depth);
+                }
+                return result;
+            }
+        }
+
         Tensor PreprocessPattern(const Tensor& i_pattern)
         {
             return SubstituteByPredicate(i_pattern, [](const Tensor& i_candidate) {
@@ -101,12 +116,9 @@ namespace djup
             {
                 if (!IsLiteral(patterns[i]) && !IsIdentifier(patterns[i]))
                 {
-                    //if (!IsRepetition(patterns[i]))
-                    {
-                        const PatternInfo pattern_info = BuildPatternInfo(patterns[i]);
+                    const PatternInfo pattern_info = BuildPatternInfo(patterns[i]);
 
-                        edge = AddPatternFrom(edge->m_dest_node, patterns[i].GetExpression()->GetArguments(), pattern_info);
-                    }
+                    edge = AddPatternFrom(edge->m_dest_node, patterns[i].GetExpression()->GetArguments(), pattern_info);
                 }
             }
 
@@ -199,7 +211,9 @@ namespace djup
             std::string text;
             for(const auto & edge : m_edges)
             {
-                text = "{" + edge.second.m_cardinality.ToString() + "}" + escaped_newline;
+                text = TensorSpanToString(edge.second.m_patterns, 1);
+                
+                /*text = "{" + edge.second.m_cardinality.ToString() + "}" + escaped_newline;
 
                 for (size_t i = 0; i < edge.second.m_patterns.size(); i++)
                 {
@@ -217,7 +231,7 @@ namespace djup
                         text += ", rem: " + edge.second.m_argument_infos[i].m_remaining.ToString();
 
                     text += "\\l";
-                }
+                }*/
 
                 std::string color = "black";
                 std::string dest_node = edge.second.m_is_leaf ? ToString("l", edge.second.m_pattern_id) : ToString("v", edge.second.m_dest_node);

@@ -315,10 +315,10 @@ namespace djup
         return MakeExpression(builtin_names::RepetitionsZeroToOne, i_tensors);
     }
 
-    std::string ToSimplifiedStringForm(const Tensor & i_source)
+    std::string ToSimplifiedStringForm(const Tensor & i_source, size_t i_depth)
     {
         StringBuilder builder;
-        ToSimplifiedStringForm(builder, i_source);
+        ToSimplifiedStringForm(builder, i_source, i_depth);
         return builder.ShrinkAndGetString();
     }
 }
