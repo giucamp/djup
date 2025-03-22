@@ -28,13 +28,13 @@ add_library(core STATIC
 	public/core/traits.h
 	tests/test_core.cpp
 	tests/test_from_chars.cpp
-	tests/test_queue.cpp
 	tests/test_split.cpp
 	tests/test_to_chars.cpp
 	tests/test_to_string.cpp
 	tests/test_bits.cpp
 	tests/test_traits.cpp
 	tests/test_udp_socket.cpp
+	tests/test_memory.cpp
 )
 
 target_include_directories(core PUBLIC public)

@@ -6,6 +6,7 @@
 
 #include <core/memory.h>
 #include <core/diagnostic.h>
+#include <memory.h>
 
 namespace core
 {
