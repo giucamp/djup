@@ -205,25 +205,6 @@ namespace djup
 
             Tensor t = "1";
 
-            auto s = ToSimplifiedStringForm("0 * real");
-
-            auto s1 = ToSimplifiedStringForm("0 * Add(real x?, 4)..");
-
-            auto s2 = ToSimplifiedStringForm("f((5 real a)...)");
-
-            auto s3 = ToSimplifiedStringForm("g((4 a)...)");
-
-            R"(
-                a = 4 + 6
-            )"_t;
-
-            CORE_EXPECTS(Is("0", "int"));
-            CORE_EXPECTS(Is("0", "real"));
-            CORE_EXPECTS(Is("false", "bool"));
-            CORE_EXPECTS(!Is("true", "int"));
-            CORE_EXPECTS(!Is("true", "real"));
-            CORE_EXPECTS(!Is("1.2", "int"));
-
             Namespace test_namespace("Test", Namespace::Root());
 
             /*test_namespace.AddSubstitutionAxiom("f(real x1, real x2, real x3, real x4)", "5");

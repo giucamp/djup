@@ -40,10 +40,10 @@ namespace djup
             bool save_it = true;
             if (save_it)
             {
-                SaveGraph("D:\\repos\\djup\\tests\\", "discr", discrimination_net.ToDotLanguage("discr"));
+                SaveGraph("C:\\repos\\djup\\tests\\", "discr", discrimination_net.ToDotLanguage("discr"));
             }
 
-            for (auto file : std::filesystem::directory_iterator("D:\\repos\\djup\\tests\\subst"))
+            for (auto file : std::filesystem::directory_iterator("C:\\repos\\djup\\tests\\subst"))
                 if (file.is_regular_file())
                     std::filesystem::remove(file.path());
 
@@ -51,7 +51,7 @@ namespace djup
             int step = 0;
             substitution_graph.FindMatches("g(3 z(88) p(2) 5)", [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
-                SaveGraph("D:\\repos\\djup\\tests\\subst\\", name, substitution_graph.ToDotLanguage(name));
+                SaveGraph("C:\\repos\\djup\\tests\\subst\\", name, substitution_graph.ToDotLanguage(name));
                 step++;
             });
 

@@ -10,7 +10,9 @@
 
 namespace djup
 {
-    inline void ExprExpectsEq( std::string_view i_first, std::string_view i_second,
+    inline void ExprExpectsEq(
+        std::string_view i_first, 
+        std::string_view i_second,
         const char * i_source_file, int i_source_line)
     {
         Tensor first(i_first), second(i_second);
