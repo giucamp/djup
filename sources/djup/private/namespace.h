@@ -36,6 +36,8 @@ namespace djup
 
         void AddTypeInferenceAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when = {});
 
+        /* Applies type inference and substitutions axioms to an expr until 
+           the result doest chanche anymore */
         Tensor Canonicalize(const Tensor & i_source) const;
 
         std::string SubstitutionGraphToDotLanguage() const;
