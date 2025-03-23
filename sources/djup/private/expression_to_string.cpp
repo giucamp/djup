@@ -48,7 +48,7 @@ namespace djup
         }
         else if (i_source.GetName() == builtin_names::Literal)
         {
-            ToSimplifiedStringForm(i_dest, i_source.GetArgument(0), i_depth);
+            i_dest << i_source.GetArgument(0).GetExpression()->GetName().AsString();
         }
         else if (i_source.GetName() == builtin_names::RepetitionsZeroToMany)
         {

@@ -18,7 +18,8 @@ namespace djup
         {
         public:
 
-            void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern, const Tensor & i_condition = true);
+            void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern,
+                const Tensor & i_condition = true);
 
             uint32_t GetStartNode() const { return s_start_node_index; }
             

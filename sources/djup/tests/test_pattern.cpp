@@ -16,11 +16,14 @@ namespace djup
     {
         namespace
         {
+            const std::string test_dir = "C:\\repos\\djup\\tests\\";
+            const std::string dot_exe = "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\"";
+
             void SaveGraph(std::string i_dir, std::string i_name, std::string i_dot)
             {
                 std::string dot_file_path(i_dir + i_name);
                 std::ofstream(dot_file_path) << i_dot;
-                std::string cmd = ToString("\"", "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\"", " -T png -O ", dot_file_path, "\"");
+                std::string cmd = ToString("\"", dot_exe, " -T png -O ", dot_file_path, "\"");
                 int res = std::system(cmd.c_str());
                 if (res != 0)
                     Error("The command ", cmd, " returned ", res);
@@ -32,18 +35,24 @@ namespace djup
         void Pattern()
         {
             Print("Test: djup - Pattern Matching...");
+
+            CORE_EXPECTS_EQ(ToSimplifiedStringForm("4"_t), "4");
             
             pattern::DiscriminationNet discrimination_net;
             discrimination_net.AddPattern(1, "g(3 z(real r)... p(real) 5)");
-            discrimination_net.AddPattern(2, "g(3 m(real r) p(real) 7)");
-            discrimination_net.AddPattern(3, "g(3 m(real r, real r1) p(real) 7)");
+            discrimination_net.AddPattern(3, "g(3 z(real r)... p(real) 6)");
+            discrimination_net.AddPattern(4, "g(3 m(real r) p(real) 7)");
+            discrimination_net.AddPattern(5, "g(3 m(real r, real r1) p(real) 7)");
             bool save_it = true;
             if (save_it)
             {
-                SaveGraph("C:\\repos\\djup\\tests\\", "discr", discrimination_net.ToDotLanguage("discr"));
+                std::filesystem::create_directory(test_dir);
+                SaveGraph(test_dir, "discr", discrimination_net.ToDotLanguage("discr"));
             }
 
-            for (auto file : std::filesystem::directory_iterator("C:\\repos\\djup\\tests\\subst"))
+            std::filesystem::create_directory(test_dir + "subst");
+
+            for (auto file : std::filesystem::directory_iterator(test_dir + "subst"))
                 if (file.is_regular_file())
                     std::filesystem::remove(file.path());
 
@@ -51,7 +60,7 @@ namespace djup
             int step = 0;
             substitution_graph.FindMatches("g(3 z(88) p(2) 5)", [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
-                SaveGraph("C:\\repos\\djup\\tests\\subst\\", name, substitution_graph.ToDotLanguage(name));
+                SaveGraph(test_dir + "subst\\", name, substitution_graph.ToDotLanguage(name));
                 step++;
             });
 

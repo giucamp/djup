@@ -145,9 +145,9 @@ namespace core
             const char * i_source_file, int i_source_line)
     {
         if(!(i_first == i_second))
-            Error(i_source_file, "(", i_source_line, ") - CORE_EXPECTS_EQ - ",
-                i_first_cpp_expr, " is ", i_first, ", ",
-                i_second_cpp_expr, " is ", i_second );
+            Error(i_source_file, "(", i_source_line, ") - CORE_EXPECTS_EQ - \n",
+                i_first_cpp_expr, " evals to ", i_first, ",\n",
+                i_second_cpp_expr, " evals to ", i_second );
     }
 
     void ExpectsError(const std::function<void()> & i_function,
