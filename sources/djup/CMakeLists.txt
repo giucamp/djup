@@ -9,6 +9,8 @@ add_library(djup STATIC
 	private/pattern/discrimination_net.cpp
 	private/pattern/pattern_info.cpp
 	private/pattern/substitution_graph.cpp
+	private/pattern/candidate.cpp
+	private/pattern/substitution_graph_to_dot_language.cpp
 	private/alphabet.h
 	private/builtin_names.h
 	private/constant_shape.h

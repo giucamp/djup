@@ -7,7 +7,6 @@
 #pragma once
 #include <private/expression.h>
 #include <private/pattern/discrimination_net.h>
-#include <private/pattern/candidate.h>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -34,10 +33,10 @@ namespace djup
 
         private:
 
-            struct Node
-            {
-                uint32_t m_outgoing_edges{};
-            };
+            struct Node;
+            struct CandidateData;
+            struct Candidate;
+            struct Substitution;
             
             struct CandidateRef
             {
@@ -85,10 +84,7 @@ namespace djup
 
             const DiscriminationNet & m_discrimination_net;
 
-            /** Candidates are arranged in a stack because CandidateRef keeps the index of the referenced candidate. With stack, 
-                popping the top of the stack does not shift the indices of the remaining candidates. Dangling indices in 
-                CandidateRef are detected with a 'version' counter. */
-            std::vector<Candidate> m_candidate_stack;
+
             
             /** Growable-only vector of nodes. Nodes are indentified by index, so no node can be evenr removed. */
             std::vector<Node> m_nodes;

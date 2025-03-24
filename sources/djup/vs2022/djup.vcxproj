@@ -30,7 +30,9 @@
     <ClInclude Include="..\private\parser.h" />
     <ClInclude Include="..\private\namespace.h" />
     <ClInclude Include="..\private\pattern\discrimination_net.h" />
+    <ClInclude Include="..\private\pattern\old_substitution_graph.h" />
     <ClInclude Include="..\private\pattern\pattern_info.h" />
+    <ClInclude Include="..\private\pattern\candidate.h" />
     <ClInclude Include="..\private\pattern\substitution_graph.h" />
     <ClInclude Include="..\private\old_pattern_match.h" />
     <ClInclude Include="..\private\substitute_by_predicate.h" />
@@ -47,9 +49,17 @@
     <ClCompile Include="..\private\parser.cpp" />
     <ClCompile Include="..\private\namespace.cpp" />
     <ClCompile Include="..\private\pattern\discrimination_net.cpp" />
+    <ClCompile Include="..\private\pattern\old_substitution_graph.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\private\pattern\pattern_info.cpp" />
+    <ClCompile Include="..\private\pattern\candidate.cpp" />
     <ClCompile Include="..\private\pattern\substitution_graph.cpp" />
     <ClCompile Include="..\private\old_pattern_match.cpp" />
+    <ClCompile Include="..\private\pattern\substitution_graph_to_dot_language.cpp" />
     <ClCompile Include="..\private\standard_namespace.cpp" />
     <ClCompile Include="..\private\tensor.cpp" />
     <ClCompile Include="..\private\expression_to_string.cpp" />
