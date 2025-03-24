@@ -247,7 +247,7 @@ namespace djup
                             0 :
                             total_available_targets - remaining.m_max;
 
-                        usable = argument_cardinality.Clamp(usable);
+                        usable = argument_cardinality.ClampRange(usable);
 
                         // align the usable range to be a multiple of sub_pattern_count
                         usable.m_min += sub_pattern_count - 1;

@@ -51,7 +51,6 @@ namespace djup
             }
 
             std::filesystem::create_directory(test_dir + "subst");
-
             for (auto file : std::filesystem::directory_iterator(test_dir + "subst"))
                 if (file.is_regular_file())
                     std::filesystem::remove(file.path());
