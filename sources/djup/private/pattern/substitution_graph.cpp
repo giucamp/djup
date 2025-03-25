@@ -135,7 +135,7 @@ namespace djup
                 token.subspan(i_candidate.m_data.m_target_offset) :
                 token.subspan(i_candidate.m_data.m_target_offset, i_candidate.m_data.m_target_size);*/
             
-            if (!i_discrimination_edge.m_cardinality.IsWithin(targets.size()))
+            if (!i_discrimination_edge.m_cardinality.IsValaueWithin(targets.size()))
                 return false;
 
             size_t target_index = i_candidate.m_data.m_target_offset;
