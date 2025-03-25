@@ -24,21 +24,29 @@ namespace djup
 
             constexpr static uint32_t s_infinite = std::numeric_limits<uint32_t>::max();
 
+            /** returns whether no value is contained in this range */
             bool IsEmpty() const noexcept { return m_min > m_max; }
 
-            bool IsWithin(uint32_t i_value) const noexcept 
+            /** returns whether a value is contained in this range */
+            bool IsValaueWithin(uint32_t i_value) const noexcept 
                 { return i_value >= m_min && i_value <= m_max; }
 
-            // constructs a range that contains all the values contained in the input range
-            Range operator + (const Range & i_other) const noexcept;
-            Range & operator += (const Range & i_other) noexcept;
-
-            // constructs a range that contains bot values of all input ranges
+            // makes this range containing all values of both input range
             Range operator | (const Range & i_other) const noexcept;
+            
+            // returns a range that contains both values of all input ranges
             Range & operator |= (const Range & i_other) noexcept;
 
-            // returns whether the bounds of the range are identical
+            // sums two ranges, possibly yielding to overflow
+            Range operator + (const Range& i_other) const noexcept;
+
+            // sums two ranges, possibly yielding to overflow
+            Range& operator += (const Range& i_other) noexcept;
+
+            /** returns whether the bounds of the ranges are identical */
             bool operator == (const Range & i_other) const noexcept;
+            
+            /** returns whether the bounds of the ranges not are identical */
             bool operator != (const Range & i_other) const noexcept;
 
             // clamps the input value to lay in this range
@@ -68,7 +76,7 @@ namespace djup
             the expressions it is tested against. */
         struct PatternInfo
         {
-            FunctionFlags m_flags{}; //** Associativity or commutativity of the pattern */
+            FunctionFlags m_flags{}; //>** Associativity or commutativity of the pattern */
             /** Minimum and maximum number of parameters that may match this pattern */
             Range m_argument_range;
             /** Describes every single argument of the pattern. */

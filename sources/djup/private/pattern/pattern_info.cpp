@@ -51,11 +51,11 @@ namespace djup
             else if(!i_other.IsEmpty())
             {
                 m_min += i_other.m_min;
-                if(m_min < i_other.m_min)
+                if(m_min < i_other.m_min) // detects overflow
                     m_min = s_infinite;
 
                 m_max += i_other.m_max;
-                if(m_max < i_other.m_max)
+                if(m_max < i_other.m_max) // detects overflow
                     m_max = s_infinite;
             }
             return *this;
