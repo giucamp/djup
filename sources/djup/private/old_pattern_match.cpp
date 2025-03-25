@@ -16,7 +16,7 @@
 
 #define DBG_CREATE_GRAPHVIZ_SVG         1
 #define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""
-#define DBG_DEST_DIR                    "D:\\repos\\djup\\tests\\subst\\"
+#define DBG_DEST_DIR                    "C:\\repos\\djup\\tests\\subst_OLD\\"
 
 #if DBG_CREATE_GRAPHVIZ_SVG
     #include <fstream>
@@ -673,12 +673,12 @@ namespace djup
             segment.m_arguments = {&arg_info, 1};
             AddCandidate(context, 1, 0, {&target, 1}, segment, {}, {});
 
-            #if DBG_CREATE_GRAPHVIZ_SVG
+            /*#if DBG_CREATE_GRAPHVIZ_SVG
             if(g_enable_graphviz)
             {
                 DumpGraphviz(context, "InitialState");
             }
-            #endif
+            #endif*/
 
             int dbg_step = 0;
             do {

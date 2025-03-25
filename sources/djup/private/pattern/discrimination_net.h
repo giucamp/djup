@@ -40,11 +40,11 @@ namespace djup
                 };
             };
 
-            class EdgeSet
+            class EdgeSetIterator
             {
             public:
 
-                EdgeSet(DiscriminationNet const & i_net, uint32_t i_from_node)
+                EdgeSetIterator(DiscriminationNet const & i_net, uint32_t i_from_node)
                 {
                     auto res = i_net.m_edges.equal_range(i_from_node);
                     m_begin = res.first;
@@ -60,11 +60,12 @@ namespace djup
                 std::unordered_multimap<uint32_t, Edge>::const_iterator m_end;
             };
 
-            EdgeSet EdgesFrom(uint32_t i_from_node) const
+            EdgeSetIterator EdgesFrom(uint32_t i_from_node) const
             {
-                return EdgeSet(*this, i_from_node);
+                return EdgeSetIterator(*this, i_from_node);
             }
 
+            /** Converts the discrimination net to a string processable with GraphWiz */
             std::string ToDotLanguage(std::string_view i_graph_name) const;
 
         private:
@@ -81,6 +82,8 @@ namespace djup
 
             std::unordered_multimap<uint32_t, Edge> m_edges; /* The key is the source node index */
             
+            /** every node is identified by an index. INdices are not recycled.
+                This is the last index assigned to a node. */
             uint32_t m_last_node_index = s_start_node_index;
         };
 

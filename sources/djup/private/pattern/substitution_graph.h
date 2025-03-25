@@ -48,7 +48,8 @@ namespace djup
             struct Edge
             {
                 uint32_t m_source_index{};
-                CandidateRef m_candidate_ref;
+                CandidateRef m_candidate_ref; /** an edge candidate refers to its corresponding 
+                    candidate if it's to be evaluated and confirmed yet. */
                 uint32_t m_open{};
                 uint32_t m_close{};
                 std::vector<Substitution> m_substitutions;

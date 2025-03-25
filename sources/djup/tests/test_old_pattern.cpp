@@ -122,7 +122,7 @@ namespace djup
             }
 
             {
-                //g_enable_graphviz = true;
+                g_enable_graphviz = false;
                 auto target =  "f(Cos(2,4), Sin(1, 2, 3), Sin(5, 6, 7, 8))"_t;
                 auto pattern = "f(Cos(2,4), Sin(real x..., real y...), Sin(real z..., real w...))"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
@@ -155,7 +155,7 @@ namespace djup
             }
 
             {
-                //g_enable_graphviz = true;
+                g_enable_graphviz = false;
                 auto target =  "Sin(f(1 2), f(4 5 6), f(7 8 9 1), f(11 12 13))"_t;
                 auto pattern = "Sin(f(real x..., real y...)..., f(real z..., real w...)..., f(real u..., real p...)...)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
