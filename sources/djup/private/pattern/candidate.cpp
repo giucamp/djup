@@ -43,14 +43,6 @@ namespace djup
             return result;
         }
 
-        class PotentialMatch
-        {
-            Candidate m_data;
-
-            uint32_t m_version{};
-            bool m_decayed = false;
-        };
-
     } // namespace pattern
 
 } // namespace djup

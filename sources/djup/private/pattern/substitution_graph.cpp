@@ -126,32 +126,79 @@ namespace djup
         {
             std::vector<Substitution> substitutions;
 
+            /* a candidate may require to the target to have the same expression multiple times,
+               (in the case of variadic arguments), otherwise the number of repetitions must be 1 */
             const bool nest_index = i_candidate.m_data.m_repetitions != std::numeric_limits<uint32_t>::max();
             const uint32_t repetitions = nest_index ? i_candidate.m_data.m_repetitions : 1;
 
-            // const Span<const Tensor> token = m_tokens[i_candidate.m_data.m_token_index];
-
-            const Span<const Tensor> targets = i_candidate.m_data.m_targets; /*i_candidate.m_data.m_target_size == std::numeric_limits<uint16_t>::max() ?
-                token.subspan(i_candidate.m_data.m_target_offset) :
-                token.subspan(i_candidate.m_data.m_target_offset, i_candidate.m_data.m_target_size);*/
-            
+            /* early reject is the number of parameters (targets) is incompatible
+               with the number of arguments in the pattern */
+            const Span<const Tensor> targets = i_candidate.m_data.m_targets;
             if (!i_discrimination_edge.m_cardinality.IsValaueWithin(targets.size()))
                 return false;
 
+            /* loops the repetitions, advancing the target (or argument) at each iteration. */
             size_t target_index = i_candidate.m_data.m_target_offset;
             for (uint32_t repetition = i_candidate.m_data.m_repetitions_offset; repetition < repetitions; repetition++)
             {
+                /** for every repetition the target must have the all the expresssions in 
+                    the pattern. */
                 const size_t pattern_size = i_discrimination_edge.m_patterns.size();
                 for (size_t pattern_index = i_candidate.m_data.m_pattern_offset;
                     pattern_index < pattern_size; target_index++, pattern_index++)
                 {   
                     const Tensor & pattern = i_discrimination_edge.m_patterns[pattern_index];
+                    const Range argument_cardinality = 
+                        i_discrimination_edge.m_argument_infos[pattern_index].m_cardinality;
+                    const Range remaining =
+                        i_discrimination_edge.m_argument_infos[pattern_index].m_remaining;
 
-                    const Range argument_cardinality = i_discrimination_edge.m_argument_infos[pattern_index].m_cardinality;
-                    const Range remaining = i_discrimination_edge.m_argument_infos[pattern_index].m_remaining;
-
-                    if (argument_cardinality.m_min != argument_cardinality.m_max)
+                    // check if it's a single cardinality argument
+                    if (argument_cardinality.m_min == argument_cardinality.m_max)
                     {
+                        const Tensor& target = targets[target_index];
+
+                        if (IsConstant(pattern)) /* if the pattern does not have any variable
+                           a full exact match is required (note that expressions are canonicalized) */
+                        {
+                            if (!AlwaysEqual(pattern, target))
+                                return false;
+                        }
+                        else if (NameIs(pattern, builtin_names::Identifier))
+                        {
+                            if (!Is(target, pattern))
+                                return false; // type mismatch
+
+                            substitutions.push_back({ GetIdentifierName(pattern), target });
+                        }
+                        else
+                        {
+                            if (pattern.GetExpression()->GetName() != target.GetExpression()->GetName())
+                                return false;
+
+                            CandidateData args_candidate;
+                            args_candidate.m_discrimination_node = i_discrimination_edge.m_dest_node;
+                            args_candidate.m_discrimination_edge = nullptr;
+                            args_candidate.m_open = i_candidate.m_data.m_open;
+                            args_candidate.m_targets = target.GetExpression()->GetArguments();
+
+                            CandidateData continuation_candidate = i_candidate.m_data;
+                            continuation_candidate.m_discrimination_edge = &i_discrimination_edge;
+                            continuation_candidate.m_pattern_offset = pattern_index + 1;
+                            continuation_candidate.m_target_offset = target_index + 1;
+                            continuation_candidate.m_repetitions_offset = repetition;
+                            continuation_candidate.m_open = 0;
+                            assert(continuation_candidate.m_pattern_offset <= continuation_candidate.m_discrimination_edge->m_patterns.size());
+
+                            const uint32_t middle_node = NewNode();
+                            AddCandidate(i_candidate.m_start_node, middle_node, continuation_candidate, std::move(substitutions));
+                            AddCandidate(middle_node, i_candidate.m_end_node, args_candidate, {});
+
+                            return true;
+                        }
+                    }
+                    {
+                        /* variadic case: */
                         size_t total_available_targets = targets.size() - target_index;
 
                         size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
@@ -196,63 +243,6 @@ namespace djup
                             candidates[1].m_discrimination_node = i_candidate.m_data.m_discrimination_node;
                             candidates[1].m_discrimination_edge = &i_discrimination_edge;
                             AddCandidate(meddle_node, i_candidate.m_end_node, candidates[1], {});
-
-                            /*LinearPath path(i_context, i_candidate);
-
-                            // pre-pattern
-                            path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
-                                PatternSegment{ pattern_info.m_flags,
-                                    pattern.GetExpression()->GetArguments(),
-                                    pattern_info.m_arguments },
-                                true, rep);
-
-                            // post-pattern
-                            path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
-                                PatternSegment{ pattern_info.m_flags,
-                                i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                                i_candidate.m_pattern.m_arguments.subspan(pattern_index + 1) });*/
-                        }
-                    }
-                    else
-                    {
-                        const Tensor& target = targets[target_index];
-
-                        if (IsConstant(pattern))
-                        {
-                            if (!AlwaysEqual(pattern, target))
-                                return false;
-                        }
-                        else if (NameIs(pattern, builtin_names::Identifier))
-                        {
-                            if (!Is(target, pattern))
-                                return false; // type mismatch
-
-                            substitutions.push_back({GetIdentifierName(pattern), target});
-                        }
-                        else
-                        {
-                            if (pattern.GetExpression()->GetName() != target.GetExpression()->GetName())
-                                return false;
-
-                            CandidateData args_candidate;
-                            args_candidate.m_discrimination_node = i_discrimination_edge.m_dest_node;
-                            args_candidate.m_discrimination_edge = nullptr;
-                            args_candidate.m_open = i_candidate.m_data.m_open;
-                            args_candidate.m_targets = target.GetExpression()->GetArguments();
-
-                            CandidateData continuation_candidate = i_candidate.m_data;
-                            continuation_candidate.m_discrimination_edge = &i_discrimination_edge;
-                            continuation_candidate.m_pattern_offset = pattern_index + 1;
-                            continuation_candidate.m_target_offset = target_index + 1;
-                            continuation_candidate.m_repetitions_offset = repetition;
-                            continuation_candidate.m_open = 0;
-                            assert(continuation_candidate.m_pattern_offset <= continuation_candidate.m_discrimination_edge->m_patterns.size());
-
-                            const uint32_t middle_node = NewNode();
-                            AddCandidate(i_candidate.m_start_node, middle_node, continuation_candidate, std::move(substitutions));
-                            AddCandidate(middle_node, i_candidate.m_end_node, args_candidate, {});
-
-                            return true;
                         }
                     }
                 }

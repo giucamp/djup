@@ -13,37 +13,6 @@ namespace djup
 {
     namespace pattern
     {
-        struct MatchSubstitution
-        {
-            Name m_variable_name;
-            Tensor m_value;
-        };
-
-        /*struct Candidate
-        {
-            uint16_t m_pattern_offset{};
-            uint16_t m_target_offset{};
-
-            Span<const Tensor> m_targets;
-
-            uint32_t m_discrimination_node{ std::numeric_limits<uint32_t>::max() };
-            //const DiscriminationNet::Edge* m_discrimination_edge{ nullptr };
-
-            uint32_t m_repetitions_offset{};
-            uint32_t m_repetitions{ std::numeric_limits<uint32_t>::max() };
-
-            uint32_t m_open{ };
-            uint32_t m_close{ };
-
-            std::vector<MatchSubstitution> m_substitutions;
-
-            bool AddSubstitution(const Name& i_variable_name, const Tensor& i_value)
-            {
-                m_substitutions.emplace_back(MatchSubstitution{ i_variable_name, i_value });
-                return true;
-            }
-        };*/
-
         struct Substitution
         {
             Name m_variable_name;
