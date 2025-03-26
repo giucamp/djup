@@ -10,6 +10,8 @@ add_library(djup STATIC
 	private/pattern/pattern_info.cpp
 	private/pattern/substitution_graph.cpp
 	private/pattern/candidate.cpp
+	private/pattern/utils.h
+	private/pattern/utils.cpp
 	private/pattern/substitution_graph_to_dot_language.cpp
 	private/alphabet.h
 	private/builtin_names.h
