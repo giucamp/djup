@@ -5,8 +5,9 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/pattern/substitution_graph.h>
-#include <private/pattern/discrimination_net.h>
+#include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
+#include <private/pattern/utils.h>
 
 namespace djup
 {

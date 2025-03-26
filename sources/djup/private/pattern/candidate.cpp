@@ -5,43 +5,12 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/pattern/candidate.h>
+#include <limits>
 
 namespace djup
 {
     namespace pattern
     {
-        std::vector<Span<const Tensor>> Tokenize(const Tensor& i_tensor)
-        {
-            std::vector<Span<const Tensor>> result;
-            result.push_back({ &i_tensor, 1 });
-
-            for (size_t i = 0; i < result.size(); i++)
-            {
-                Span<const Tensor> arguments = result[i];
-
-                for (size_t j = 0; j < arguments.size(); j++)
-                {
-                    if (!IsLiteral(arguments[j]) && !IsIdentifier(arguments[j]) && !IsRepetition(arguments[j]))
-                    {
-                        result.push_back(Span(arguments[j].GetExpression()->GetArguments()));
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        std::string TensorSpanToString(Span<const Tensor> i_tensor)
-        {
-            std::string result;
-            for (size_t i = 0; i < i_tensor.size(); i++)
-            {
-                if (i != 0)
-                    result += ", ";
-                result += ToSimplifiedStringForm(i_tensor[i]);
-            }
-            return result;
-        }
 
     } // namespace pattern
 

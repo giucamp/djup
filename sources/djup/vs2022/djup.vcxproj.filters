@@ -57,7 +57,7 @@
     <ClInclude Include="..\private\old_pattern_match.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\pattern\discrimination_net.h">
+    <ClInclude Include="..\private\pattern\discrimination_tree.h">
       <Filter>private\pattern</Filter>
     </ClInclude>
     <ClInclude Include="..\private\pattern\pattern_info.h">
@@ -125,7 +125,7 @@
     <ClCompile Include="..\private\old_pattern_match.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\pattern\discrimination_net.cpp">
+    <ClCompile Include="..\private\pattern\discrimination_tree.cpp">
       <Filter>private\pattern</Filter>
     </ClCompile>
     <ClCompile Include="..\private\pattern\pattern_info.cpp">
@@ -143,7 +143,7 @@
     <ClCompile Include="..\private\pattern\substitution_match.cpp">
       <Filter>private\pattern</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\pattern\util.cpp">
+    <ClCompile Include="..\private\pattern\utils.cpp">
       <Filter>private\pattern</Filter>
     </ClCompile>
     <ClCompile Include="..\private\pattern\candidate.cpp">

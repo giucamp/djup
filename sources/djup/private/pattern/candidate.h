@@ -7,7 +7,7 @@
 #pragma once
 #include <private/expression.h>
 #include <private/pattern/pattern_info.h>
-#include <private/pattern/discrimination_net.h>
+#include <private/pattern/discrimination_tree.h>
 
 namespace djup
 {
@@ -27,7 +27,7 @@ namespace djup
             Span<const Tensor> m_targets;
 
             uint32_t m_discrimination_node{ std::numeric_limits<uint32_t>::max() };
-            const DiscriminationNet::Edge* m_discrimination_edge{ nullptr };
+            const DiscriminationTree::Edge* m_discrimination_edge{ nullptr };
 
             uint32_t m_repetitions_offset{};
             uint32_t m_repetitions{ std::numeric_limits<uint32_t>::max() };
@@ -54,10 +54,6 @@ namespace djup
             uint32_t m_version{};
             bool m_decayed = false;
         };
-
-        std::vector<Span<const Tensor>> Tokenize(const Tensor& i_tensor);
-
-        std::string TensorSpanToString(Span<const Tensor> i_tensor);
     
     } // namespace pattern
 

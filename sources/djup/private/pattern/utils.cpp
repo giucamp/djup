@@ -32,14 +32,14 @@ namespace djup
             return result;
         }
 
-        std::string TensorSpanToString(Span<const Tensor> i_tensor)
+        std::string TensorSpanToString(Span<const Tensor> i_tensor, size_t i_depth)
         {
             std::string result;
             for (size_t i = 0; i < i_tensor.size(); i++)
             {
                 if (i != 0)
                     result += ", ";
-                result += ToSimplifiedStringForm(i_tensor[i]);
+                result += ToSimplifiedStringForm(i_tensor[i], i_depth);
             }
             return result;
         }

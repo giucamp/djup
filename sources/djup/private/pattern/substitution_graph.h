@@ -6,7 +6,7 @@
 
 #pragma once
 #include <private/expression.h>
-#include <private/pattern/discrimination_net.h>
+#include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
 #include <unordered_map>
 #include <vector>
@@ -24,7 +24,7 @@ namespace djup
 
         public:
 
-            SubstitutionGraph(const DiscriminationNet & i_discrimination_net);
+            SubstitutionGraph(const DiscriminationTree & i_discrimination_net);
 
             ~SubstitutionGraph();
 
@@ -65,7 +65,7 @@ namespace djup
 
             void MatchCandidate(Candidate && i_candidate, std::function<void()> i_step_callback);
 
-            bool MatchDiscriminationEdge(const Candidate & i_candidate, const DiscriminationNet::Edge & i_discrimination_edge);
+            bool MatchDiscriminationEdge(const Candidate & i_candidate, const DiscriminationTree::Edge & i_discrimination_edge);
 
             bool IsCandidateRefValid(CandidateRef i_ref) const;
 
@@ -84,7 +84,7 @@ namespace djup
             constexpr static uint32_t s_start_node_index = 0;
             constexpr static uint32_t s_end_node_index = 1;
 
-            const DiscriminationNet & m_discrimination_net;
+            const DiscriminationTree & m_discrimination_net;
 
             /** Candidates are arranged in a stack because CandidateRef keeps the index of the referenced candidate. With stack, 
                 popping the top of the stack does not shift the indices of the remaining candidates. Dangling indices in 

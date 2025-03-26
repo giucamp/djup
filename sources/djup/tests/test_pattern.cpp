@@ -4,7 +4,7 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <private/pattern/discrimination_net.h>
+#include <private/pattern/discrimination_tree.h>
 #include <private/pattern/substitution_graph.h>
 #include <core/diagnostic.h>
 #include <fstream>
@@ -38,7 +38,7 @@ namespace djup
 
             CORE_EXPECTS_EQ(ToSimplifiedStringForm("4"_t), "4");
             
-            pattern::DiscriminationNet discrimination_net;
+            pattern::DiscriminationTree discrimination_net;
             discrimination_net.AddPattern(1, "g(3 z(real r)... p(real) 5)");
             discrimination_net.AddPattern(3, "g(3 z(real r)... p(real) 6)");
             discrimination_net.AddPattern(4, "g(3 m(real r) p(real) 7)");

@@ -6,7 +6,7 @@
 
 #pragma once
 #include <memory>
-#include <private/pattern/discrimination_net.h>
+#include <private/pattern/discrimination_tree.h>
 #include <private/name.h>
 
 namespace djup
@@ -53,11 +53,11 @@ namespace djup
         std::vector<ScalarType> m_scalar_types;
 
         // substitution axioms: patterns and righ-hand-side expressions
-        pattern::DiscriminationNet m_substitution_axioms_patterns;
+        pattern::DiscriminationTree m_substitution_axioms_patterns;
         std::vector<Tensor> m_substitution_axioms_rhss;
 
         // type-inference axioms: patterns and righ-hand-side expressions
-        pattern::DiscriminationNet m_type_inference_axioms_patterns;
+        pattern::DiscriminationTree m_type_inference_axioms_patterns;
         std::vector<Tensor> m_type_inference_axioms_rhss;
 
         // namespace data

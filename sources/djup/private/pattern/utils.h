@@ -6,12 +6,16 @@
 
 #pragma once
 #include <djup/tensor.h>
+#include <limits>
 
 namespace djup
 {
     namespace pattern
     {
+        std::vector<Span<const Tensor>> Tokenize(const Tensor& i_tensor);
 
+        std::string TensorSpanToString(Span<const Tensor> i_tensor,
+            size_t i_depth = std::numeric_limits<size_t>::max() );
 
     } // namespace pattern
 

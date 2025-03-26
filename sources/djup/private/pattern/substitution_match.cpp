@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/pattern/substitution_graph.h>
-#include <private/pattern/discrimination_net.h>
+#include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
 #include <private/builtin_names.h>
 #include <core/flags.h>
@@ -43,7 +43,7 @@ namespace djup
         }
 
         bool SubstitutionGraph::MatchDiscriminationEdge(
-            const Candidate & i_candidate, const DiscriminationNet::Edge & i_discrimination_edge)
+            const Candidate & i_candidate, const DiscriminationTree::Edge & i_discrimination_edge)
         {
             std::vector<Substitution> substitutions;
 
@@ -173,7 +173,7 @@ namespace djup
                 i_candidate.m_data.m_open, i_candidate.m_data.m_close,
                 std::move(substitutions));
 
-            if (i_discrimination_edge.m_is_leaf)
+            if (i_discrimination_edge.is_leaf_node)
             {
                 m_terminal_nodes.push_back({ i_candidate.m_end_node , i_discrimination_edge.m_pattern_id });
             }

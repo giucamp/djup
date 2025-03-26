@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/pattern/substitution_graph.h>
-#include <private/pattern/discrimination_net.h>
+#include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
 #include <private/builtin_names.h>
 #include <core/flags.h>
@@ -15,7 +15,7 @@ namespace djup
 {
     namespace pattern
     {
-        SubstitutionGraph::SubstitutionGraph(const DiscriminationNet & m_discrimination_net)
+        SubstitutionGraph::SubstitutionGraph(const DiscriminationTree & m_discrimination_net)
             : m_discrimination_net(m_discrimination_net)
         {
         }
