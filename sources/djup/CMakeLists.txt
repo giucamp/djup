@@ -13,6 +13,7 @@ add_library(djup STATIC
 	private/pattern/utils.h
 	private/pattern/utils.cpp
 	private/pattern/substitution_graph_to_dot_language.cpp
+	private/pattern/substitution_graph_manipulation.cpp
 	private/pattern/substitution_match.cpp
 	private/alphabet.h
 	private/builtin_names.h

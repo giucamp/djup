@@ -149,6 +149,9 @@
     <ClCompile Include="..\private\pattern\candidate.cpp">
       <Filter>private\pattern</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\pattern\substitution_graph_manupulation.cpp">
+      <Filter>private\pattern</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis">
