@@ -51,7 +51,7 @@
     <ClCompile Include="..\private\pattern\candidate.cpp" />
     <ClCompile Include="..\private\pattern\discrimination_tree.cpp" />
     <ClCompile Include="..\private\pattern\pattern_info.cpp" />
-    <ClCompile Include="..\private\pattern\substitution_graph_manupulation.cpp" />
+    <ClCompile Include="..\private\pattern\substitution_graph_manipulation.cpp" />
     <ClCompile Include="..\private\pattern\substitution_match.cpp" />
     <ClCompile Include="..\private\pattern\substitution_graph.cpp" />
     <ClCompile Include="..\private\old_pattern_match.cpp" />
