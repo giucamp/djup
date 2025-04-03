@@ -211,7 +211,8 @@ namespace djup
 
     Tensor Substitute(const Tensor & i_where, Span<const Rule> i_rules);
 
-    std::string ToSimplifiedStringForm(const Tensor & i_source, size_t i_depth = std::numeric_limits<size_t>::max());
+    std::string ToSimplifiedStringForm(const Tensor & i_source,
+        size_t i_depth = std::numeric_limits<size_t>::max(), bool tidy = true);
 
     /*template <> struct CharWriter<Tensor>
     {

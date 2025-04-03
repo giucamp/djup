@@ -19,21 +19,27 @@ namespace djup
             Tensor m_value;
         };
 
-        struct CandidateData
+        struct Candidate
         {
+            /** index of ancestor candidate node, or ~ for the root */
+            uint32_t m_parent_candidate{};
+
+            /** data related to the discrimination tree.The discrimination 
+                during a pattern matching . */
+            DiscriminationTree::Edge m_discr_edge;
             uint16_t m_pattern_offset{};
-            uint16_t m_target_offset{};
-
-            Span<const Tensor> m_targets;
-
-            uint32_t m_discrimination_node{ std::numeric_limits<uint32_t>::max() };
-            const DiscriminationTree::Edge* m_discrimination_edge{ nullptr };
-
             uint32_t m_repetitions_offset{};
-            uint32_t m_repetitions{ std::numeric_limits<uint32_t>::max() };
+            uint32_t m_repetitions{1};
+            //uint32_t m_discr_node_index{};
+
+            /* data related to the target (the expression patterns are matched against) */
+            Span<const Tensor> m_targets;
+            uint16_t m_target_offset{};
 
             uint32_t m_open{};
             uint32_t m_close{};
+
+            uint32_t m_outcoming_edges{};
 
             std::vector<Substitution> m_substitutions;
 
@@ -42,17 +48,6 @@ namespace djup
                 m_substitutions.emplace_back(Substitution{ i_variable_name, i_value });
                 return true;
             }
-        };
-
-        struct Candidate
-        {
-            uint32_t m_start_node{};
-            uint32_t m_end_node{};
-
-            CandidateData m_data;
-
-            uint32_t m_version{};
-            bool m_decayed = false;
         };
     
     } // namespace pattern

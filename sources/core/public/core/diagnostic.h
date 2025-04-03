@@ -146,8 +146,8 @@ namespace core
     {
         if(!(i_first == i_second))
             Error(i_source_file, "(", i_source_line, ") - CORE_EXPECTS_EQ - \n",
-                i_first_cpp_expr, " evals to ", i_first, ",\n",
-                i_second_cpp_expr, " evals to ", i_second );
+                i_first_cpp_expr, " evals to\n\t", i_first, ",\n",
+                i_second_cpp_expr, " evals to\n\t", i_second );
     }
 
     void ExpectsError(const std::function<void()> & i_function,

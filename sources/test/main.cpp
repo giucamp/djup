@@ -26,4 +26,5 @@ int main()
 {
     core::tests::Core();
     djup::tests::Djup();
+    system("PAUSE");
 }

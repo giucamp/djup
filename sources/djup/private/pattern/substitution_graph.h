@@ -34,55 +34,14 @@ namespace djup
 
         private:
 
-            struct Node
-            {
-                uint32_t m_outgoing_edges{};
-            };
-            
-            struct CandidateRef
-            {
-                uint32_t m_index = std::numeric_limits<uint32_t>::max();
-                uint32_t m_version{};
-            };
+            bool ProcessDiscriminationNodes(Span<const Tensor> i_targets,
+                std::function<void()> i_step_callback);
 
-            struct Edge
-            {
-                uint32_t m_source_index{};
-                CandidateRef m_candidate_ref; /** an edge candidate refers to its corresponding 
-                    candidate if it's to be evaluated and confirmed yet. */
-                uint32_t m_open{};
-                uint32_t m_close{};
-                std::vector<Substitution> m_substitutions;
-            };
-            
-            class EdgeChain;
+            int32_t AddCandidate(Candidate&& i_candidate, const char* phase);
+
+            int32_t MatchCandidate(int32_t i_parent_candidate, Candidate& i_candidate);
 
         private:
-
-            void AddCandidate(uint32_t i_start_node, uint32_t i_end_node, 
-                CandidateData i_new_candidate_data,
-                std::vector<Substitution> && i_substitutions);
-
-            void MatchCandidate(Candidate && i_candidate, std::function<void()> i_step_callback);
-
-            bool MatchDiscriminationEdge(const Candidate & i_candidate, const DiscriminationTree::Edge & i_discrimination_edge);
-
-            bool IsCandidateRefValid(CandidateRef i_ref) const;
-
-            uint32_t NewNode();
-
-            void RemoveNode(uint32_t i_node_index);
-
-            void AddEdge(uint32_t i_start_node, uint32_t i_end_node, 
-                CandidateRef i_candidate_ref, uint32_t i_open, uint32_t i_close,
-                std::vector<Substitution>&& i_substitutions);
-
-            void RemoveEdge(uint32_t i_start_node, uint32_t i_dest_node, CandidateRef i_candidate_ref);
-
-        private:
-
-            constexpr static uint32_t s_start_node_index = 0;
-            constexpr static uint32_t s_end_node_index = 1;
 
             const DiscriminationTree & m_discrimination_net;
 
@@ -90,9 +49,16 @@ namespace djup
                 popping the top of the stack does not shift the indices of the remaining candidates. Dangling indices in 
                 CandidateRef are detected with a 'version' counter. */
             std::vector<Candidate> m_candidate_stack;
-            
-            /** Growable-only vector of nodes. Nodes are indentified by index, so no node can be evenr removed. */
-            std::vector<Node> m_nodes;
+
+            std::vector<uint32_t> m_discr_node_queue;
+            std::vector<uint32_t> m_discr_node_to_substitution_node;
+
+            struct Solution
+            {
+                std::vector<Substitution> m_substituitions;
+            };
+
+            std::vector<Solution> m_solutions;
 
             struct TerminalNode
             {
@@ -102,14 +68,8 @@ namespace djup
 
             std::vector<TerminalNode> m_terminal_nodes;
 
-            /** The key is the destination node */
-            std::unordered_multimap<uint32_t, Edge> m_edges;
-
             /** Every candidate has a unique version. */
             uint32_t m_next_candidate_version{};
-
-            // std::vector<Span<const Tensor>> m_tokens;
-            // std::string m_tokens_str;
 
             #if DBG_CREATE_GRAPHVIZ_SVG
                 std::string m_graph_name;

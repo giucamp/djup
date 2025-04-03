@@ -21,10 +21,11 @@ namespace djup
 
             void SaveGraph(std::string i_dir, std::string i_name, std::string i_dot)
             {
-                std::string dot_file_path(i_dir + i_name);
+                std::string dot_file_path(i_dir + i_name + ".txt");
                 std::ofstream(dot_file_path) << i_dot;
                 std::string cmd = ToString("\"", dot_exe, " -T png -O ", dot_file_path, "\"");
                 int res = std::system(cmd.c_str());
+                //std::filesystem::remove(dot_file_path);
                 if (res != 0)
                     Error("The command ", cmd, " returned ", res);
 
@@ -39,10 +40,22 @@ namespace djup
             CORE_EXPECTS_EQ(ToSimplifiedStringForm("4"_t), "4");
             
             pattern::DiscriminationTree discrimination_net;
-            discrimination_net.AddPattern(1, "g(3 z(real r)... p(real) 5)");
-            discrimination_net.AddPattern(3, "g(3 z(real r)... p(real) 6)");
-            discrimination_net.AddPattern(4, "g(3 m(real r) p(real) 7)");
-            discrimination_net.AddPattern(5, "g(3 m(real r, real r1) p(real) 7)");
+            discrimination_net.AddPattern(1, "g(3 z(real r...)... p(real y) 5)");
+            discrimination_net.AddPattern(2, "g(3 z(real r)... p(real) 6)");
+            discrimination_net.AddPattern(3, "g(3 m(real r) p(real) 7)");
+            discrimination_net.AddPattern(4, "g(3 m(real r) w(real) 3)");
+            discrimination_net.AddPattern(5, "Func(1 2 3)");
+
+            //discrimination_net.AddPattern(1, "g(1 2 Add(y...)... 7)";
+
+            //discrimination_net.AddPattern(1, "g(3 z(real r)... 5)");
+
+
+            //discrimination_net.AddPattern(1, "g(3 z(real r) 5)");
+            //discrimination_net.AddPattern(2, "g(3 z(real r) 6)");
+
+            //discrimination_net.AddPattern(1, "g(3 z(real r) 5)");
+
             bool save_it = true;
             if (save_it)
             {
@@ -57,11 +70,15 @@ namespace djup
 
             pattern::SubstitutionGraph substitution_graph(discrimination_net);
             int step = 0;
-            substitution_graph.FindMatches("g(3 z(88) p(2) 5)", [&] {
+            std::string target = "g(3 z(88) p(2) 5)"; //"g(3 z(88) 5)"; // 
+
+            auto callback = [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
                 SaveGraph(test_dir + "subst\\", name, substitution_graph.ToDotLanguage(name));
                 step++;
-            });
+            };
+
+            //substitution_graph.FindMatches(target.c_str(), callback);
 
             int h = 0;
 

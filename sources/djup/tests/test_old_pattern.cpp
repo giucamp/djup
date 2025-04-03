@@ -20,8 +20,6 @@ namespace djup
     {
         void OldPattern()
         {
-            Print("Test: djup - Old Pattern Matching...");
-
             {
                 //g_enable_graphviz = true;
                 auto target =  "g(f(1 2 3 4 5))"_t;

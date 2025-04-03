@@ -15,7 +15,11 @@ namespace djup
         std::vector<Span<const Tensor>> Tokenize(const Tensor& i_tensor);
 
         std::string TensorSpanToString(Span<const Tensor> i_tensor,
-            size_t i_depth = std::numeric_limits<size_t>::max() );
+            size_t i_depth = std::numeric_limits<size_t>::max(), bool tidy = true);
+        
+        void PrintIntVector(const std::vector<uint32_t>&);
+        void PrintIntSpan(const Span<uint32_t>&);
+
 
     } // namespace pattern
 

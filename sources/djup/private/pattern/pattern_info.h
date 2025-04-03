@@ -16,19 +16,20 @@ namespace djup
     namespace pattern
     {
         /** Inclusive range of integers. If the bounds are equal the range contains a single
-            value. If the lower bound is greater than the upper bound the range is empty. */
+            value. If the lower bound is greater than the upper bound the range is empty, 
+            than this the values are meaningless. A default constructed range is empty. */
         struct Range
         {
-            uint32_t m_min{1}; /**< inclusive lower bound */
-            uint32_t m_max{0}; /**< inclusive upper bound */
+            int32_t m_min{1}; /**< inclusive lower bound */
+            int32_t m_max{0}; /**< inclusive upper bound */
 
-            constexpr static uint32_t s_infinite = std::numeric_limits<uint32_t>::max();
+            constexpr static int32_t s_infinite = std::numeric_limits<int32_t>::max();
 
             /** returns whether no value is contained in this range */
             bool IsEmpty() const noexcept { return m_min > m_max; }
 
             /** returns whether a value is contained in this range */
-            bool IsValaueWithin(uint32_t i_value) const noexcept 
+            bool IsValaueWithin(int32_t i_value) const noexcept 
                 { return i_value >= m_min && i_value <= m_max; }
 
             // makes this range containing all values of both input range
@@ -50,7 +51,7 @@ namespace djup
             bool operator != (const Range & i_other) const noexcept;
 
             // clamps the input value to lay in this range
-            uint32_t ClampValue(uint32_t i_value) const noexcept;
+            int32_t ClampValue(int32_t i_value) const noexcept;
 
             // clamps the input range so that its values lay in this range
             Range ClampRange(Range i_range) const noexcept;

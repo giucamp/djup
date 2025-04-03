@@ -1,0 +1,4 @@
+cd /mnt/c/repos/djup
+chmod +x test.sh
+bash test.sh
+bash test.sh --clean

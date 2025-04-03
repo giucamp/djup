@@ -85,14 +85,14 @@ namespace djup
     {
         const size_t pattern_id = m_substitution_axioms_rhss.size();
         m_substitution_axioms_rhss.push_back(i_with);
-        m_substitution_axioms_patterns.AddPattern(pattern_id, i_what, i_when);
+        m_substitution_axioms_patterns.AddPattern(NumericCast<int32_t>(pattern_id), i_what, i_when);
     }
 
     void Namespace::AddTypeInferenceAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when)
     {
         const size_t pattern_id = m_type_inference_axioms_rhss.size();
         m_type_inference_axioms_rhss.push_back(i_type);
-        m_type_inference_axioms_patterns.AddPattern(pattern_id, i_what, i_when);
+        m_type_inference_axioms_patterns.AddPattern(NumericCast<int32_t>(pattern_id), i_what, i_when);
     }
 
     Tensor Namespace::ApplySubstitutionAxioms(const Tensor & i_source) const

@@ -23,13 +23,11 @@ namespace djup
 
             void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern,
                 const Tensor & i_condition = true);
-
-            static uint32_t GetStartNode() { return s_start_node_index; }
             
             /** In leaf edges m_expression is empty, and m_pattern_id is valid */
             struct Edge
             {
-                std::vector<Tensor> m_patterns;
+                std::vector<Tensor> m_arguments;
                 Range m_cardinality;
                 std::vector<ArgumentInfo> m_argument_infos;
                 FunctionFlags m_function_flags{};
@@ -40,6 +38,12 @@ namespace djup
                     uint32_t m_pattern_id;
                 };
             };
+
+            static uint32_t GetRootNodeIndex() { return s_root_node_index; }
+
+            const Edge* GetRootNode() const;
+
+            const Edge & GetNodeFrom(uint32_t i_source_node) const;
 
             class EdgeSetIterator
             {
@@ -66,19 +70,19 @@ namespace djup
                 return EdgeSetIterator(*this, i_from_node);
             }
 
+            int32_t GetNodeCount() const { return NumericCast<int32_t>(m_edges.size()); }
+
             /** Converts the discrimination net to a string processable with GraphWiz */
             std::string ToDotLanguage(std::string_view i_graph_name) const;
 
         private:
 
-            constexpr static uint32_t s_start_node_index = 0;
-            constexpr static uint32_t s_end_node_index = std::numeric_limits<uint32_t>::max();
+            constexpr static uint32_t s_root_node_index = 0;
 
             static bool SamePatterns(Span<const Tensor> i_first_patterns, Span<const Tensor> i_second_patterns);
 
             /** Returns the destination node */
-            Edge * AddPatternFrom(uint32_t i_source_node, Span<const Tensor> i_patterns, 
-                const PatternInfo & i_pattern_info);
+            Edge * AddPatternFrom(uint32_t i_source_node, const Tensor& i_source);
 
             Edge * AddEdge(uint32_t i_source_node, Span<const Tensor> i_patterns);
 
@@ -86,7 +90,7 @@ namespace djup
             
             /** every node is identified by an index. INdices are not recycled.
                 This is the last index assigned to a node. */
-            uint32_t m_last_node_index = s_start_node_index;
+            uint32_t m_last_node_index = s_root_node_index;
         };
 
     } // namespace pattern

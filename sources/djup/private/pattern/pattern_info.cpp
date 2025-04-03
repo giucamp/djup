@@ -71,7 +71,7 @@ namespace djup
             return !(*this == i_other);
         }
 
-        uint32_t Range::ClampValue(uint32_t i_value) const noexcept
+        int32_t Range::ClampValue(int32_t i_value) const noexcept
         {
             if(i_value < m_min)
                 return m_min;

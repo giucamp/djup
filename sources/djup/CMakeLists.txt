@@ -3,18 +3,17 @@ cmake_minimum_required(VERSION 3.9)
 set(CMAKE_CXX_STANDARD 17)
 
 add_library(djup STATIC
-	private/pattern/discrimination_tree.h
-	private/pattern/pattern_info.h
-	private/pattern/substitution_graph.h
-	private/pattern/discrimination_tree.cpp
-	private/pattern/pattern_info.cpp
-	private/pattern/substitution_graph.cpp
+	private/pattern/candidate.h
 	private/pattern/candidate.cpp
+	private/pattern/discrimination_tree.h
+	private/pattern/discrimination_tree.cpp
+	private/pattern/pattern_info.h
+	private/pattern/pattern_info.cpp
+	private/pattern/substitution_graph.h
+	private/pattern/substitution_graph.cpp
+	private/pattern/substitution_graph_to_dot_language.cpp
 	private/pattern/utils.h
 	private/pattern/utils.cpp
-	private/pattern/substitution_graph_to_dot_language.cpp
-	private/pattern/substitution_graph_manipulation.cpp
-	private/pattern/substitution_match.cpp
 	private/alphabet.h
 	private/builtin_names.h
 	private/constant_shape.h
