@@ -7,6 +7,7 @@
 #include <private/namespace.h>
 #include <core/diagnostic.h>
 #include <fstream>
+#include <private/pattern/utils.h>
 
 #define DBG_CREATE_GRAPHVIZ_SVG         1
 #define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""
@@ -20,6 +21,16 @@ namespace djup
     {
         void OldPattern()
         {
+            #if !defined DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING
+                #error DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING must be defined
+            #endif
+            volatile bool skip = DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING;
+            if (skip)
+            {
+                Print("Skipping");
+                return;
+            }
+
             {
                 //g_enable_graphviz = true;
                 auto target =  "g(f(1 2 3 4 5))"_t;

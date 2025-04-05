@@ -6,6 +6,7 @@
 
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/substitution_graph.h>
+#include <private/pattern/pattern_info.h>
 #include <core/diagnostic.h>
 #include <fstream>
 #include <filesystem>
@@ -40,11 +41,14 @@ namespace djup
             CORE_EXPECTS_EQ(ToSimplifiedStringForm("4"_t), "4");
             
             pattern::DiscriminationTree discrimination_net;
-            discrimination_net.AddPattern(1, "g(3 z(real r...)... p(real y) 5)");
-            discrimination_net.AddPattern(2, "g(3 z(real r)... p(real) 6)");
-            discrimination_net.AddPattern(3, "g(3 m(real r) p(real) 7)");
-            discrimination_net.AddPattern(4, "g(3 m(real r) w(real) 3)");
-            discrimination_net.AddPattern(5, "Func(1 2 3)");
+            
+            discrimination_net.AddPattern(1, "g(1 2 x...)");
+            
+            //discrimination_net.AddPattern(1, "g(3 z(real r...)... p(real y) 5)");
+            //discrimination_net.AddPattern(2, "g(3 z(real r)... p(real) 6)");
+            //discrimination_net.AddPattern(3, "g(3 m(real r) p(real) 7)");
+            //discrimination_net.AddPattern(4, "g(3 m(real r) w(real) 3)");
+            //discrimination_net.AddPattern(5, "Func(1 2 3)");
 
             //discrimination_net.AddPattern(1, "g(1 2 Add(y...)... 7)";
 
@@ -70,7 +74,7 @@ namespace djup
 
             pattern::SubstitutionGraph substitution_graph(discrimination_net);
             int step = 0;
-            std::string target = "g(3 z(88) p(2) 5)"; //"g(3 z(88) 5)"; // 
+            std::string target = "g(1 2 3)"; //"g(3 z(88) 5)"; // 
 
             auto callback = [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
@@ -78,7 +82,7 @@ namespace djup
                 step++;
             };
 
-            //substitution_graph.FindMatches(target.c_str(), callback);
+            substitution_graph.FindMatches(target.c_str(), callback);
 
             int h = 0;
 

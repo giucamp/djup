@@ -31,8 +31,6 @@ namespace djup
                 dest << "v" << i << "[" << "label = \""
                     << TensorSpanToString(candidate.m_targets, 1)
                     << "\"]";
-                    /*<< escaped_newline << TensorSpanToString(candidate.m_discr_edge.m_arguments) 
-                    << escaped_newline << "discr_dest:" << candidate.m_discr_edge.m_dest_node << "\"]";*/
             }
 
             dest.Untab();

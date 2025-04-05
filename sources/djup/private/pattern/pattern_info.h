@@ -6,6 +6,7 @@
 
 #pragma once
 #include <private/expression.h>
+#include <private/pattern/utils.h>
 #include <vector>
 #include <string>
 #include <cstdint>
@@ -38,10 +39,10 @@ namespace djup
             // returns a range that contains both values of all input ranges
             Range & operator |= (const Range & i_other) noexcept;
 
-            // sums two ranges, possibly yielding to overflow
+            // sums two ranges, possibly yielding to infinity
             Range operator + (const Range& i_other) const noexcept;
 
-            // sums two ranges, possibly yielding to overflow
+            // sums two ranges, possibly yielding to an infinity
             Range& operator += (const Range& i_other) noexcept;
 
             /** returns whether the bounds of the ranges are identical */
@@ -74,12 +75,26 @@ namespace djup
         };
 
         /** Statically describes a pattern and its arguments, independently of
-            the expressions it is tested against. */
+            the expressions it is tested against. To do: incapsulate as an
+            immutable class */
         struct PatternInfo
         {
+            #if !defined(DJUP_DEBUG_PATTERN_INFO)
+                #error DJUP_DEBUG_PATTERN_INFO
+                void UpdateDebugInfo() {}
+            #endif
+            #if DJUP_DEBUG_PATTERN_INFO
+                std::string m_dbg_str_pattern;
+                std::string m_dbg_arguments;
+                Tensor m_dbg_pattern;
+                void UpdateDebugInfo();
+            #endif
+
             FunctionFlags m_flags{}; //>** Associativity or commutativity of the pattern */
+
             /** Minimum and maximum number of parameters that may match this pattern */
-            Range m_argument_range;
+            Range m_arguments_range;
+
             /** Describes every single argument of the pattern. */
             std::vector<ArgumentInfo> m_arguments;
         };
@@ -87,9 +102,10 @@ namespace djup
         /** Returns true if the (root) expression is ?, .. or ... */
         bool IsRepetition(const Tensor& i_expression);
 
-        /** Constructs a PatternInfo (static pattern information) given a pattern*/
+        /** Constructs a PatternInfo (static pattern information) given a pattern */
         PatternInfo BuildPatternInfo(const Tensor & i_pattern);
-    
+
     } // namespace pattern
 
 } // namespace djup
+

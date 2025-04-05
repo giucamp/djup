@@ -8,6 +8,7 @@
 #include <private/expression.h>
 #include <private/pattern/pattern_info.h>
 #include <private/pattern/discrimination_tree.h>
+#include <private/pattern/utils.h>
 
 namespace djup
 {
@@ -21,6 +22,13 @@ namespace djup
 
         struct Candidate
         {
+            #if !defined(DJUP_DEBUG_PATTERN_MATCHING)
+                #error DJUP_DEBUG_PATTERN_MATCHING must be defined
+            #endif
+            #if DJUP_DEBUG_PATTERN_MATCHING
+                std::string m_dbg_pattern_info;
+            #endif
+
             /** index of ancestor candidate node, or ~ for the root */
             uint32_t m_parent_candidate{};
 
@@ -30,7 +38,6 @@ namespace djup
             uint16_t m_pattern_offset{};
             uint32_t m_repetitions_offset{};
             uint32_t m_repetitions{1};
-            //uint32_t m_discr_node_index{};
 
             /* data related to the target (the expression patterns are matched against) */
             Span<const Tensor> m_targets;

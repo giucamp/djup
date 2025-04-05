@@ -15,6 +15,7 @@ namespace djup
         void Lexer();
         void TensorToString();
         void Parse();
+        void PatternInfo();
         void OldPattern();
         void Pattern();
 
@@ -25,6 +26,7 @@ namespace djup
             Lexer();
             TensorToString();
             Parse();
+            PatternInfo();
             OldPattern();
             Pattern();
 

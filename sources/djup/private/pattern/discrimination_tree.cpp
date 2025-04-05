@@ -18,10 +18,18 @@ namespace djup
 {
     namespace pattern
     {
-        template< typename... ARGS>
-            void DiscrTreePrintLn(ARGS&&... args)
+        namespace
         {
-            //PrintLn(args...);
+            template< typename... ARGS>
+                void DiscrTreeDebugPrintLn(ARGS&&... args)
+            {
+                #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
+                    #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
+                #endif
+                #if DJUP_DEBUG_DISCRIMINATION_TREE
+                    PrintLn(args...);
+                #endif
+            }
         }
 
         Tensor PreprocessPattern(const Tensor& i_pattern)
@@ -74,43 +82,38 @@ namespace djup
         void DiscriminationTree::AddPattern(uint32_t i_pattern_id,
             const Tensor& i_pattern, const Tensor& i_condition)
         {
-            const Tensor canonical = PreprocessPattern(i_pattern);
-
-            Edge* edge = AddEdge(s_root_node_index, {&canonical, 1});
-            edge->m_cardinality = { 1, 1 };
-
-            Edge* last_edge = AddPatternFrom(edge->m_dest_node, i_pattern);
+            Edge* last_edge = AddPatternFrom(s_root_node_index, i_pattern);
             last_edge->is_leaf_node = true;
-            DiscrTreePrintLn("Leaf node");
+            DiscrTreeDebugPrintLn("Leaf node");
         }
 
         DiscriminationTree::Edge * DiscriminationTree::AddPatternFrom(
-            uint32_t i_source_node, const Tensor & i_source)
+            uint32_t i_source_node, const Tensor & i_pattern)
         {
-            DiscrTreePrintLn( "Adding pattern from ", i_source_node, ", with ", ToSimplifiedStringForm(i_source, 1) );
+            DiscrTreeDebugPrintLn( "Adding pattern from ", i_source_node, ", with ", ToSimplifiedStringForm(i_pattern, 1) );
 
-            const Tensor canonical = PreprocessPattern(i_source);
+            const Tensor canonical = PreprocessPattern(i_pattern);
             const std::vector<Tensor> & arguments = canonical.GetExpression()->GetArguments();
 
             Edge * edge = AddEdge(i_source_node, arguments);
 
             const PatternInfo pattern_info = BuildPatternInfo(canonical);
 
-            // merge the cardinality in the exiting edge
-            edge->m_function_flags = pattern_info.m_flags;
-            edge->m_cardinality |= pattern_info.m_argument_range;
-            edge->m_argument_infos.resize(arguments.size());
+            // merge the cardinalities in the exiting edge
+            edge->m_pattern_info.m_flags = pattern_info.m_flags;
+            edge->m_pattern_info.m_arguments_range |= pattern_info.m_arguments_range;
+            edge->m_pattern_info.m_arguments.resize(arguments.size());
             for (size_t i = 0; i < arguments.size(); i++)
             {
-                edge->m_argument_infos[i].m_cardinality |= pattern_info.m_arguments[i].m_cardinality;
-                edge->m_argument_infos[i].m_remaining |= pattern_info.m_arguments[i].m_remaining;
+                edge->m_pattern_info.m_arguments[i].m_cardinality |= pattern_info.m_arguments[i].m_cardinality;
+                edge->m_pattern_info.m_arguments[i].m_remaining |= pattern_info.m_arguments[i].m_remaining;
             }
 
             for (size_t i = 0; i < arguments.size(); i++)
             {
                 if (!IsLiteral(arguments[i]) && !IsIdentifier(arguments[i]))
                 {
-                    DiscrTreePrintLn(ToSimplifiedStringForm(arguments[i]));
+                    DiscrTreeDebugPrintLn(ToSimplifiedStringForm(arguments[i]));
 
                     edge = AddPatternFrom(edge->m_dest_node, arguments[i]);
                 }
@@ -124,7 +127,7 @@ namespace djup
         DiscriminationTree::Edge* DiscriminationTree::AddEdge(
             uint32_t i_source_node, Span<const Tensor> i_patterns)
         {
-            DiscrTreePrintLn("Adding edge from ", i_source_node, " with ", TensorSpanToString(i_patterns, 1));
+            DiscrTreeDebugPrintLn("Adding edge from ", i_source_node, " with ", TensorSpanToString(i_patterns, 1));
 
             // search for an identical edge with the same patterns
             auto range = m_edges.equal_range(i_source_node);
@@ -138,6 +141,7 @@ namespace djup
 
             Edge new_edge;
             new_edge.m_arguments.assign(i_patterns.begin(), i_patterns.end());
+            //new_edge.m_argument_infos = 
             uint32_t new_node = ++m_last_node_index;
             new_edge.m_dest_node = new_node;
 
@@ -194,13 +198,13 @@ namespace djup
 
         std::string DiscriminationTree::ToDotLanguage(std::string_view i_graph_name) const
         {
-            DiscrTreePrintLn("---------------------------");
+            DiscrTreeDebugPrintLn("---------------------------");
             for (const auto& edge : m_edges)
             {
-                DiscrTreePrintLn(edge.first, ": ", TensorSpanToString(Span(edge.second.m_arguments), 1), 
+                DiscrTreeDebugPrintLn(edge.first, ": ", TensorSpanToString(Span(edge.second.m_arguments), 1), 
                     ", ", edge.second.is_leaf_node);
             }
-            DiscrTreePrintLn("---------------------------");
+            DiscrTreeDebugPrintLn("---------------------------");
 
             StringBuilder dest;
         
@@ -232,19 +236,18 @@ namespace djup
             for(const auto & edge : m_edges)
             {
                 std::string text = TensorSpanToString(edge.second.m_arguments, 1, true);
-                text += escaped_newline + TensorSpanToString(edge.second.m_arguments, 1, false);
+                
+                // uncomment the following to see the raw form of edge patterns
+                // text += escaped_newline + TensorSpanToString(edge.second.m_arguments, 1, false);
 
                 std::string color = "black";
                 std::string dest_node = 
                     ToString("v", edge.second.m_dest_node);
-                if (edge.second.m_cardinality != Range{ 1, 1 })
-                    text += "{" + edge.second.m_cardinality.ToString() + "}";
+                if (edge.second.m_pattern_info.m_arguments_range != Range{ 1, 1 })
+                    text += "{" + edge.second.m_pattern_info.m_arguments_range.ToString() + "}";
 
                 dest << 'v' << edge.first << " -> " << dest_node;
                 dest << "[style=\"solid\", color=\"" << color << "\", label=\"" << text;
-                    //<< escaped_newline << "Src:" << edge.first
-                    //<< escaped_newline << "Dest:" << edge.second.m_dest_node
-                    //if (edge.second.)
                 dest << "\"]" << ';';
 
                 if (edge.second.is_leaf_node)

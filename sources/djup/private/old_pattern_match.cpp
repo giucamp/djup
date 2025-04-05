@@ -530,8 +530,8 @@ namespace djup
 
                         // if the target does not have enough arguments, early reject
                         size_t target_arguments = target.GetExpression()->GetArguments().size();
-                        if(target_arguments >= pattern_info.m_argument_range.m_min &&
-                            target_arguments <= pattern_info.m_argument_range.m_max )
+                        if(target_arguments >= pattern_info.m_arguments_range.m_min &&
+                            target_arguments <= pattern_info.m_arguments_range.m_max )
                         {
                             LinearPath path(i_context, i_candidate);
 

@@ -8,6 +8,7 @@
 #include <djup/tensor.h>
 #include <private/old_pattern_match.h>
 #include <private/pattern/pattern_info.h>
+#include <private/pattern/utils.h>
 #include <unordered_map>
 #include <limits>
 
@@ -27,10 +28,8 @@ namespace djup
             /** In leaf edges m_expression is empty, and m_pattern_id is valid */
             struct Edge
             {
+                PatternInfo m_pattern_info; // do do: debug info here are always empty
                 std::vector<Tensor> m_arguments;
-                Range m_cardinality;
-                std::vector<ArgumentInfo> m_argument_infos;
-                FunctionFlags m_function_flags{};
                 bool is_leaf_node{false};
                 union
                 {

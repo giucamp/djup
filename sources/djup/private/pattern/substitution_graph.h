@@ -8,6 +8,7 @@
 #include <private/expression.h>
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
+#include <private/pattern/utils.h>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -34,7 +35,12 @@ namespace djup
 
         private:
 
-            bool ProcessDiscriminationNodes(Span<const Tensor> i_targets,
+
+            void ProcessAllCandidates();
+
+            int32_t ProcessSingleCandidate(Candidate& _candidate);
+
+            bool TraverseDiscriminationTree(Span<const Tensor> i_targets,
                 std::function<void()> i_step_callback);
 
             int32_t AddCandidate(Candidate&& i_candidate, const char* phase);
@@ -51,6 +57,8 @@ namespace djup
             std::vector<Candidate> m_candidate_stack;
 
             std::vector<uint32_t> m_discr_node_queue;
+
+            /* To process a discrimination node the associated candidate must be known */
             std::vector<uint32_t> m_discr_node_to_substitution_node;
 
             struct Solution
