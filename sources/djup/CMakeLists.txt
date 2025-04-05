@@ -36,6 +36,8 @@ add_library(djup STATIC
 	private/name.cpp
 	private/namespace.cpp
 	private/parser.cpp
+	private/old_pattern_match.h
+	private/old_pattern_match.cpp
 	private/standard_namespace.cpp
 	private/tensor.cpp
 	public/djup/tensor.h
