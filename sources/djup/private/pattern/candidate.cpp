@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/pattern/candidate.h>
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 #include <limits>
 
 namespace djup

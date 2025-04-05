@@ -154,7 +154,7 @@ namespace core
         const char * i_cpp_source_code, const char * i_expected_message);
 
     #define CORE_EXPECTS(expr) ::core::Expects(static_cast<bool>(expr), #expr)
-    #define CORE_EXPECTS_EQ(first, second) ::core::ExpectsEq(first, #first, second, #second, __FILE__, __LINE__)
+    #define CORE_EXPECTS_EQ(first, second) ::core::ExpectsEq((first), #first, (second), #second, __FILE__, __LINE__)
 
     #define CORE_EXPECTS_ERROR(expr, expected_error) \
         ::core::ExpectsError([&]{ (void)(expr); }, #expr, expected_error);

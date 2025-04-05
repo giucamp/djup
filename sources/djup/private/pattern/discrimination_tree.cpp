@@ -6,7 +6,7 @@
 
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/pattern_info.h>
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 #include <private/builtin_names.h>
 #include <private/expression.h>
 #include <private/substitute_by_predicate.h>
@@ -267,7 +267,7 @@ namespace djup
             dest.NewLine();
 
             std::string dot = dest.StealString();
-            return std::move(dot);
+            return dot;
         }
 
     } // namespace pattern

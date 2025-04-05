@@ -5,10 +5,10 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/pattern/pattern_info.h>
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 #include <private/builtin_names.h>
 #include <core/to_string.h>
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 
 namespace djup
 {
@@ -160,25 +160,20 @@ namespace djup
 
             #if DJUP_DEBUG_PATTERN_INFO
                 result.m_dbg_pattern = i_pattern;
-            #endif
 
-            result.UpdateDebugInfo();
+                result.m_dbg_str_pattern = ToSimplifiedStringForm(result.m_dbg_pattern);
 
-            return result;
-        }
-
-        void PatternInfo::UpdateDebugInfo()
-        {
-            #if DJUP_DEBUG_PATTERN_INFO
-                m_dbg_str_pattern = ToSimplifiedStringForm(m_dbg_pattern);
-                
-                m_dbg_arguments = "Arguments: " + m_arguments_range.ToString();
-                for (size_t i = 0; i < m_arguments.size(); ++i)
+                result.m_dbg_arguments = "Arguments: " + result.m_arguments_range.ToString();
+                for (size_t i = 0; i < result.m_arguments.size(); ++i)
                 {
-                    m_dbg_arguments += "\nArg[" + std::to_string(i) + "]: " + m_arguments[i].m_cardinality.ToString();
-                    m_dbg_arguments += " Remaining: " + m_arguments[i].m_remaining.ToString();
+                    result.m_dbg_arguments += "\nArg[" + std::to_string(i) + "]: " +
+                        result.m_arguments[i].m_cardinality.ToString();
+                    result.m_dbg_arguments += " Remaining: " +
+                        result.m_arguments[i].m_remaining.ToString();
                 }
             #endif
+
+            return result;
         }
 
     } // namespace pattern

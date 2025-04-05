@@ -66,7 +66,7 @@
     <ClInclude Include="..\private\pattern\substitution_graph.h">
       <Filter>private\pattern</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\pattern\utils.h">
+    <ClInclude Include="..\private\pattern\debug_utils.h">
       <Filter>private\pattern</Filter>
     </ClInclude>
     <ClInclude Include="..\private\pattern\candidate.h">
@@ -137,7 +137,7 @@
     <ClCompile Include="..\private\pattern\substitution_graph_to_dot_language.cpp">
       <Filter>private\pattern</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\pattern\utils.cpp">
+    <ClCompile Include="..\private\pattern\debug_utils.cpp">
       <Filter>private\pattern</Filter>
     </ClCompile>
     <ClCompile Include="..\private\pattern\candidate.cpp">

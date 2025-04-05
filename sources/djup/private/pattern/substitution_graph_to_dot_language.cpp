@@ -7,7 +7,7 @@
 #include <private/pattern/substitution_graph.h>
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 
 namespace djup
 {

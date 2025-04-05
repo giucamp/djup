@@ -6,7 +6,7 @@
 
 #pragma once
 #include <private/expression.h>
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 #include <vector>
 #include <string>
 #include <cstdint>
@@ -18,7 +18,8 @@ namespace djup
     {
         /** Inclusive range of integers. If the bounds are equal the range contains a single
             value. If the lower bound is greater than the upper bound the range is empty, 
-            than this the values are meaningless. A default constructed range is empty. */
+            than this the values are meaningless. A default constructed range is empty.
+            If min == max the range contains a single number */
         struct Range
         {
             int32_t m_min{1}; /**< inclusive lower bound */
@@ -80,14 +81,12 @@ namespace djup
         struct PatternInfo
         {
             #if !defined(DJUP_DEBUG_PATTERN_INFO)
-                #error DJUP_DEBUG_PATTERN_INFO
-                void UpdateDebugInfo() {}
+                #error DJUP_DEBUG_PATTERN_INFO must be defined
             #endif
             #if DJUP_DEBUG_PATTERN_INFO
                 std::string m_dbg_str_pattern;
                 std::string m_dbg_arguments;
                 Tensor m_dbg_pattern;
-                void UpdateDebugInfo();
             #endif
 
             FunctionFlags m_flags{}; //>** Associativity or commutativity of the pattern */
@@ -109,3 +108,44 @@ namespace djup
 
 } // namespace djup
 
+namespace core
+{
+    template <> struct CharWriter<djup::pattern::Range>
+    {
+        constexpr void operator() (CharBufferView& i_dest, const djup::pattern::Range & i_source)
+        {
+            const int32_t infinite = djup::pattern::Range::s_infinite;
+
+            if (i_source.m_min == i_source.m_max)
+                i_dest << "empty";
+            else if (i_source.m_min == infinite && i_source.m_max == infinite)
+                i_dest << "Inf, Inf";
+            else if (i_source.m_min == infinite)
+                i_dest << "Inf, " << i_source.m_max;
+            else if (i_source.m_max == infinite)
+                i_dest << i_source.m_min << ", Inf";
+            else
+                i_dest << i_source.m_min << ", " << i_source.m_max;
+        }
+    };
+
+    #if !defined(DJUP_DEBUG_PATTERN_INFO)
+        #error DJUP_DEBUG_PATTERN_INFO must be defined
+    #endif
+    #if DJUP_DEBUG_PATTERN_INFO
+    template <> struct CharWriter<djup::pattern::PatternInfo>
+    {
+        void operator() (CharBufferView& i_dest, const djup::pattern::PatternInfo & i_source)
+        {
+            i_dest << "Pattern: " << i_source.m_dbg_str_pattern << "\n";
+            i_dest << "Arguments: " << i_source.m_arguments_range.ToString() << "\n";
+            for (size_t i = 0; i < i_source.m_arguments.size(); ++i)
+            {
+                i_dest << "Arg[" << i << "]: " << i_source.m_arguments[i].m_cardinality.ToString();
+                i_dest << " Remaining: " << i_source.m_arguments[i].m_remaining.ToString() << "\n";
+            }
+        }
+    };
+    #endif
+
+} //namespace core

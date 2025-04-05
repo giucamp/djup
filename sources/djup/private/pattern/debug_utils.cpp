@@ -4,7 +4,7 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 #include <private/pattern/pattern_info.h>
 
 namespace djup

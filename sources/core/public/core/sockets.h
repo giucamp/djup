@@ -11,6 +11,7 @@
 
 namespace core
 {
+    /** immutable class rapresenting an ip4 address */
     class Ip4Address
     {
     public:
@@ -39,10 +40,10 @@ namespace core
             /**< Wether send and recive operations should be blocking */
             bool m_blocking = true;
 
-            /**< Buffer size for sends, in bytes. If zero the OS-specific default is left. */
+            /**< Buffer size for sends, in bytes. If zero the OS-specific default is used. */
             size_t m_send_buffer_size = 0;
 
-            /**< Buffer size for receives, in bytes. If zero the OS-specific default is left. */
+            /**< Buffer size for receives, in bytes. If zero the OS-specific default is used. */
             size_t m_receive_buffer_size = 0;
         };
 

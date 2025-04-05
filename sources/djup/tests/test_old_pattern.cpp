@@ -7,7 +7,7 @@
 #include <private/namespace.h>
 #include <core/diagnostic.h>
 #include <fstream>
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 
 #define DBG_CREATE_GRAPHVIZ_SVG         1
 #define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""

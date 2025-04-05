@@ -8,7 +8,7 @@
 #include <djup/tensor.h>
 #include <private/old_pattern_match.h>
 #include <private/pattern/pattern_info.h>
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 #include <unordered_map>
 #include <limits>
 
@@ -35,7 +35,8 @@ namespace djup
                 {
                     uint32_t m_dest_node;
                     uint32_t m_pattern_id;
-                };
+                }; 
+                Edge() {}
             };
 
             static uint32_t GetRootNodeIndex() { return s_root_node_index; }

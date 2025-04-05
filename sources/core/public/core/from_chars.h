@@ -15,8 +15,8 @@
 
 namespace core
 {
-    /** Primary template for a parser. The second paramater can be used in partial
-        sepcializations to simplify sfinae conditions. The function operator must
+    /** Primary template for a parser. The second parameter can be used in partial
+        specializations to simplify sfinae conditions. The function operator must
         function must be noexcept, and may be constexpr. */
     template <typename TYPE, typename SFINAE_CONDITION = VoidT<>> struct Parser
     {

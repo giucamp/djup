@@ -11,7 +11,7 @@
 #include <private/builtin_names.h>
 #include <core/flags.h>
 #include <core/to_string.h>
-#include <private/pattern/utils.h>
+#include <private/pattern/debug_utils.h>
 #include <assert.h>
 
 namespace djup

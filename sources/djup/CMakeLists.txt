@@ -12,8 +12,8 @@ add_library(djup STATIC
 	private/pattern/substitution_graph.h
 	private/pattern/substitution_graph.cpp
 	private/pattern/substitution_graph_to_dot_language.cpp
-	private/pattern/utils.h
-	private/pattern/utils.cpp
+	private/pattern/debug_utils.h
+	private/pattern/debug_utils.cpp
 	private/alphabet.h
 	private/builtin_names.h
 	private/constant_shape.h
@@ -24,7 +24,6 @@ add_library(djup STATIC
 	private/name.h
 	private/namespace.h
 	private/parser.h
-	private/old_pattern_match.h
 	private/standard_scope.h
 	private/substitute_by_predicate.h
 	private/tensor_map.h
@@ -37,7 +36,6 @@ add_library(djup STATIC
 	private/name.cpp
 	private/namespace.cpp
 	private/parser.cpp
-	private/old_pattern_match.cpp
 	private/standard_namespace.cpp
 	private/tensor.cpp
 	public/djup/tensor.h
@@ -46,6 +44,7 @@ add_library(djup STATIC
 	tests/test_parse.cpp
 	tests/test_old_pattern.cpp
 	tests/test_pattern.cpp
+	tests/test_pattern_info.cpp
 	tests/test_tensor_to_string.cpp
 )
 
