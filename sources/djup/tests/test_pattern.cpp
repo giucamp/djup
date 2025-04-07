@@ -42,8 +42,12 @@ namespace djup
             
             pattern::DiscriminationTree discrimination_net;
             
+            //discrimination_net.AddPattern(1, "g(1 2 3)");
+
             discrimination_net.AddPattern(1, "g(1 w(2, 3) x...)");
-            discrimination_net.AddPattern(1, "g(1 a(2, 3) x...)");
+            discrimination_net.AddPattern(2, "g(1 a(2, 3) x...)");
+            discrimination_net.AddPattern(3, "g(1 a(2, 5) x...)");
+            discrimination_net.AddPattern(4, "g(1 a(2, r(x)) x...)");
             
             //discrimination_net.AddPattern(1, "g(3 z(real r...)... p(real y) 5)");
             //discrimination_net.AddPattern(2, "g(3 z(real r)... p(real) 6)");
@@ -72,6 +76,11 @@ namespace djup
             for (auto file : std::filesystem::directory_iterator(test_dir + "subst"))
                 if (file.is_regular_file())
                     std::filesystem::remove(file.path());
+
+
+            volatile int o = 9;
+            if(o)
+            return;
 
             pattern::SubstitutionGraph substitution_graph(discrimination_net);
             int step = 0;

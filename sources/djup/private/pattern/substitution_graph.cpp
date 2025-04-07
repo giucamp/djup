@@ -138,12 +138,12 @@ namespace djup
 
             const DiscriminationTree::Edge & discr_edge = i_candidate.m_discr_edge;
 
-            if (discr_edge.is_leaf_node)
+            /*if (discr_edge.is_leaf_node)
             {
                 // match found
                 int ggggg = 0;
             }
-            else
+            else*/
             {
                 /* loops the repetitions, advancing the target (or argument) at each iteration. */
                 int32_t target_index = i_candidate.m_target_offset;

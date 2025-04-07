@@ -22,6 +22,7 @@ namespace djup
         {
         public:
 
+            // the pattern id must be positive
             void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern,
                 const Tensor & i_condition = true);
             
@@ -30,13 +31,7 @@ namespace djup
             {
                 PatternInfo m_pattern_info; // do do: debug info here are always empty
                 std::vector<Tensor> m_labels;
-                bool is_leaf_node{false};
-                union
-                {
-                    uint32_t m_dest_node;
-                    uint32_t m_pattern_id;
-                }; 
-                Edge() {}
+                uint32_t m_dest_node;
             };
 
             static uint32_t GetRootNodeIndex() { return s_root_node_index; }
@@ -72,6 +67,10 @@ namespace djup
 
             int32_t GetNodeCount() const { return NumericCast<int32_t>(m_edges.size()); }
 
+            bool IsLeafNode(int32_t i_node_index) const { return m_leaf_pattern_id[i_node_index] != -1; }
+
+            int32_t GetPatternId(int32_t i_node_index) const { return m_leaf_pattern_id[i_node_index]; }
+
             /** Converts the discrimination net to a string processable with GraphWiz */
             std::string ToDotLanguage(std::string_view i_graph_name) const;
 
@@ -92,11 +91,15 @@ namespace djup
                 uint32_t i_source_node, Span<const Tensor> i_patterns,
                 const PatternInfo& i_source_pattern_info);
 
-            std::unordered_multimap<uint32_t, Edge> m_edges; /* The key is the source node index */
+            /** The key is the source node index */
+            std::unordered_multimap<uint32_t, Edge> m_edges; 
+
+            /** Id of the pattern if the node is a leaf, -1 otherwise */
+            std::vector<int32_t> m_leaf_pattern_id; 
             
             /** every node is identified by an index. INdices are not recycled.
                 This is the last index assigned to a node. */
-            uint32_t m_last_node_index = s_root_node_index;
+            int32_t m_next_node_index = -1;
         };
 
     } // namespace pattern

@@ -82,6 +82,8 @@ namespace djup
         void DiscriminationTree::AddPattern(uint32_t i_pattern_id,
             const Tensor& i_pattern, const Tensor& i_condition)
         {
+            assert(i_pattern_id >= 0);
+
             const Tensor preprocessed = PreprocessPattern(i_pattern);
 
             // pattern info for the level node (the one that starts from the root)
@@ -95,9 +97,9 @@ namespace djup
 
             Edge* curr_edge = AddEdge(s_root_node_index, { &preprocessed, 1 }, pattern_info);
 
-            ProcessPattern(curr_edge->m_dest_node, preprocessed.GetExpression()->GetArguments(), BuildPatternInfo(i_pattern));
+            Edge* const final_edge = ProcessPattern(curr_edge->m_dest_node, preprocessed.GetExpression()->GetArguments(), BuildPatternInfo(i_pattern));
 
-            curr_edge->is_leaf_node = true;
+            m_leaf_pattern_id[m_next_node_index - 1] = i_pattern_id;
 
             DiscrTreeDebugPrintLn("Leaf node");
         }
@@ -107,7 +109,7 @@ namespace djup
         {
             Edge * curr_edge = AddEdge(i_source_node, i_patterns, i_pattern_info);
 
-            // ----------------------------------------------
+            // process arguments
             for (size_t i = 0; i < i_patterns.size(); i++)
             {
                 if (!IsLiteral(i_patterns[i]) && !IsIdentifier(i_patterns[i]))
@@ -120,7 +122,6 @@ namespace djup
                         arguments, pattern_info);
                 }
             }
-            // -------------------------------------------------
 
             return curr_edge;
         }
@@ -156,12 +157,14 @@ namespace djup
             }
 
             // insert and setup a new edge
-            uint32_t new_node = ++m_last_node_index;
+            uint32_t new_node = ++m_next_node_index;
             Edge new_edge;
             new_edge.m_pattern_info = i_source_pattern_info;
             new_edge.m_labels.assign(i_patterns.begin(), i_patterns.end());
             new_edge.m_dest_node = new_node;
+            //DiscrTreeDebugPrintLn("Inserting ", i_source_node, " to ", new_edge.m_dest_node);
             auto res = m_edges.insert(std::pair(i_source_node, std::move(new_edge)));
+            m_leaf_pattern_id.push_back(-1);
             return &res->second;
         }
 
@@ -217,8 +220,11 @@ namespace djup
             DiscrTreeDebugPrintLn("---------------------------");
             for (const auto& edge : m_edges)
             {
-                DiscrTreeDebugPrintLn(edge.first, ": ", TensorSpanToString(Span(edge.second.m_labels), 1), 
-                    ", ", edge.second.is_leaf_node);
+                std::string dest = std::to_string(edge.second.m_dest_node);
+                if (IsLeafNode(edge.first))
+                    dest += "(Leaf)";
+                DiscrTreeDebugPrintLn(edge.first, "->", dest, ": ", 
+                    TensorSpanToString(Span(edge.second.m_labels), 1));
             }
             DiscrTreeDebugPrintLn("---------------------------");
 
@@ -236,7 +242,7 @@ namespace djup
             const std::string escaped_newline = "\\n";
 
             // nodes
-            for(uint32_t i = 0; i <= m_last_node_index; i++)
+            for(int32_t i = 0; i <= m_next_node_index; i++)
             {
                 dest << "v" << i;
                 if (i == s_root_node_index)
@@ -266,7 +272,7 @@ namespace djup
                 dest << "[style=\"solid\", color=\"" << color << "\", label=\"" << text;
                 dest << "\"]" << ';';
 
-                if (edge.second.is_leaf_node)
+                if (IsLeafNode(edge.first))
                 {
                     // draw pattern box
                     dest << "v" << edge.second.m_dest_node;
