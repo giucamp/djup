@@ -76,14 +76,14 @@ namespace djup
         {
             FunctionFlags m_flags = FunctionFlags::None;
             Span<const Tensor> m_pattern;
-            Span<const ArgumentInfo> m_arguments;
+            Span<const LabelInfo> m_labels;
             
             PatternSegment() = default;
 
-            PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern, Span<const ArgumentInfo> i_arguments)
-                : m_flags(i_flags), m_pattern(i_pattern), m_arguments(i_arguments)
+            PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern, Span<const LabelInfo> i_arguments)
+                : m_flags(i_flags), m_pattern(i_pattern), m_labels(i_arguments)
             {
-                assert(m_arguments.size() == m_pattern.size());
+                assert(m_labels.size() == m_pattern.size());
             }
         };
 
@@ -456,7 +456,7 @@ namespace djup
                 {
                     const Tensor & pattern = i_candidate.m_pattern.m_pattern[pattern_index];
 
-                    if(i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_min != i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.m_max)
+                    if(i_candidate.m_pattern.m_labels[pattern_index].m_cardinality.m_min != i_candidate.m_pattern.m_labels[pattern_index].m_cardinality.m_max)
                     {
                         size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
 
@@ -465,12 +465,12 @@ namespace djup
 
                         // compute usable range
                         Range usable;
-                        usable.m_max = total_available_targets - i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_min;
-                        usable.m_min = i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_max == s_max_reps ?
+                        usable.m_max = total_available_targets - i_candidate.m_pattern.m_labels[pattern_index].m_remaining.m_min;
+                        usable.m_min = i_candidate.m_pattern.m_labels[pattern_index].m_remaining.m_max == s_max_reps ?
                             0 :
-                            total_available_targets - i_candidate.m_pattern.m_arguments[pattern_index].m_remaining.m_max;
+                            total_available_targets - i_candidate.m_pattern.m_labels[pattern_index].m_remaining.m_max;
 
-                        usable = i_candidate.m_pattern.m_arguments[pattern_index].m_cardinality.ClampRange(usable);
+                        usable = i_candidate.m_pattern.m_labels[pattern_index].m_cardinality.ClampRange(usable);
 
                         // align the usable range to be a multiple of sub_pattern_count
                         usable.m_min += sub_pattern_count - 1;
@@ -490,14 +490,14 @@ namespace djup
                             path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
                                 PatternSegment{ pattern_info.m_flags,
                                     pattern.GetExpression()->GetArguments(),
-                                    pattern_info.m_arguments},
+                                    pattern_info.m_labels_info},
                                     true, rep );
 
                             // post-pattern
                             path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
                                 PatternSegment{ pattern_info.m_flags,
                                 i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                                i_candidate.m_pattern.m_arguments.subspan(pattern_index + 1) } );
+                                i_candidate.m_pattern.m_labels.subspan(pattern_index + 1) } );
                         }
                         return false;
                     }
@@ -530,8 +530,8 @@ namespace djup
 
                         // if the target does not have enough arguments, early reject
                         size_t target_arguments = target.GetExpression()->GetArguments().size();
-                        if(target_arguments >= pattern_info.m_arguments_range.m_min &&
-                            target_arguments <= pattern_info.m_arguments_range.m_max )
+                        if(target_arguments >= pattern_info.m_labels_range.m_min &&
+                            target_arguments <= pattern_info.m_labels_range.m_max )
                         {
                             LinearPath path(i_context, i_candidate);
 
@@ -539,14 +539,14 @@ namespace djup
                             path.AddEdge(target.GetExpression()->GetArguments(), 
                                 PatternSegment{ pattern_info.m_flags,
                                     pattern.GetExpression()->GetArguments(),
-                                    pattern_info.m_arguments });
+                                    pattern_info.m_labels_info });
 
                             // rest of this repetition
                             const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
                             path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern), 
                                 PatternSegment{ pattern_info.m_flags,
                                     i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                                    i_candidate.m_pattern.m_arguments.subspan(pattern_index + 1) } );
+                                    i_candidate.m_pattern.m_labels.subspan(pattern_index + 1) } );
 
                             // remaining repetitions
                             const size_t target_start = target_index + 1 + remaining_in_pattern;
@@ -669,8 +669,8 @@ namespace djup
             PatternSegment segment;
             segment.m_flags = FunctionFlags::None;
             segment.m_pattern = {&pattern, 1};
-            ArgumentInfo arg_info{single_range, single_remaining};
-            segment.m_arguments = {&arg_info, 1};
+            LabelInfo arg_info{single_range, single_remaining};
+            segment.m_labels = {&arg_info, 1};
             AddCandidate(context, 1, 0, {&target, 1}, segment, {}, {});
 
             /*#if DBG_CREATE_GRAPHVIZ_SVG

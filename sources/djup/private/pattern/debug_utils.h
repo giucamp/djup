@@ -14,9 +14,9 @@ namespace djup
     {
         /* Warning: this flags will alter the layout of classes, adding
            string where it is useful for debug purpose. They can also 
-           enable some Print on the string. */
+           enable some Print. */
         #define DJUP_DEBUG_PATTERN_INFO                         true
-        #define DJUP_DEBUG_DISCRIMINATION_TREE                  false
+        #define DJUP_DEBUG_DISCRIMINATION_TREE                  true
         #define DJUP_DEBUG_PATTERN_MATCHING                     false
         #define DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING     false
 
@@ -28,12 +28,12 @@ namespace djup
             #pragma message("DJUP_DEBUG_DISCRIMINATION_TREE is true")        
         #endif
 
-        #if DJUP_DEBUG_PATTERN_INFO
-            #pragma message("DJUP_DEBUG_PATTERN_INFO is true")        
+        #if DJUP_DEBUG_PATTERN_MATCHING
+            #pragma message("DJUP_DEBUG_PATTERN_MATCHING is true")        
         #endif
 
-        #if DJUP_DEBUG_PATTERN_INFO
-            #pragma message("DJUP_DEBUG_PATTERN_INFO is true")        
+        #if DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING
+            #pragma message("DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING is true")        
         #endif
 
         std::vector<Span<const Tensor>> Tokenize(const Tensor& i_tensor);

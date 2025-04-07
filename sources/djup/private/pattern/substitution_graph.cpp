@@ -54,7 +54,7 @@ namespace djup
                 i_candidate.m_discr_edge.m_pattern_info.m_dbg_pattern);*/
             SubstGraphDebugPrintLn();
 
-            if (!i_candidate.m_discr_edge.m_arguments.empty())
+            if (!i_candidate.m_discr_edge.m_labels.empty())
             {
                 m_candidate_stack.push_back(std::move(i_candidate));
             }
@@ -78,7 +78,7 @@ namespace djup
                 SubstGraphDebugPrintLn();
 
                 // construct candidate
-                DiscriminationTree::Edge edge = edge_it.second;
+                const DiscriminationTree::Edge & edge = edge_it.second;
                 Candidate candidate;
                 candidate.m_parent_candidate = 0;
                 candidate.m_discr_edge = edge;
@@ -130,7 +130,7 @@ namespace djup
             /* early reject if the number of parameters (targets) is incompatible
                with the number of arguments in the pattern */
             const Span<const Tensor> targets = i_candidate.m_targets;
-            if (!i_candidate.m_discr_edge.m_pattern_info.m_arguments_range.IsValaueWithin(
+            if (!i_candidate.m_discr_edge.m_pattern_info.m_labels_range.IsValaueWithin(
                 NumericCast<int32_t>(targets.size())))
             {
                 return -1;
@@ -151,15 +151,15 @@ namespace djup
                 {
                     /** for every repetition the target must have the all the expressions in
                         the pattern. */
-                    const int32_t pattern_size = NumericCast<int32_t>(i_candidate.m_discr_edge.m_arguments.size());
+                    const int32_t pattern_size = NumericCast<int32_t>(i_candidate.m_discr_edge.m_labels.size());
                     for (int32_t pattern_index = i_candidate.m_pattern_offset;
                         pattern_index < pattern_size; target_index++, pattern_index++)
                     {
-                        const Tensor& pattern = i_candidate.m_discr_edge.m_arguments[pattern_index];
+                        const Tensor& pattern = i_candidate.m_discr_edge.m_labels[pattern_index];
                         const Range argument_cardinality =
-                            i_candidate.m_discr_edge.m_pattern_info.m_arguments[pattern_index].m_cardinality;
+                            i_candidate.m_discr_edge.m_pattern_info.m_labels_info[pattern_index].m_cardinality;
                         const Range remaining =
-                            i_candidate.m_discr_edge.m_pattern_info.m_arguments[pattern_index].m_remaining;
+                            i_candidate.m_discr_edge.m_pattern_info.m_labels_info[pattern_index].m_remaining;
 
                         // check if it's a single cardinality argument
                         if (argument_cardinality.m_min == argument_cardinality.m_max)
@@ -393,7 +393,7 @@ namespace djup
             /* early reject if the number of parameters (targets) is incompatible
                with the number of arguments in the pattern */
             const Span<const Tensor> targets = i_candidate.m_targets;
-            if (!i_candidate.m_discr_edge.m_pattern_info.m_arguments_range.IsValaueWithin(
+            if (!i_candidate.m_discr_edge.m_pattern_info.m_labels_range.IsValaueWithin(
                 NumericCast<int32_t>(targets.size())))
             {
                 return -1;

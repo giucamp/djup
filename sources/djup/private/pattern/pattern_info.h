@@ -59,14 +59,14 @@ namespace djup
             Range ClampRange(Range i_range) const noexcept;
 
             // returns a string representation of the range, for example:
-            // [1, 1], [0, 1], [0, Inf], [1, Inf]
+            // "1, 1", "0, 1", "0, Inf", "1, Inf"
             std::string ToString() const;
         };
 
         /** Describes a single parameter of a pattern, for example b in f(a, b, c) */
-        struct ArgumentInfo
+        struct LabelInfo
         {
-            /** How many times this argument can be repeated: [1,1] for plain parameters,
+            /** How many times this label can be repeated: [1,1] for plain parameters,
                 [0,Inf] for variadic parameters, etc. */
             Range m_cardinality;
             /** Given a parameter for this argument, how many parameters can follow. For
@@ -76,7 +76,7 @@ namespace djup
         };
 
         /** Statically describes a pattern and its arguments, independently of
-            the expressions it is tested against. To do: incapsulate as an
+            the expressions it is tested against. To do: encapsulate as an
             immutable class */
         struct PatternInfo
         {
@@ -85,20 +85,20 @@ namespace djup
             #endif
             #if DJUP_DEBUG_PATTERN_INFO
                 std::string m_dbg_str_pattern;
-                std::string m_dbg_arguments;
+                std::string m_dbg_labels;
                 Tensor m_dbg_pattern;
             #endif
 
             FunctionFlags m_flags{}; //>** Associativity or commutativity of the pattern */
 
             /** Minimum and maximum number of parameters that may match this pattern */
-            Range m_arguments_range;
+            Range m_labels_range;
 
-            /** Describes every single argument of the pattern. */
-            std::vector<ArgumentInfo> m_arguments;
+            /** Describes every single label of the pattern. */
+            std::vector<LabelInfo> m_labels_info;
         };
 
-        /** Returns true if the (root) expression is ?, .. or ... */
+        /** Returns true if the (root) expression is a repetition (?, .. or ...) */
         bool IsRepetition(const Tensor& i_expression);
 
         /** Constructs a PatternInfo (static pattern information) given a pattern */
@@ -138,11 +138,11 @@ namespace core
         void operator() (CharBufferView& i_dest, const djup::pattern::PatternInfo & i_source)
         {
             i_dest << "Pattern: " << i_source.m_dbg_str_pattern << "\n";
-            i_dest << "Arguments: " << i_source.m_arguments_range.ToString() << "\n";
-            for (size_t i = 0; i < i_source.m_arguments.size(); ++i)
+            i_dest << "Arguments: " << i_source.m_labels_range.ToString() << "\n";
+            for (size_t i = 0; i < i_source.m_labels_info.size(); ++i)
             {
-                i_dest << "Arg[" << i << "]: " << i_source.m_arguments[i].m_cardinality.ToString();
-                i_dest << " Remaining: " << i_source.m_arguments[i].m_remaining.ToString() << "\n";
+                i_dest << "Label[" << i << "]: " << i_source.m_labels_info[i].m_cardinality.ToString();
+                i_dest << " Remaining: " << i_source.m_labels_info[i].m_remaining.ToString() << "\n";
             }
         }
     };

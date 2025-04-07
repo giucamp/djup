@@ -82,50 +82,53 @@ namespace djup
         void DiscriminationTree::AddPattern(uint32_t i_pattern_id,
             const Tensor& i_pattern, const Tensor& i_condition)
         {
-            Edge* last_edge = AddPatternFrom(s_root_node_index, i_pattern);
-            last_edge->is_leaf_node = true;
+            const Tensor preprocessed = PreprocessPattern(i_pattern);
+
+            // pattern info for the level node (the one that starts from the root)
+            PatternInfo pattern_info;
+            pattern_info.m_labels_range = {1, 1};
+            pattern_info.m_labels_info.resize(1);
+            pattern_info.m_labels_info[0].m_cardinality = { 1, 1 };
+            pattern_info.m_labels_info[0].m_remaining = { 0, 0 };
+            pattern_info.m_dbg_pattern = i_pattern;
+            pattern_info.m_flags = {};
+
+            Edge* curr_edge = AddEdge(s_root_node_index, { &preprocessed, 1 }, pattern_info);
+
+            ProcessPattern(curr_edge->m_dest_node, preprocessed.GetExpression()->GetArguments(), BuildPatternInfo(i_pattern));
+
+            curr_edge->is_leaf_node = true;
+
             DiscrTreeDebugPrintLn("Leaf node");
         }
 
-        DiscriminationTree::Edge * DiscriminationTree::AddPatternFrom(
-            uint32_t i_source_node, const Tensor & i_pattern)
+        DiscriminationTree::Edge* DiscriminationTree::ProcessPattern(
+            int32_t i_source_node, Span<const Tensor> i_patterns, const PatternInfo & i_pattern_info)
         {
-            DiscrTreeDebugPrintLn( "Adding pattern from ", i_source_node, ", with ", ToSimplifiedStringForm(i_pattern, 1) );
+            Edge * curr_edge = AddEdge(i_source_node, i_patterns, i_pattern_info);
 
-            const Tensor canonical = PreprocessPattern(i_pattern);
-            const std::vector<Tensor> & arguments = canonical.GetExpression()->GetArguments();
-
-            Edge * edge = AddEdge(i_source_node, arguments);
-
-            const PatternInfo pattern_info = BuildPatternInfo(canonical);
-
-            // merge the cardinalities in the exiting edge
-            edge->m_pattern_info.m_flags = pattern_info.m_flags;
-            edge->m_pattern_info.m_arguments_range |= pattern_info.m_arguments_range;
-            edge->m_pattern_info.m_arguments.resize(arguments.size());
-            for (size_t i = 0; i < arguments.size(); i++)
+            // ----------------------------------------------
+            for (size_t i = 0; i < i_patterns.size(); i++)
             {
-                edge->m_pattern_info.m_arguments[i].m_cardinality |= pattern_info.m_arguments[i].m_cardinality;
-                edge->m_pattern_info.m_arguments[i].m_remaining |= pattern_info.m_arguments[i].m_remaining;
-            }
-
-            for (size_t i = 0; i < arguments.size(); i++)
-            {
-                if (!IsLiteral(arguments[i]) && !IsIdentifier(arguments[i]))
+                if (!IsLiteral(i_patterns[i]) && !IsIdentifier(i_patterns[i]))
                 {
-                    DiscrTreeDebugPrintLn(ToSimplifiedStringForm(arguments[i]));
+                    Span<const Tensor> arguments = i_patterns[i].GetExpression()->GetArguments();
+                    
+                    const PatternInfo pattern_info = BuildPatternInfo(i_patterns[i]);
 
-                    edge = AddPatternFrom(edge->m_dest_node, arguments[i]);
+                    curr_edge = AddEdge(curr_edge->m_dest_node, 
+                        arguments, pattern_info);
                 }
             }
+            // -------------------------------------------------
 
-            return edge;
+            return curr_edge;
         }
 
-        // Adds an edge from a source node, or returns an existing identical one
-        // If a new edge is created, a new destination node is created too
+        /** Adds an edge, or returns an identical one */
         DiscriminationTree::Edge* DiscriminationTree::AddEdge(
-            uint32_t i_source_node, Span<const Tensor> i_patterns)
+            uint32_t i_source_node, Span<const Tensor> i_patterns,
+            const PatternInfo& i_source_pattern_info)
         {
             DiscrTreeDebugPrintLn("Adding edge from ", i_source_node, " with ", TensorSpanToString(i_patterns, 1));
 
@@ -133,18 +136,31 @@ namespace djup
             auto range = m_edges.equal_range(i_source_node);
             for (auto it = range.first; it != range.second; it++)
             {
-                if (SamePatterns(it->second.m_arguments, i_patterns))
+                Edge& existing_edge = it->second;
+                if (SamePatterns(existing_edge.m_labels, i_patterns))
                 {
-                    return &it->second;
+                    // merge the cardinalities in the exiting edge
+                    existing_edge.m_pattern_info.m_flags = i_source_pattern_info.m_flags;
+                    existing_edge.m_pattern_info.m_labels_range |= i_source_pattern_info.m_labels_range;
+                    existing_edge.m_pattern_info.m_labels_info.resize(existing_edge.m_pattern_info.m_labels_info.size());
+                    for (size_t i = 0; i < existing_edge.m_labels.size(); i++)
+                    {
+                        existing_edge.m_pattern_info.m_labels_info[i].m_cardinality |=
+                            i_source_pattern_info.m_labels_info[i].m_cardinality;
+                        existing_edge.m_pattern_info.m_labels_info[i].m_remaining |=
+                            i_source_pattern_info.m_labels_info[i].m_remaining;
+                    }
+
+                    return &existing_edge;
                 }
             }
 
-            Edge new_edge;
-            new_edge.m_arguments.assign(i_patterns.begin(), i_patterns.end());
-            //new_edge.m_argument_infos = 
+            // insert and setup a new edge
             uint32_t new_node = ++m_last_node_index;
+            Edge new_edge;
+            new_edge.m_pattern_info = i_source_pattern_info;
+            new_edge.m_labels.assign(i_patterns.begin(), i_patterns.end());
             new_edge.m_dest_node = new_node;
-
             auto res = m_edges.insert(std::pair(i_source_node, std::move(new_edge)));
             return &res->second;
         }
@@ -201,7 +217,7 @@ namespace djup
             DiscrTreeDebugPrintLn("---------------------------");
             for (const auto& edge : m_edges)
             {
-                DiscrTreeDebugPrintLn(edge.first, ": ", TensorSpanToString(Span(edge.second.m_arguments), 1), 
+                DiscrTreeDebugPrintLn(edge.first, ": ", TensorSpanToString(Span(edge.second.m_labels), 1), 
                     ", ", edge.second.is_leaf_node);
             }
             DiscrTreeDebugPrintLn("---------------------------");
@@ -235,7 +251,7 @@ namespace djup
             // edges
             for(const auto & edge : m_edges)
             {
-                std::string text = TensorSpanToString(edge.second.m_arguments, 1, true);
+                std::string text = TensorSpanToString(edge.second.m_labels, 1, true);
                 
                 // uncomment the following to see the raw form of edge patterns
                 // text += escaped_newline + TensorSpanToString(edge.second.m_arguments, 1, false);
@@ -243,8 +259,8 @@ namespace djup
                 std::string color = "black";
                 std::string dest_node = 
                     ToString("v", edge.second.m_dest_node);
-                if (edge.second.m_pattern_info.m_arguments_range != Range{ 1, 1 })
-                    text += "{" + edge.second.m_pattern_info.m_arguments_range.ToString() + "}";
+                if (edge.second.m_pattern_info.m_labels_range != Range{ 1, 1 })
+                    text += escaped_newline + "{" + edge.second.m_pattern_info.m_labels_range.ToString() + "}";
 
                 dest << 'v' << edge.first << " -> " << dest_node;
                 dest << "[style=\"solid\", color=\"" << color << "\", label=\"" << text;

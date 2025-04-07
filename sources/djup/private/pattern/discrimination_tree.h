@@ -29,7 +29,7 @@ namespace djup
             struct Edge
             {
                 PatternInfo m_pattern_info; // do do: debug info here are always empty
-                std::vector<Tensor> m_arguments;
+                std::vector<Tensor> m_labels;
                 bool is_leaf_node{false};
                 union
                 {
@@ -82,9 +82,15 @@ namespace djup
             static bool SamePatterns(Span<const Tensor> i_first_patterns, Span<const Tensor> i_second_patterns);
 
             /** Returns the destination node */
-            Edge * AddPatternFrom(uint32_t i_source_node, const Tensor& i_source);
+            Edge * AddPatternFrom(uint32_t i_source_node,
+                const Tensor& i_source, const PatternInfo & pattern_info);
 
-            Edge * AddEdge(uint32_t i_source_node, Span<const Tensor> i_patterns);
+            DiscriminationTree::Edge* ProcessPattern(
+                int32_t i_source_node, Span<const Tensor> i_patterns, const PatternInfo& i_pattern_info);
+
+            DiscriminationTree::Edge* AddEdge(
+                uint32_t i_source_node, Span<const Tensor> i_patterns,
+                const PatternInfo& i_source_pattern_info);
 
             std::unordered_multimap<uint32_t, Edge> m_edges; /* The key is the source node index */
             
