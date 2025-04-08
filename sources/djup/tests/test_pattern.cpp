@@ -45,9 +45,12 @@ namespace djup
             //discrimination_net.AddPattern(1, "g(1 2 3)");
 
             discrimination_net.AddPattern(1, "g(1 w(2, 3) x...)");
-            discrimination_net.AddPattern(2, "g(1 a(2, 3) x...)");
+
+            auto ppp = ToSimplifiedStringForm("g(1 w(2, 3) x...)"_t, 100, false);
+
+            /*discrimination_net.AddPattern(2, "g(1 a(2, 3) x...)");
             discrimination_net.AddPattern(3, "g(1 a(2, 5) x...)");
-            discrimination_net.AddPattern(4, "g(1 a(2, r(x)) x...)");
+            discrimination_net.AddPattern(4, "g(1 a(2, r(x)) x...)");*/
             
             //discrimination_net.AddPattern(1, "g(3 z(real r...)... p(real y) 5)");
             //discrimination_net.AddPattern(2, "g(3 z(real r)... p(real) 6)");

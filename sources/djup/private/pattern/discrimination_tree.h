@@ -99,7 +99,7 @@ namespace djup
             
             /** every node is identified by an index. INdices are not recycled.
                 This is the last index assigned to a node. */
-            int32_t m_next_node_index = -1;
+            int32_t m_next_node_index = s_root_node_index;
         };
 
     } // namespace pattern

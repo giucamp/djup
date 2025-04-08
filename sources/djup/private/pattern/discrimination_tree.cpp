@@ -97,10 +97,11 @@ namespace djup
 
             Edge* curr_edge = AddEdge(s_root_node_index, { &preprocessed, 1 }, pattern_info);
 
-            Edge* const final_edge = ProcessPattern(curr_edge->m_dest_node, preprocessed.GetExpression()->GetArguments(), BuildPatternInfo(i_pattern));
+            Edge* const final_edge = ProcessPattern(curr_edge->m_dest_node, 
+                preprocessed.GetExpression()->GetArguments(), BuildPatternInfo(i_pattern));
 
-            m_leaf_pattern_id[m_next_node_index - 1] = i_pattern_id;
-
+            m_leaf_pattern_id.back() = i_pattern_id;
+            
             DiscrTreeDebugPrintLn("Leaf node");
         }
 
@@ -162,9 +163,9 @@ namespace djup
             new_edge.m_pattern_info = i_source_pattern_info;
             new_edge.m_labels.assign(i_patterns.begin(), i_patterns.end());
             new_edge.m_dest_node = new_node;
-            //DiscrTreeDebugPrintLn("Inserting ", i_source_node, " to ", new_edge.m_dest_node);
             auto res = m_edges.insert(std::pair(i_source_node, std::move(new_edge)));
             m_leaf_pattern_id.push_back(-1);
+            assert(m_edges.size() == m_leaf_pattern_id.size());
             return &res->second;
         }
 
