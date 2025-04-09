@@ -96,10 +96,18 @@ namespace djup
 
             /** Id of the pattern if the node is a leaf, -1 otherwise */
             std::vector<int32_t> m_leaf_pattern_id; 
+
+            #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
+                #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
+            #endif
+            #if DJUP_DEBUG_DISCRIMINATION_TREE
+                // the key is the pattern id
+                std::unordered_map<int32_t, std::string> m_dbg_full_patterns;
+            #endif
             
             /** every node is identified by an index. INdices are not recycled.
                 This is the last index assigned to a node. */
-            int32_t m_next_node_index = s_root_node_index;
+            int32_t m_last_node_index = s_root_node_index;
         };
 
     } // namespace pattern

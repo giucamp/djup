@@ -12,7 +12,6 @@
 #include <private/substitute_by_predicate.h>
 #include <core/flags.h>
 #include <core/to_string.h>
-#include <algorithm> // for min, max
 
 namespace djup
 {
@@ -102,7 +101,12 @@ namespace djup
 
             m_leaf_pattern_id.back() = i_pattern_id;
             
-            DiscrTreeDebugPrintLn("Leaf node");
+            #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
+                #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
+            #endif
+            #if DJUP_DEBUG_DISCRIMINATION_TREE
+                m_dbg_full_patterns[i_pattern_id] = ToSimplifiedStringForm(i_pattern);
+            #endif
         }
 
         DiscriminationTree::Edge* DiscriminationTree::ProcessPattern(
@@ -132,7 +136,7 @@ namespace djup
             uint32_t i_source_node, Span<const Tensor> i_patterns,
             const PatternInfo& i_source_pattern_info)
         {
-            DiscrTreeDebugPrintLn("Adding edge from ", i_source_node, " with ", TensorSpanToString(i_patterns, 1));
+            DiscrTreeDebugPrintLn("Adding edge from ", i_source_node, " with label ", TensorSpanToString(i_patterns, 1));
 
             // search for an identical edge with the same patterns
             auto range = m_edges.equal_range(i_source_node);
@@ -158,7 +162,7 @@ namespace djup
             }
 
             // insert and setup a new edge
-            uint32_t new_node = ++m_next_node_index;
+            uint32_t new_node = ++m_last_node_index;
             Edge new_edge;
             new_edge.m_pattern_info = i_source_pattern_info;
             new_edge.m_labels.assign(i_patterns.begin(), i_patterns.end());
@@ -243,15 +247,20 @@ namespace djup
             const std::string escaped_newline = "\\n";
 
             // nodes
-            for(int32_t i = 0; i <= m_next_node_index; i++)
+            for(int32_t i = 0; i <= m_last_node_index; i++)
             {
                 dest << "v" << i;
                 if (i == s_root_node_index)
-                    dest << "[shape = box]";
-
-                dest << "[label = \"";
-                dest << i;
-                dest << escaped_newline << "\"]";
+                {
+                    dest << "[shape = box] [style=filled] [fontcolor=\"black\"] [fillcolor=\"#bee3fb\"]";
+                    dest << "[label = \"Root\"]";
+                }
+                else
+                {
+                    dest << "[label = \"" << i << "\"] [style=filled] "
+                        "[fontcolor=\"black\"] [fillcolor=\"#a3ebc5\"]";
+                }
+                
                 dest.NewLine();
             }
 
@@ -276,9 +285,18 @@ namespace djup
                 if (IsLeafNode(edge.first))
                 {
                     // draw pattern box
-                    dest << "v" << edge.second.m_dest_node;
-                    dest << "[shape = box, label = \"";
-                    dest << "Pattern " << edge.second.m_dest_node << "\"]";
+                    #if DJUP_DEBUG_DISCRIMINATION_TREE
+                        const auto full_pattern_it = m_dbg_full_patterns.find(m_leaf_pattern_id[edge.first]);
+                        assert(full_pattern_it != m_dbg_full_patterns.end());
+                        dest << "v" << edge.second.m_dest_node;
+                        dest << "[shape = box, label = \"";
+                        dest << full_pattern_it->second;
+                        dest << escaped_newline << "Pattern " << m_leaf_pattern_id[edge.first] << "\"]";
+                    #else
+                        dest << "v" << edge.second.m_dest_node;
+                        dest << "[shape = box, label = \"";
+                        dest << "Pattern " << edge.second.m_dest_node << "\"]";
+                    #endif
                     dest.NewLine();
                 }
 
