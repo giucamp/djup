@@ -29,7 +29,8 @@ namespace djup
             /** In leaf edges m_expression is empty, and m_pattern_id is valid */
             struct Edge
             {
-                PatternInfo m_pattern_info; // do do: debug info here are always empty
+                PatternInfo m_pattern_info; /* do do: debug info here are always 
+                    incomplete because of merging multiple patterns */
                 std::vector<Tensor> m_labels;
                 uint32_t m_dest_node;
             };
@@ -66,6 +67,8 @@ namespace djup
             }
 
             int32_t GetNodeCount() const { return NumericCast<int32_t>(m_edges.size()); }
+
+            bool IsGraphEmpty() const { return m_leaf_pattern_id.empty(); }
 
             bool IsLeafNode(int32_t i_node_index) const { return m_leaf_pattern_id[i_node_index] != -1; }
 

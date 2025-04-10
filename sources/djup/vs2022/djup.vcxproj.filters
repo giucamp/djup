@@ -149,6 +149,12 @@
     <ClCompile Include="..\tests\test_pattern_info.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\expression_to_graph.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_tensor_to_graph.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis">

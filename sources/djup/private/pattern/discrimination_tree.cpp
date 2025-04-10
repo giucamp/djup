@@ -96,7 +96,7 @@ namespace djup
 
             Edge* curr_edge = AddEdge(s_root_node_index, { &preprocessed, 1 }, pattern_info);
 
-            Edge* const final_edge = ProcessPattern(curr_edge->m_dest_node, 
+            ProcessPattern(curr_edge->m_dest_node, 
                 preprocessed.GetExpression()->GetArguments(), BuildPatternInfo(i_pattern));
 
             m_leaf_pattern_id.back() = i_pattern_id;
@@ -273,9 +273,10 @@ namespace djup
                 // text += escaped_newline + TensorSpanToString(edge.second.m_arguments, 1, false);
 
                 std::string color = "black";
+
                 std::string dest_node = 
                     ToString("v", edge.second.m_dest_node);
-                if (edge.second.m_pattern_info.m_labels_range != Range{ 1, 1 })
+                if (!edge.second.m_pattern_info.m_labels_range.IsSingleValue())
                     text += escaped_newline + "{" + edge.second.m_pattern_info.m_labels_range.ToString() + "}";
 
                 dest << 'v' << edge.first << " -> " << dest_node;

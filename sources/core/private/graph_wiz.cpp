@@ -48,6 +48,25 @@ namespace core
         }
     }
 
+    std::string RgbaToHex(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha)
+    {
+        char digits[] = "0123456789ABCDEF";
+
+        std::string chars;
+        chars.resize(9);
+        chars[0] = '#';
+        chars[1] = digits[(i_red >> 4) & 15];
+        chars[2] = digits[i_red & 15];
+        chars[3] = digits[(i_green >> 4) & 15];
+        chars[4] = digits[i_green & 15];
+        chars[5] = digits[(i_blue >> 4) & 15];
+        chars[6] = digits[i_blue & 15];
+        chars[7] = digits[(i_alpha >> 4) & 15];
+        chars[8] = digits[i_alpha & 15];
+        chars[9] = 0;
+        return chars;
+    }
+
     struct GraphWizGraph::Node
     {
         std::string m_label;
@@ -76,8 +95,13 @@ namespace core
                 "set the correct executable location");
     }
 
-    /* the destructor of m_nodes and m_edges cannot appear prior the
-       definition of the structs */
+    /* definition of copy, move and delete of m_nodes and m_edges
+       cannot appear prior the definition of the structs */
+
+    GraphWizGraph::GraphWizGraph(const GraphWizGraph& i_source) = default;
+
+    GraphWizGraph::GraphWizGraph(GraphWizGraph&& i_source) = default;
+
     GraphWizGraph::~GraphWizGraph() = default;
 
     void GraphWizGraph::SetNodeShape(GraphWizGraph::NodeShape i_shape)
@@ -85,19 +109,19 @@ namespace core
         m_current_attributes.m_node_shape = i_shape;
     }
 
-    void GraphWizGraph::SetDrawingColor(std::string_view i_color)
+    void GraphWizGraph::SetDrawingColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha)
     {
-        m_current_attributes.m_drawing_color = i_color;
+        m_current_attributes.m_drawing_color = RgbaToHex(i_red, i_green, i_blue, i_alpha);
     }
 
-    void GraphWizGraph::SetFontColor(std::string_view i_color)
+    void GraphWizGraph::SetFontColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha)
     {
-        m_current_attributes.m_font_color = i_color;
+        m_current_attributes.m_font_color = RgbaToHex(i_red, i_green, i_blue, i_alpha);
     }
 
-    void GraphWizGraph::SetFillColor(std::string_view i_color)
+    void GraphWizGraph::SetFillColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha)
     {
-        m_current_attributes.m_fill_color = i_color;
+        m_current_attributes.m_fill_color = RgbaToHex(i_red, i_green, i_blue, i_alpha);
     }
 
     uint32_t GraphWizGraph::AddNode(std::string_view i_label)

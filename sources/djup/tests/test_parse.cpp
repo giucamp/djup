@@ -16,7 +16,7 @@ namespace djup
             Print("Test: djup - Parse...");
 
             Tensor v("2 + 3");
-
+            
             Tensor v1("real [2 4] m");
 
             "SubstitutionAxiom(real f(real x), , Namespace(SubstitutionAxiom(a, , 1), "

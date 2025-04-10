@@ -36,6 +36,10 @@ namespace core
 
         GraphWizGraph(std::string_view i_graph_name = "unnamed_graph");
 
+        GraphWizGraph(const GraphWizGraph& i_source);
+
+        GraphWizGraph(GraphWizGraph && i_source);
+
         ~GraphWizGraph();
 
         enum NodeShape
@@ -46,11 +50,11 @@ namespace core
 
         void SetNodeShape(NodeShape i_shape);
 
-        void SetDrawingColor(std::string_view i_color);
+        void SetDrawingColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha = 255);
 
-        void SetFontColor(std::string_view i_color);
+        void SetFontColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha = 255);
 
-        void SetFillColor(std::string_view i_color);
+        void SetFillColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha = 255);
 
         /** Adds a node using the currently set attributes and
             the provided label. Returns the index of the new node. */

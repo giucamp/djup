@@ -7,6 +7,7 @@
 #pragma once
 #include <vector>
 #include <optional>
+#include <core/graph_wiz.h>
 #include <core/hash.h>
 #include <private/name.h>
 #include <djup/tensor.h>
@@ -92,6 +93,12 @@ namespace djup
     };
 
     FunctionFlags GetFunctionFlags(const Name & i_function_name);
+
+    GraphWizGraph ExpressionToGraph(const Expression& i_source,
+        size_t i_depth = std::numeric_limits<int32_t>::max(), bool i_tidy = true);
+
+    GraphWizGraph TensorToGraph(const Tensor& i_source,
+        size_t i_depth = std::numeric_limits<int32_t>::max(), bool i_tidy = true);
 
     template <auto VALUE>
         [[nodiscard]] const Tensor & MakeLiteral()

@@ -27,6 +27,7 @@ namespace core
             size required for a buffer. */
         constexpr CharBufferView() noexcept = default;
 
+        /** Constructs a writer with a buffer and some characters already written */
         constexpr CharBufferView(Span<char> i_dest_buffer, size_t i_written_offset) noexcept
             : m_chars(i_dest_buffer.data()), m_capacity(i_dest_buffer.size()), m_required_size(i_written_offset)
         {
@@ -37,8 +38,14 @@ namespace core
         {
         }
 
-        /** Returns the number of charcters remaining in the buffer, which is negative
-            in case of buffer overlow. */
+        template <size_t BUFFER_LEBGTH>
+            constexpr CharBufferView(char* (&i_buffer)[BUFFER_LEBGTH]) noexcept
+                : m_chars(i_buffer), m_capacity(BUFFER_LEBGTH), m_required_size(0)
+        {
+        }
+
+        /** Returns the number of characters remaining in the buffer, which is negative
+            in case of buffer overflow. */
         constexpr size_t RemainingSize() const noexcept { return m_required_size > m_capacity ? 0 : m_capacity - m_required_size; }
 
         void SkipParsedChars(size_t i_number_of_parsed_chars) noexcept
@@ -81,8 +88,8 @@ namespace core
         size_t m_required_size = 0;
     };
 
-    /** Primary template for a CharWriter. The second paramater can be used in partial
-        sepcializations to simplify sfinae conditions using VoidT. The function operator
+    /** Primary template for a CharWriter. The second parameter can be used in partial
+        specializations to simplify sfinae conditions using VoidT. The function operator
         must be noexcept, and may be constexpr. 
         
         template <> struct CharWriter<bool>

@@ -13,7 +13,7 @@ namespace djup
 {
     namespace
     {
-        void TensorToString(StringBuilder & i_dest, const Tensor & i_source, bool tidy)
+        void TensorToString(StringBuilder & i_dest, const Tensor & i_source, bool /*tidy*/)
         {
             i_dest << i_source.GetExpression()->GetName();
         }

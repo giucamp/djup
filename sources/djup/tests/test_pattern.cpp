@@ -42,40 +42,13 @@ namespace djup
             
             pattern::DiscriminationTree discrimination_net;
             
-            //discrimination_net.AddPattern(1, "g(1 2 3)");
-
-            discrimination_net.AddPattern(1, "g(3 z(real r...)... p(real y) 5)");
             discrimination_net.AddPattern(2, "g(3 z(real r)... p(real) 6)");
             discrimination_net.AddPattern(3, "g(3 m(real r) p(real) 7)");
             discrimination_net.AddPattern(4, "g(3 m(real r) w(real) 3)");
             discrimination_net.AddPattern(5, "Func(1 2 3)");
             discrimination_net.AddPattern(6, "f(1, 2, real x..., 6, 7, 8, real y..., 12, 13, 14, 15)");
 
-            //discrimination_net.AddPattern(1, "g(1 w(2, 3) x...)");
-           
-//auto ppp3= ToSimplifiedStringForm("g(1 w(2, 3) x...)"_t, 100, false);
-
-            /*discrimination_net.AddPattern(2, "g(1 a(2, 3) x...)");
-            discrimination_net.AddPattern(3, "g(1 a(2, 5) x...)");
-            discrimination_net.AddPattern(4, "g(1 a(2, r(x)) x...)");*/
-            
-            //discrimination_net.AddPattern(1, "g(3 z(real r...)... p(real y) 5)");
-            //discrimination_net.AddPattern(2, "g(3 z(real r)... p(real) 6)");
-            //discrimination_net.AddPattern(3, "g(3 m(real r) p(real) 7)");
-            //discrimination_net.AddPattern(4, "g(3 m(real r) w(real) 3)");
-            //discrimination_net.AddPattern(5, "Func(1 2 3)");
-
-            //discrimination_net.AddPattern(1, "g(1 2 Add(y...)... 7)";
-
-            //discrimination_net.AddPattern(1, "g(3 z(real r)... 5)");
-
-
-            //discrimination_net.AddPattern(1, "g(3 z(real r) 5)");
-            //discrimination_net.AddPattern(2, "g(3 z(real r) 6)");
-
-            //discrimination_net.AddPattern(1, "g(3 z(real r) 5)");
-
-            bool save_it = true;
+            static bool save_it = true;
             if (save_it)
             {
                 std::filesystem::create_directory(test_dir);
@@ -88,7 +61,7 @@ namespace djup
                     std::filesystem::remove(file.path());
 
 
-            volatile int o = 9;
+            volatile int o = 0;
             if(o)
             return;
 

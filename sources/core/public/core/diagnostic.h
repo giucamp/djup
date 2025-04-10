@@ -144,10 +144,12 @@ namespace core
             const TYPE_2 & i_second, const char * i_second_cpp_expr,
             const char * i_source_file, int i_source_line)
     {
-        if(!(i_first == i_second))
+        if (!(i_first == i_second))
+        {
             Error(i_source_file, "(", i_source_line, ") - CORE_EXPECTS_EQ - \n",
-                i_first_cpp_expr, " evals to\n\t", i_first, ",\n",
-                i_second_cpp_expr, " evals to\n\t", i_second );
+                i_first_cpp_expr, " evaluates to\n\t", i_first, ", while\n",
+                i_second_cpp_expr, " evaluates to\n\t", i_second);
+        }
     }
 
     void ExpectsError(const std::function<void()> & i_function,

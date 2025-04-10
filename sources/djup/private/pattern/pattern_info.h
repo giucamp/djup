@@ -19,7 +19,8 @@ namespace djup
         /** Inclusive range of integers. If the bounds are equal the range contains a single
             value. If the lower bound is greater than the upper bound the range is empty, 
             than this the values are meaningless. A default constructed range is empty.
-            If min == max the range contains a single number */
+            If min == max the range contains a single number.
+            To do: rename to Interval */
         struct Range
         {
             int32_t m_min{1}; /**< inclusive lower bound */
@@ -52,11 +53,14 @@ namespace djup
             /** returns whether the bounds of the ranges not are identical */
             bool operator != (const Range & i_other) const noexcept;
 
-            // clamps the input value to lay in this range
+            /** clamps the input value to lay in this range */
             int32_t ClampValue(int32_t i_value) const noexcept;
 
-            // clamps the input range so that its values lay in this range
+            /** clamps the input range so that its values lay in this range */
             Range ClampRange(Range i_range) const noexcept;
+
+            /** Returns whether one and only on value lies in the range */
+            bool IsSingleValue() const noexcept { return m_min == m_max; }
 
             // returns a string representation of the range, for example:
             // "1, 1", "0, 1", "0, Inf", "1, Inf"
