@@ -17,8 +17,9 @@ namespace djup
         void Parse();
         void PatternInfo();
         void OldPattern();
+        void TensorToGraph();
         void Pattern();
-
+        
         void Djup()
         {
             PrintLn("Test: djup...");
@@ -28,6 +29,7 @@ namespace djup
             Parse();
             PatternInfo();
             OldPattern();
+            TensorToGraph();
             Pattern();
 
             PrintLn("successful");

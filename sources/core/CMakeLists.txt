@@ -26,6 +26,8 @@ add_library(core STATIC
 	public/core/to_chars.h
 	public/core/to_string.h
 	public/core/traits.h
+	public/core/graph_wiz.h
+	private/graph_wiz.cpp
 	tests/test_core.cpp
 	tests/test_from_chars.cpp
 	tests/test_split.cpp
@@ -35,6 +37,7 @@ add_library(core STATIC
 	tests/test_traits.cpp
 	tests/test_udp_socket.cpp
 	tests/test_memory.cpp
+	tests/test_graph_wiz.cpp
 )
 
 target_include_directories(core PUBLIC public)

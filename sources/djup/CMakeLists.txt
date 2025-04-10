@@ -39,6 +39,7 @@ add_library(djup STATIC
 	private/old_pattern_match.h
 	private/old_pattern_match.cpp
 	private/standard_namespace.cpp
+	private/expression_to_graph.cpp
 	private/tensor.cpp
 	public/djup/tensor.h
 	tests/test_djup.cpp

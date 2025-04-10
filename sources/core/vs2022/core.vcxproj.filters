@@ -54,6 +54,12 @@
     <ClCompile Include="..\tests\test_memory.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\graph_wiz.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_graph_wiz.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\core\hash_variant.h">
@@ -105,6 +111,9 @@
       <Filter>public</Filter>
     </ClInclude>
     <ClInclude Include="..\public\core\memory.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\graph_wiz.h">
       <Filter>public</Filter>
     </ClInclude>
   </ItemGroup>

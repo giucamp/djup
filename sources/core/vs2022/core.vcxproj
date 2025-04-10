@@ -21,12 +21,14 @@
   <ItemGroup>
     <ClCompile Include="..\private\diagnostic.cpp" />
     <ClCompile Include="..\private\from_chars.cpp" />
+    <ClCompile Include="..\private\graph_wiz.cpp" />
     <ClCompile Include="..\private\sockets.cpp" />
     <ClCompile Include="..\private\to_chars.cpp" />
     <ClCompile Include="..\private\to_string.cpp" />
     <ClCompile Include="..\tests\test_bits.cpp" />
     <ClCompile Include="..\tests\test_from_chars.cpp" />
     <ClCompile Include="..\tests\test_core.cpp" />
+    <ClCompile Include="..\tests\test_graph_wiz.cpp" />
     <ClCompile Include="..\tests\test_memory.cpp" />
     <ClCompile Include="..\tests\test_split.cpp" />
     <ClCompile Include="..\tests\test_to_chars.cpp" />
@@ -38,6 +40,7 @@
     <ClInclude Include="..\private\has_fp_charconv.h" />
     <ClInclude Include="..\public\core\algorithms.h" />
     <ClInclude Include="..\public\core\bits.h" />
+    <ClInclude Include="..\public\core\graph_wiz.h" />
     <ClInclude Include="..\public\core\memory.h" />
     <ClInclude Include="..\public\core\diagnostic.h" />
     <ClInclude Include="..\public\core\flags.h" />
