@@ -30,6 +30,7 @@
     <ClCompile Include="..\tests\test_core.cpp" />
     <ClCompile Include="..\tests\test_graph_wiz.cpp" />
     <ClCompile Include="..\tests\test_memory.cpp" />
+    <ClCompile Include="..\tests\test_pool.cpp" />
     <ClCompile Include="..\tests\test_split.cpp" />
     <ClCompile Include="..\tests\test_to_chars.cpp" />
     <ClCompile Include="..\tests\test_to_string.cpp" />
@@ -49,12 +50,16 @@
     <ClInclude Include="..\public\core\hash_variant.h" />
     <ClInclude Include="..\public\core\numeric_cast.h" />
     <ClInclude Include="..\public\core\pointer_iterator.h" />
+    <ClInclude Include="..\public\core\pool.h" />
     <ClInclude Include="..\public\core\sockets.h" />
     <ClInclude Include="..\public\core\span.h" />
     <ClInclude Include="..\public\core\split.h" />
     <ClInclude Include="..\public\core\to_chars.h" />
     <ClInclude Include="..\public\core\to_string.h" />
     <ClInclude Include="..\public\core\traits.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\public\core\pool.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

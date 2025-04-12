@@ -9,6 +9,7 @@ add_library(core STATIC
 	private/sockets.cpp
 	private/to_chars.cpp
 	private/to_string.cpp
+	private/graph_wiz.cpp
 	public/core/address.h
 	public/core/algorithms.h
 	public/core/diagnostic.h
@@ -17,17 +18,18 @@ add_library(core STATIC
 	public/core/hash.h
 	public/core/hash_variant.h
 	public/core/numeric_cast.h
+	public/core/pool.h
 	public/core/pointer_iterator.h
 	public/core/queue.h
 	public/core/sockets.h
 	public/core/span.h
 	public/core/split.h
 	public/core/bits.h
+	public/core/pool.inl
 	public/core/to_chars.h
 	public/core/to_string.h
 	public/core/traits.h
 	public/core/graph_wiz.h
-	private/graph_wiz.cpp
 	tests/test_core.cpp
 	tests/test_from_chars.cpp
 	tests/test_split.cpp
@@ -38,6 +40,7 @@ add_library(core STATIC
 	tests/test_udp_socket.cpp
 	tests/test_memory.cpp
 	tests/test_graph_wiz.cpp
+	tests/test_pool.cpp
 )
 
 target_include_directories(core PUBLIC public)
