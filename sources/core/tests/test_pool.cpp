@@ -187,11 +187,13 @@ namespace core
                             TestClass& obj = pool.GetObject(handle);
 
                             CORE_EXPECTS(pool.IsValid(handle));
+                            CORE_EXPECTS(pool.TryGetObject(handle) == &obj);
                             CORE_EXPECTS_EQ(pool.GetObject(handle).m_value, obj.m_value);
 
                             mirror_pool.erase(mirror_pool.begin() + mirror_index);
                             pool.Delete(handle);
                             CORE_EXPECTS(!pool.IsValid(handle));
+                            CORE_EXPECTS(pool.TryGetObject(handle) == nullptr);
                         }
                         break;
 

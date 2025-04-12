@@ -181,6 +181,7 @@ namespace core
         return { index, 0 };
     }
 
+    // Allocates and construct a new object
     template <typename ELEMENT, typename UINT>
         template <typename... ARGS>
             typename Pool<ELEMENT, UINT>::Handle Pool<ELEMENT, UINT>::New(ARGS &&... i_args)
@@ -229,6 +230,7 @@ namespace core
         ELEMENT & Pool<ELEMENT, UINT>::GetObject(Handle i_handle)
     {
         Item& item = m_items[i_handle.m_index];
+        assert(item.IsAllocated());
         assert(i_handle.m_version == item.GetVersion()); // invalid object access
         return item.m_element;
     }
@@ -237,8 +239,11 @@ namespace core
         ELEMENT * Pool<ELEMENT, UINT>::TryGetObject(Handle i_handle)
     {
         Item& item = m_items[i_handle.m_index];
-        if (i_handle.m_version == item.m_version)
+        if (i_handle.m_version == item.GetVersion())
+        {
+            assert(item.IsAllocated());
             return item.m_element;
+        }
         else
             return nullptr;
     }

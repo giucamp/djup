@@ -61,15 +61,16 @@ namespace core
         /** Constructs an empty pool with the specified initial capacity */
         Pool(UINT i_initial_capacity);
 
-        // move is technically possible, but currently is not provided
+        // copy and move are technically possible, but currently not provided
         Pool(const Pool&) = delete;
         Pool& operator=(const Pool&) = delete;
 
-        /** Constructs an empty pool with the specified initial capacity */
+        /** Destroys the pool. All object must be deallocated, otherwise the
+            behavior is undefined */
         ~Pool();
 
         /** Creates a new object. The returned handle can be converted 
-            to a direct pointer with GetObject or TryGetObject */
+            to a direct pointer with GetObject or TryGetObject. */
         template <typename... ARGS>
             Handle New(ARGS &&... i_args);
 
@@ -80,12 +81,15 @@ namespace core
         /** Returns whether an object is still allocated in the pool. */
         bool IsValid(Handle i_handle) const;
 
-        /** Returns a direct pointer to an object allocated in the pool.
-            If the object ha been deallocated the behavior is undefined. */
+        /** Returns a direct reference to an object allocated in the pool.
+            If the object ha been deallocated the behavior is undefined.
+            The reference is valid as long as the object is not deleted.
+        */
         ELEMENT & GetObject(Handle i_handle);
 
         /** Returns a direct pointer to an object allocated in the pool,
-            or nullptr if the object has been deallocated */
+            or nullptr if the object has been deallocated.
+            THe pointer is valid as long as the object is not deleted. */
         ELEMENT * TryGetObject(Handle i_handle);
 
         /** Returns the currently allocated object count. */
