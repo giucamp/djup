@@ -34,4 +34,4 @@ build/
 .vs/
 *.user
 bin/
-tests/
+/tests/
