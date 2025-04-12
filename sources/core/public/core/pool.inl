@@ -6,6 +6,7 @@
 
 #include <core/pool.h>
 #include <core/diagnostic.h>
+#include <core/numeric_cast.h>
 #include <assert.h>
 #include <new>
 #include <utility>
@@ -13,6 +14,12 @@
 
 namespace core
 {
+    template <typename ELEMENT, typename UINT>
+        struct Pool<ELEMENT, UINT>::Handle
+    {
+        UINT m_index, m_version;
+    };
+
     // Item
     template <typename ELEMENT, typename UINT>
         struct Pool<ELEMENT, UINT>::Item
@@ -60,32 +67,10 @@ namespace core
             }
         }
 
-        void swap(Item && i_source)
-        {
-            auto p1 = m_version; m_version = i_source.m_version; i_source.m_version = p1;
-            auto p2 = m_is_allocated; m_is_allocated = i_source.m_is_allocated; i_source.m_is_allocated = p1;
-        }
-
         ~Item()
         {
         }
     };
-
-    template <typename ELEMENT, typename UINT>
-        size_t Pool<ELEMENT, UINT>::WalkFreeList() const
-    {
-        std::vector<bool> visited;
-        visited.resize(m_items.size());
-        size_t total_free = 0;
-        UINT curr = m_first_free_index;
-        while (1)
-        {
-            visited[curr] = true;
-            assert(m_items[curr].m_is_allocated == 0);
-            curr = m_items[curr].m_next_free;
-        }
-        return total_free;
-    }
 
     // Constructor
     template <typename ELEMENT, typename UINT>
@@ -143,8 +128,7 @@ namespace core
         typename Pool<ELEMENT, UINT>::Handle
             Pool<ELEMENT, UINT>::AllocateSlowPath()
     {
-        // not exceeding the capacity of the vector
-        const UINT index = m_items.size();
+        const UINT index = NumericCast<UINT>(m_items.size());
         Item& item = m_items.emplace_back();
         item.m_version = 0;
         item.m_is_allocated = 0;
@@ -152,6 +136,17 @@ namespace core
         ++m_allocated_objects;
         return { index, 0 };
     }
+
+
+    template <typename ELEMENT, typename UINT>
+        template <typename... ARGS>
+            typename Pool<ELEMENT, UINT>::Handle Pool<ELEMENT, UINT>::New(ARGS &&... i_args)
+        {
+            const Handle handle = Allocate();
+            new(&m_items[handle.m_index].m_element)
+                ELEMENT(std::forward<ARGS>(i_args)...);
+            return handle;
+        }
 
     // Deallocate an object
     template <typename ELEMENT, typename UINT>

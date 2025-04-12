@@ -60,15 +60,14 @@ namespace djup
                 if (file.is_regular_file())
                     std::filesystem::remove(file.path());
 
-
             volatile int o = 0;
             if(o)
             return;
 
             pattern::SubstitutionGraph substitution_graph(discrimination_net);
             int step = 0;
-            std::string target = "g(1 2 3)"; //"g(3 z(88) 5)"; // 
-
+            std::string target = "g(3 m(88) p(72) 7)"; 
+            
             auto callback = [&] {
                 std::string name = step == 0 ? "Initial" : ToString("Step_", step);
                 SaveGraph(test_dir + "subst\\", name, substitution_graph.ToDotLanguage(name));
