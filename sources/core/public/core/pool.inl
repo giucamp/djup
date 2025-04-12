@@ -7,6 +7,7 @@
 #include <core/pool.h>
 #include <core/diagnostic.h>
 #include <core/numeric_cast.h>
+#include <core/bits.h>
 #include <assert.h>
 #include <new>
 #include <utility>
@@ -24,9 +25,55 @@ namespace core
     template <typename ELEMENT, typename UINT>
         struct Pool<ELEMENT, UINT>::Item
     {
-        UINT m_version : (std::numeric_limits<UINT>::digits - 1);
-        UINT m_is_allocated : 1;
+        /** Apparently Visual Studio 17.13.4 has a bug that wraps to 0 
+            a 63-bit field when incrementing it, so we handle the bits by hand. */
+    private:
+        // UINT m_version : (std::numeric_limits<UINT>::digits - 1);
+        // UINT m_is_allocated : 1;
 
+        constexpr static UINT s_version_mask = bits<UINT>(0, std::numeric_limits<UINT>::digits - 1);
+        constexpr static UINT s_is_allocated_mask = bit_reverse<UINT>(0);
+        
+        UINT m_version__is_allocated;
+    
+    public:
+        UINT GetVersion() const { return m_version__is_allocated & s_version_mask; }
+
+        bool IsAllocated() const { return (m_version__is_allocated & s_is_allocated_mask) != 0; }
+
+        void SetVersion(UINT i_version)
+        {
+            UINT alloc = m_version__is_allocated & s_is_allocated_mask;
+            m_version__is_allocated = i_version & s_version_mask;
+            m_version__is_allocated |= alloc;
+        }
+
+        void SetIsAllocated(bool i_is_allocated)
+        {
+            if (i_is_allocated)
+                m_version__is_allocated |= s_is_allocated_mask;
+            else
+                m_version__is_allocated &= ~s_is_allocated_mask;
+        }
+
+        void SetVersionAndIsAllocated(UINT i_version, bool i_is_allocated)
+        {
+            m_version__is_allocated = i_version & s_version_mask;
+            if (i_is_allocated)
+                m_version__is_allocated |= s_is_allocated_mask;
+            else
+                m_version__is_allocated &= ~s_is_allocated_mask;
+        }
+
+        void IncrementVersion()
+        {
+            UINT alloc = m_version__is_allocated & s_is_allocated_mask;
+            ++m_version__is_allocated;
+            m_version__is_allocated &= s_version_mask;
+            m_version__is_allocated |= alloc;
+        }
+
+    public:
         union
         {
             UINT m_next_free;
@@ -35,15 +82,15 @@ namespace core
 
         Item() 
         {
-            m_version = 0;
-            m_is_allocated = 0;
+            SetVersionAndIsAllocated(0, false);
         }
         
         Item(const Item & i_source)
         {
-            m_version = i_source.m_version;
-            m_is_allocated = i_source.m_is_allocated;
-            if (m_is_allocated)
+            SetVersion(i_source.GetVersion());
+            bool is_alloc = i_source.IsAllocated();
+            SetIsAllocated(is_alloc);
+            if (is_alloc)
             {
                 new (&m_element) ELEMENT(i_source.m_element);
             }
@@ -55,9 +102,10 @@ namespace core
 
         Item(Item && i_source)
         {
-            m_version = i_source.m_version;
-            m_is_allocated = i_source.m_is_allocated;
-            if (m_is_allocated)
+            SetVersion(i_source.GetVersion());
+            bool is_alloc = i_source.IsAllocated();
+            SetIsAllocated(is_alloc);
+            if (is_alloc)
             {
                 new (&m_element) ELEMENT(std::move(i_source.m_element));
             }
@@ -108,7 +156,7 @@ namespace core
             // not exceeding the size of the vector
             const UINT index = m_first_free_index;
             Item & item = m_items[index];
-            const UINT version = item.m_version;
+            const UINT version = item.GetVersion();
             m_first_free_index = item.m_next_free;
             ++m_allocated_objects;
             return Handle{ index, version };
@@ -130,8 +178,7 @@ namespace core
     {
         const UINT index = NumericCast<UINT>(m_items.size());
         Item& item = m_items.emplace_back();
-        item.m_version = 0;
-        item.m_is_allocated = 0;
+        item.SetVersionAndIsAllocated(0, false);
         ++m_first_free_index;
         ++m_allocated_objects;
         return { index, 0 };
@@ -152,18 +199,18 @@ namespace core
     template <typename ELEMENT, typename UINT>
         void Pool<ELEMENT, UINT>::Deallocate(Handle i_handle)
     {
-        Item & item = m_items[i_handle.m_index];
-        
+        Item & item = m_items[i_handle.m_index];      
 
         // the newly deallocated item has as next the former first free
         item.m_next_free = m_first_free_index;
         // the new first free is the newly deallocated item
         m_first_free_index = i_handle.m_index;
 
-        ++item.m_version;
-        item.m_is_allocated = false;
+        item.IncrementVersion();
+        item.SetIsAllocated(false);
+        
+        assert(m_allocated_objects > 0);
         --m_allocated_objects;
-        assert(m_allocated_objects >= 0);
     }
 
     // Delete an object
@@ -179,14 +226,14 @@ namespace core
         bool Pool<ELEMENT, UINT>::IsValid(Handle i_handle) const
     {
         const Item& item = m_items[i_handle.m_index];
-        return i_handle.m_version == item.m_version;
+        return i_handle.m_version == item.GetVersion();
     }
 
     template <typename ELEMENT, typename UINT>
         ELEMENT & Pool<ELEMENT, UINT>::GetObject(Handle i_handle)
     {
         Item& item = m_items[i_handle.m_index];
-        assert(i_handle.m_version == item.m_version); // invalid object access
+        assert(i_handle.m_version == item.GetVersion()); // invalid object access
         return item.m_element;
     }
 

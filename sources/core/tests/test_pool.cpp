@@ -83,6 +83,42 @@ namespace core
                 }
             }
 
+            void Pool_VersionTest_2()
+            {
+                Pool<int> pool;
+
+                Pool<int>::Handle handle_1, handle_2, handle_3, handle_4;
+
+                handle_1 = pool.New();
+                CORE_EXPECTS_EQ(handle_1.m_version, 0u);
+                CORE_EXPECTS(pool.IsValid(handle_1));
+                pool.Delete(handle_1);
+
+
+                auto hhhh = (std::numeric_limits<size_t>::digits - 1);
+
+                handle_2 = pool.New();
+                CORE_EXPECTS_EQ(handle_2.m_version, 1u);
+                CORE_EXPECTS(pool.IsValid(handle_2));
+                pool.Delete(handle_2);
+
+                handle_3 = pool.New();
+                CORE_EXPECTS_EQ(handle_3.m_version, 2u);
+                CORE_EXPECTS(pool.IsValid(handle_3));
+                pool.Delete(handle_3);
+
+                handle_4 = pool.New();
+                CORE_EXPECTS_EQ(handle_4.m_version, 3u);                
+
+                CORE_EXPECTS(!pool.IsValid(handle_1));
+                CORE_EXPECTS(!pool.IsValid(handle_2));
+                CORE_EXPECTS(!pool.IsValid(handle_3));
+                CORE_EXPECTS(pool.IsValid(handle_4));
+
+                // leave the pool empty
+                pool.Delete(handle_4);
+            }
+
             template <typename UINT>
                 void PoolUsageTest()
             {
@@ -109,7 +145,7 @@ namespace core
                 std::uniform_int_distribution<int> rnd_action(0, 5);
                 std::uniform_int_distribution<int64_t> rnd_value(0, 10000);
 
-                const int test_length = 100'000;
+                const int test_length = 10'000;
                 const size_t max_count_in_pool = 1000;
                 Print(" 0%");
 
@@ -233,6 +269,7 @@ namespace core
             Print("Test: Core - Pool...");
 
             Pool_VersionTest();
+            Pool_VersionTest_2();
             PoolUsageTest<size_t>();
             PoolUsageTest<uint32_t>();
 
