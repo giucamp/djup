@@ -94,9 +94,6 @@ namespace core
                 CORE_EXPECTS(pool.IsValid(handle_1));
                 pool.Delete(handle_1);
 
-
-                auto hhhh = (std::numeric_limits<size_t>::digits - 1);
-
                 handle_2 = pool.New();
                 CORE_EXPECTS_EQ(handle_2.m_version, 1u);
                 CORE_EXPECTS(pool.IsValid(handle_2));
