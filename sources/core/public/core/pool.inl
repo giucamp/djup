@@ -26,7 +26,8 @@ namespace core
         struct Pool<ELEMENT, UINT>::Item
     {
         /** Apparently Visual Studio 17.13.4 has a bug that wraps to 0 
-            a 63-bit field when incrementing it, so we handle the bits by hand. */
+            a 63-bit field when incrementing it from 1, so we handle 
+            the bits by hand. */
     private:
         // UINT m_version : (std::numeric_limits<UINT>::digits - 1);
         // UINT m_is_allocated : 1;
@@ -167,11 +168,7 @@ namespace core
         }
     }
 
-
-        /*__declspec(noinline)
-            __attribute__((noinline))*/
-
-    // Allocate a new object
+    // Allocate a new object - to do: try to use __declspec(noinline) and __attribute__((noinline))
     template <typename ELEMENT, typename UINT>
         typename Pool<ELEMENT, UINT>::Handle
             Pool<ELEMENT, UINT>::AllocateSlowPath()
@@ -184,16 +181,15 @@ namespace core
         return { index, 0 };
     }
 
-
     template <typename ELEMENT, typename UINT>
         template <typename... ARGS>
             typename Pool<ELEMENT, UINT>::Handle Pool<ELEMENT, UINT>::New(ARGS &&... i_args)
-        {
-            const Handle handle = Allocate();
-            new(&m_items[handle.m_index].m_element)
-                ELEMENT(std::forward<ARGS>(i_args)...);
-            return handle;
-        }
+    {
+        const Handle handle = Allocate();
+        new(&m_items[handle.m_index].m_element)
+            ELEMENT(std::forward<ARGS>(i_args)...);
+        return handle;
+    }
 
     // Deallocate an object
     template <typename ELEMENT, typename UINT>

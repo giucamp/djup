@@ -11,19 +11,30 @@
 
 namespace core
 {
-    /** Grow-able fixed-size pool of objects. References to object can be stored 
-        by handles and converted to a direct pointer by the pool. The pool can
-        be queried whether an handler is dangling.
-     
-    
+    /** Grow-able fixed-size pool of objects. Object allocation and 
+        deallocation is very vast (a free-list is stored inside non-allocated
+        slots. References to object can be stored by handles and converted to 
+        a direct pointer by the pool. The pool can be queried whether an
+        handler is dangling.
+        A version number is stored in both the handle and the object, so that
+        if the object is destroyed and the memory space is reused for another 
+        object, the pool can detect that the handle is no more valid.
+        The UINT parameter is the type used for the version number. Since it
+        is incremented when the object is destroyed and it can wrap to zero,
+        there is an extremely low probability that an handle may refer to a
+        more recent object, while the original object has been destroyed a 
+        long time ago. The default of UINT is size_t. It's not recommended to
+        use less than 32 bits for UINT.
+        UINT must be an unsigned integer type.
+
     Item layout:
-    ------------------------------------------
-    |           |               | next-free  |
-    |           |               | (64 bits)  |
-    |  version  | is_allocated  | ---------  |
-    | (63 bits) |   (1 bit)     | element    |
-    |           |               | (n-bits)   |
-    |-----------|---------------|------------|
+    ------------------------------------------------ - - - - --
+    |           |               | next-free   is_allocated     |
+    |           |               | (63 bits)      (1 bit)       |
+    |  version  | is_allocated  | ---------                    |
+    | (63 bits) |   (1 bit)     | element                      |
+    |           |               | (n-bits)                     |
+    |-----------|---------------|------------------- - - - - --|
     
     */  
     template <typename ELEMENT, typename UINT = size_t>
@@ -77,6 +88,7 @@ namespace core
             or nullptr if the object has been deallocated */
         ELEMENT * TryGetObject(Handle i_handle);
 
+        /** Returns the currently allocated object count. */
         UINT GetObjectCount() const;
 
     private:
