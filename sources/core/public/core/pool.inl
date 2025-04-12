@@ -101,7 +101,7 @@ namespace core
             }
         }
 
-        Item(Item && i_source)
+        Item(Item && i_source) noexcept
         {
             SetVersion(i_source.GetVersion());
             bool is_alloc = i_source.IsAllocated();
@@ -118,6 +118,8 @@ namespace core
 
         ~Item()
         {
+            if(IsAllocated())
+                m_element.ELEMENT::~ELEMENT();
         }
     };
 
@@ -160,6 +162,7 @@ namespace core
             const UINT version = item.GetVersion();
             m_first_free_index = item.m_next_free;
             ++m_allocated_objects;
+            item.SetIsAllocated(true);
             return Handle{ index, version };
         }
         else
@@ -175,7 +178,7 @@ namespace core
     {
         const UINT index = NumericCast<UINT>(m_items.size());
         Item& item = m_items.emplace_back();
-        item.SetVersionAndIsAllocated(0, false);
+        item.SetVersionAndIsAllocated(0, true);
         ++m_first_free_index;
         ++m_allocated_objects;
         return { index, 0 };
@@ -242,7 +245,7 @@ namespace core
         if (i_handle.m_version == item.GetVersion())
         {
             assert(item.IsAllocated());
-            return item.m_element;
+            return &item.m_element;
         }
         else
             return nullptr;

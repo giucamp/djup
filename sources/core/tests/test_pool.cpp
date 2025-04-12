@@ -15,13 +15,6 @@ namespace core
 {
     namespace tests
     {
-        void Pool_1()
-        {
-            Pool<std::string> pool(10);
-            for (int i = 0; i < 15; i++)
-                pool.New("string");
-        }
-
         namespace
         {
             struct TestClass
@@ -30,13 +23,21 @@ namespace core
 
                 static int64_t s_instances;
 
-                TestClass(int64_t i_value) : m_value(i_value) { ++s_instances; }
-                TestClass(int64_t i_value, double) : m_value(i_value) { ++s_instances; }
-                TestClass(const TestClass & i_source) : m_value(i_source.m_value) { ++s_instances; }
-                TestClass(TestClass && i_source) noexcept : m_value(i_source.m_value) { ++s_instances; }
+                TestClass(int64_t i_value) : m_value(i_value) 
+                { 
+                    ++s_instances; 
+                }
+                TestClass(const TestClass & i_source) : m_value(i_source.m_value)
+                {
+                    ++s_instances; 
+                }
+                TestClass(TestClass && i_source) noexcept : m_value(i_source.m_value)
+                { 
+                    ++s_instances; 
+                }
                 ~TestClass() 
                 {
-                    CORE_EXPECTS(s_instances >= 0);
+                    CORE_EXPECTS(s_instances > 0);
                     --s_instances; 
                 }
             };
@@ -142,7 +143,7 @@ namespace core
                 std::uniform_int_distribution<int> rnd_action(0, 5);
                 std::uniform_int_distribution<int64_t> rnd_value(0, 10000);
 
-                const int test_length = 10'000;
+                const int test_length = 100'000;
                 const size_t max_count_in_pool = 1000;
                 Print(" 0%");
 
