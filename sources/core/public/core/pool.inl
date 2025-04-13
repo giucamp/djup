@@ -15,10 +15,24 @@
 
 namespace core
 {
+    // handle
     template <typename ELEMENT, typename UINT>
         struct Pool<ELEMENT, UINT>::Handle
     {
-        UINT m_index, m_version;
+        UINT m_index = ~static_cast<UINT>(0);
+        UINT m_version = ~static_cast<UINT>(0);
+
+        bool operator == (const typename Pool<ELEMENT, UINT>::Handle& i_second) const
+        {
+            return m_index == i_second.m_index &&
+                m_version == i_second.m_version;
+        }
+
+        bool operator != (const typename Pool<ELEMENT, UINT>::Handle& i_second) const
+        {
+            return m_index != i_second.m_index ||
+                m_version != i_second.m_version;
+        }
     };
 
     // Item
@@ -27,7 +41,8 @@ namespace core
     {
         /** Apparently Visual Studio 17.13.4 has a bug that wraps to 0 
             a 63-bit field when incrementing it from 1, so we handle 
-            the bits by hand. */
+            the bits by hand. I was not able to reproduce a small instance
+            of this problem. */
     private:
         // UINT m_version : (std::numeric_limits<UINT>::digits - 1);
         // UINT m_is_allocated : 1;
@@ -225,6 +240,8 @@ namespace core
     template <typename ELEMENT, typename UINT>
         bool Pool<ELEMENT, UINT>::IsValid(Handle i_handle) const
     {
+        if (~i_handle.m_index == 0 && ~i_handle.m_version == 0)
+            return false;
         const Item& item = m_items[i_handle.m_index];
         return i_handle.m_version == item.GetVersion();
     }
@@ -233,7 +250,7 @@ namespace core
         ELEMENT & Pool<ELEMENT, UINT>::GetObject(Handle i_handle)
     {
         Item& item = m_items[i_handle.m_index];
-        assert(item.IsAllocated());
+        assert(IsValid(i_handle) && item.IsAllocated());
         assert(i_handle.m_version == item.GetVersion()); // invalid object access
         return item.m_element;
     }
@@ -241,8 +258,11 @@ namespace core
     template <typename ELEMENT, typename UINT>
         ELEMENT * Pool<ELEMENT, UINT>::TryGetObject(Handle i_handle)
     {
+        if (!IsValid(i_handle))
+            return nullptr;
+
         Item& item = m_items[i_handle.m_index];
-        if (i_handle.m_version == item.GetVersion())
+        if (i_handle.m_version == item.GetVersion() && IsValid(i_handle))
         {
             assert(item.IsAllocated());
             return &item.m_element;

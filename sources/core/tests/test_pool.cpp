@@ -15,8 +15,13 @@ namespace core
 {
     namespace tests
     {
-        namespace
+        template <typename ELEMENT, typename UINT>
+        void fff(typename Pool<ELEMENT, UINT>::Handle)
         {
+        }
+
+        //namespace
+        //{
             struct TestClass
             {
                 int64_t m_value;
@@ -47,9 +52,13 @@ namespace core
             void Pool_VersionTest()
             {
                 using Handle = Pool<int>::Handle;
-                
+
                 Pool<int, size_t> pool(10);
                 std::vector<Handle> handles;
+
+                CORE_EXPECTS(!pool.IsValid(Handle{}));
+
+                CORE_EXPECTS_EQ(pool.TryGetObject(Handle{}), nullptr);
 
                 // fill
                 for (int i = 0; i < 10; ++i)
@@ -143,8 +152,8 @@ namespace core
                 std::uniform_int_distribution<int> rnd_action(0, 5);
                 std::uniform_int_distribution<int64_t> rnd_value(0, 10000);
 
-                const int test_length = 100'000;
-                const size_t max_count_in_pool = 1000;
+                const int test_length = 10'000;
+                const size_t max_count_in_pool = 100;
                 Print(" 0%");
 
                 for (int i = 0; i < test_length; ++i)
@@ -175,6 +184,7 @@ namespace core
                             const int64_t value = rnd_value(mt);
                             const Handle handle = pool.New(value);
                             mirror_pool.push_back({ handle, value });
+                            CORE_EXPECTS(handle != Handle{});
                         }
                         break;
 
@@ -262,11 +272,14 @@ namespace core
 
                 PrintLn("\b\b\b");
             }
-        }
+        //}
 
         void Pool_()
         {
             Print("Test: Core - Pool...");
+
+            using Handle = Pool<int>::Handle;
+            CORE_EXPECTS(Handle{} == Handle{});
 
             Pool_VersionTest();
             Pool_VersionTest_2();

@@ -51,8 +51,9 @@ namespace core
         /** Handle to an object allocated in the pool. THe member function IsValid 
             and TryGetObject can be used to check if the object is still allocated, 
             whether or not its location has been reused for another allocation.
-            Uninitialized handles have undefined, and their use with a pool causes
-            undefined behavior. */
+            Default-initialized handles have null-like value, and their always result
+            invalid. They can be instantiated with Handle{ }. 
+            Equality and disequality operators are provided. */
         struct Handle;
 
         /** Constructs an empty pool with a default initial capacity */
@@ -65,31 +66,35 @@ namespace core
         Pool(const Pool&) = delete;
         Pool& operator=(const Pool&) = delete;
 
-        /** Destroys the pool. All object must be deallocated, otherwise the
+        /** Destroys the pool. All objects must be deallocated, otherwise the
             behavior is undefined */
         ~Pool();
 
-        /** Creates a new object. The returned handle can be converted 
-            to a direct pointer with GetObject or TryGetObject. */
+        /** Creates a new object. The returned handle can be accessed with 
+            GetObject or TryGetObject. */
         template <typename... ARGS>
             Handle New(ARGS &&... i_args);
 
         /** Destroys an object. The handle become dangling, and calling 
-            IsValid on it will return false. */
+            IsValid on it will return false. If the object has already 
+            been deleted or the handle is null the behavior is 
+            undefined. */
         void Delete(Handle i_handle);
 
-        /** Returns whether an object is still allocated in the pool. */
+        /** Returns whether an object is still allocated in the pool,
+            false if it was deleted or is a null handle. */
         bool IsValid(Handle i_handle) const;
 
         /** Returns a direct reference to an object allocated in the pool.
-            If the object ha been deallocated the behavior is undefined.
+            If the object ha been deallocated or is a null handle the 
+            behavior is undefined.
             The reference is valid as long as the object is not deleted.
         */
         ELEMENT & GetObject(Handle i_handle);
 
         /** Returns a direct pointer to an object allocated in the pool,
-            or nullptr if the object has been deallocated.
-            THe pointer is valid as long as the object is not deleted. */
+            or nullptr if the object has been deallocated or is a null handle.
+            The pointer is valid as long as the object is not deleted. */
         ELEMENT * TryGetObject(Handle i_handle);
 
         /** Returns the currently allocated object count. */
