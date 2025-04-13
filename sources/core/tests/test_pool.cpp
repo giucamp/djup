@@ -15,13 +15,8 @@ namespace core
 {
     namespace tests
     {
-        template <typename ELEMENT, typename UINT>
-        void fff(typename Pool<ELEMENT, UINT>::Handle)
+        namespace
         {
-        }
-
-        //namespace
-        //{
             struct TestClass
             {
                 int64_t m_value;
@@ -272,7 +267,7 @@ namespace core
 
                 PrintLn("\b\b\b");
             }
-        //}
+        }
 
         void Pool_()
         {
@@ -288,8 +283,6 @@ namespace core
 
             PrintLn("successful");
         }
-        
-
 
     } // namespace tests
 
