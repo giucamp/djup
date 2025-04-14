@@ -17,7 +17,7 @@ namespace djup
 
             using namespace pattern;
 
-                            // info_1
+            /////////////////////////////////////////////////
 
             const pattern::PatternInfo info_1 = pattern::BuildPatternInfo("g(1 2 x...)");
 
@@ -50,6 +50,40 @@ Arg[2]: 0, Inf Remaining: 0, 0)";
                 CORE_EXPECTS_EQ(info_1.m_dbg_labels, exp);
 
             #endif
+
+            /////////////////////////////////////////////////
+
+            const pattern::PatternInfo info_2 = pattern::BuildPatternInfo(
+                "g(1 a... 10 11 b...)");
+
+            CORE_EXPECTS_EQ(info_2.m_labels_info[0].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_2.m_labels_info[1].m_cardinality, (Range{ 0, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_labels_info[2].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_2.m_labels_info[3].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_2.m_labels_info[4].m_cardinality, (Range{ 0, infinity }));
+
+            CORE_EXPECTS_EQ(info_2.m_labels_info[0].m_remaining, (Range{ 2, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_labels_info[1].m_remaining, (Range{ 2, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_labels_info[2].m_remaining, (Range{ 1, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_labels_info[3].m_remaining, (Range{ 0, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_labels_info[4].m_remaining, (Range{ 0, 0 }));
+
+            /////////////////////////////////////////////////
+
+            const pattern::PatternInfo info_3 = pattern::BuildPatternInfo(
+                "g(1 a.. 10 11 b...)");
+
+            CORE_EXPECTS_EQ(info_3.m_labels_info[0].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_3.m_labels_info[1].m_cardinality, (Range{ 1, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_labels_info[2].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_3.m_labels_info[3].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_3.m_labels_info[4].m_cardinality, (Range{ 0, infinity }));
+
+            CORE_EXPECTS_EQ(info_3.m_labels_info[0].m_remaining, (Range{ 3, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_labels_info[1].m_remaining, (Range{ 2, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_labels_info[2].m_remaining, (Range{ 1, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_labels_info[3].m_remaining, (Range{ 0, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_labels_info[4].m_remaining, (Range{ 0, 0 }));
 
             PrintLn("successful");
         }
