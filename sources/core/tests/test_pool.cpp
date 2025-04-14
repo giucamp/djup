@@ -149,8 +149,8 @@ namespace core
                     CORE_EXPECTS(it != multiset.end());
                     multiset.erase(it);
                 }
-                CORE_EXPECTS_EQ(i_pool.GetObjectCount(), found_object);
 
+                CORE_EXPECTS_EQ(i_pool.GetObjectCount(), found_object);
                 CORE_EXPECTS(multiset.empty());
             }
 
@@ -174,14 +174,19 @@ namespace core
                 std::uniform_int_distribution<int> rnd_action(0, 10);
                 std::uniform_int_distribution<int64_t> rnd_value(0, 10000);
 
-                const int test_length = 1000'000;
-                const size_t max_count_in_pool = 100;
+                double average_occupancy = 0.;
+                double average_samples = 0.;
+
+                const int test_length = 100'000;
+                const size_t max_count_in_pool = 1000;
+                const double max_count_in_pool_rec = 1. / static_cast<double>(max_count_in_pool);
+
                 Print(" 0%");
 
                 for (int i = 0; i < test_length; ++i)
                 {
                     // print progress
-                    if (i % 0x10 == 0)
+                    if (i % 0x40 == 0)
                     {
                         int perc = i * 100 / test_length;
                         if (perc > 100)
@@ -193,6 +198,11 @@ namespace core
                             Print(perc);
                         Print('%');
                     }
+
+                    // update average occupancy
+                    average_samples += 1.;
+                    const double occupancy = max_count_in_pool_rec * pool.GetObjectCount();
+                    average_occupancy += (occupancy - average_occupancy) / average_samples;
 
                     const int action = rnd_action(mt);
                     switch (action)
@@ -208,6 +218,7 @@ namespace core
                             const int64_t value = rnd_value(mt);
                             const Handle handle = pool.New(value);
                             mirror_pool.push_back({ handle, value });
+                            CORE_EXPECTS(pool.IsValid(handle));
                             CORE_EXPECTS(handle != Handle{});
                         }
                         break;
@@ -301,7 +312,7 @@ namespace core
                     pool.Delete(entry.m_handle);
                 }
 
-                Print("\b\b\b100%, ");
+                Print("\b\b\b100% -  Avg Occupancy: ", floor(average_occupancy * 100. + .5), "%, ");
             }
         }
 
