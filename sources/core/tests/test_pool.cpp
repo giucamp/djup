@@ -44,6 +44,13 @@ namespace core
 
             int64_t TestClass::s_instances = 0;
 
+            template <typename UINT>
+                struct MirrorEntry
+            {
+                typename Pool<TestClass, UINT>::Handle m_handle;
+                int64_t m_value;
+            };
+
             void Pool_VersionTest()
             {
                 using Handle = Pool<int>::Handle;
@@ -121,33 +128,53 @@ namespace core
                 pool.Delete(handle_4);
             }
 
+            template <typename POOL, typename MIRROR_VECTOR>
+                void TestIterator(POOL & i_pool, const MIRROR_VECTOR & i_mirror_pool)
+            {
+                using UInt = typename POOL::UInt;
+
+                // create a multiset with all values
+                std::unordered_multiset<int64_t> multiset;
+                multiset.reserve(i_mirror_pool.size());
+                for (auto & obj : i_mirror_pool)
+                    multiset.insert(obj.m_value);
+
+                // find and remove all values from the multiset
+                UInt found_object = 0;
+                for (auto & obj : i_pool)
+                {
+                    ++found_object;
+
+                    auto it = multiset.find(obj.m_value);
+                    CORE_EXPECTS(it != multiset.end());
+                    multiset.erase(it);
+                }
+                CORE_EXPECTS_EQ(i_pool.GetObjectCount(), found_object);
+
+                CORE_EXPECTS(multiset.empty());
+            }
+
             template <typename UINT>
                 void PoolUsageTest()
             {
                 using Handle = typename Pool<TestClass, UINT>::Handle;
                 using UInt = UINT;
 
-                struct MirrorEntry
-                {
-                    typename Pool<TestClass, UInt>::Handle m_handle;
-                    int64_t m_value;
-                };
-
                 /* Test loop. Objects are randomly added and removed to both a pool
                    and a mirror vector. Every object has a 64-bit value that must
                    match in the container.
-                   Add is twice more probable than remove, so the pool, will grow. */
+                   Add is more probable than remove, so the pool, will grow. */
                 Pool<TestClass, UInt> pool;
-                std::vector<MirrorEntry> mirror_pool;
+                std::vector<MirrorEntry<UInt>> mirror_pool;
 
                 std::random_device rand_dev;
                 std::random_device::result_type seed = rand_dev();
                 Print("(", sizeof(UINT)*8, " bits, seed: ", seed, ") ");
                 std::mt19937 mt(seed);
-                std::uniform_int_distribution<int> rnd_action(0, 5);
+                std::uniform_int_distribution<int> rnd_action(0, 10);
                 std::uniform_int_distribution<int64_t> rnd_value(0, 10000);
 
-                const int test_length = 10'000;
+                const int test_length = 1000'000;
                 const size_t max_count_in_pool = 100;
                 Print(" 0%");
 
@@ -174,6 +201,8 @@ namespace core
                     // add an object
                     case 0:
                     case 1:
+                    case 2:
+                    case 3:
                         if (pool.GetObjectCount() < max_count_in_pool)
                         {
                             const int64_t value = rnd_value(mt);
@@ -184,7 +213,9 @@ namespace core
                         break;
 
                     // delete an object
-                    case 2:
+                    case 4:
+                    case 5:
+                    case 6:
                         if (!mirror_pool.empty())
                         {
                             const size_t mirror_index = std::uniform_int_distribution<size_t>
@@ -204,13 +235,13 @@ namespace core
                         break;
 
                     // check for handle validity
-                    case 3:
+                    case 7:
                     {                        
                         std::vector<bool> visited;
                         visited.resize(mirror_pool.size());
                         for (size_t j = 0; j < mirror_pool.size(); ++j)
                         {
-                            const MirrorEntry& entry = mirror_pool[j];
+                            const MirrorEntry<UInt> & entry = mirror_pool[j];
                             CORE_EXPECTS(pool.IsValid(entry.m_handle));
                             visited[j] = true;
                         }
@@ -218,7 +249,7 @@ namespace core
                         {
                             if (!visited[j])
                             {
-                                const MirrorEntry& entry = mirror_pool[j];
+                                const MirrorEntry<UInt> & entry = mirror_pool[j];
                                 CORE_EXPECTS(!pool.IsValid(entry.m_handle));
                             }
                         }
@@ -226,7 +257,7 @@ namespace core
                     break;
 
                     // check for duplicate handles
-                    case 4:
+                    case 8:
                     {
                         std::unordered_set<UInt> visited;
                         visited.reserve(mirror_pool.size());
@@ -239,7 +270,7 @@ namespace core
                     break;
 
                     // check counts
-                    case 5:
+                    case 9:
                     {
                         CORE_EXPECTS(TestClass::s_instances >= 0);
                         const size_t count_in_pool = pool.GetObjectCount();
@@ -249,13 +280,18 @@ namespace core
                     }
                     break;
 
+                    case 10:
+                        TestIterator(pool, mirror_pool);
+                        TestIterator(std::as_const(pool), mirror_pool);
+                        break;
+
                     default:
                         break;
                     }
                 }
 
                 // empty the pool before destruction (it's a requirement of the class)
-                for (const MirrorEntry& entry : mirror_pool)
+                for (const MirrorEntry<UInt>& entry : mirror_pool)
                 {
                     TestClass& obj = pool.GetObject(entry.m_handle);
 
@@ -265,7 +301,7 @@ namespace core
                     pool.Delete(entry.m_handle);
                 }
 
-                PrintLn("\b\b\b");
+                Print("\b\b\b100%, ");
             }
         }
 

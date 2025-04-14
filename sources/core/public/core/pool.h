@@ -8,11 +8,12 @@
 #include <vector>
 #include <type_traits>
 #include <limits>
+#include <iterator>
 
 namespace core
 {
     /** Grow-able fixed-size pool of objects. Object allocation and 
-        deallocation is very vast (a free-list is stored inside non-allocated
+        deallocation is very fast, as a free-list is stored inside non-allocated
         slots. References to object can be stored by handles and converted to 
         a direct pointer by the pool. The pool can be queried whether an
         handler is dangling.
@@ -34,8 +35,7 @@ namespace core
     |  version  | is_allocated  | ---------                    |
     | (63 bits) |   (1 bit)     | element                      |
     |           |               | (n-bits)                     |
-    |-----------|---------------|------------------- - - - - --|
-    
+    ------------------------------------------------ - - - - --|            
     */  
     template <typename ELEMENT, typename UINT = size_t>
         class Pool
@@ -88,17 +88,36 @@ namespace core
         /** Returns a direct reference to an object allocated in the pool.
             If the object ha been deallocated or is a null handle the 
             behavior is undefined.
-            The reference is valid as long as the object is not deleted.
-        */
+            The reference is valid as long as the pool is not altered.
+            Even creating a new object of the pool invalidating the reference,
+            so use direct references only locally, and keep the handle to 
+            refer to the object. */
         ELEMENT & GetObject(Handle i_handle);
 
         /** Returns a direct pointer to an object allocated in the pool,
             or nullptr if the object has been deallocated or is a null handle.
-            The pointer is valid as long as the object is not deleted. */
+            The pointer is valid as long as the pool is not altered.
+            Even creating a new object of the pool invalidating the pointer,
+            so use direct pointers only locally, and keep the handle to 
+            refer to the object. */
         ELEMENT * TryGetObject(Handle i_handle);
 
         /** Returns the currently allocated object count. */
         UINT GetObjectCount() const;
+
+        /** Forward iteration is linear in the capacity of the pool, not in the number
+            of allocated objects. */
+        class Iterator;
+        Iterator begin();
+        Iterator end();
+
+        /** Forward iteration is linear in the capacity of the pool, not in the number 
+            of allocated objects. */
+        class ConstIterator;
+        ConstIterator cbegin() const;
+        ConstIterator cend() const;
+        ConstIterator begin() const;
+        ConstIterator end() const;
 
     private:
         

@@ -39,19 +39,25 @@ namespace core
     template <typename ELEMENT, typename UINT>
         struct Pool<ELEMENT, UINT>::Item
     {
-        /** Apparently Visual Studio 17.13.4 has a bug that wraps to 0 
-            a 63-bit field when incrementing it from 1, so we handle 
-            the bits by hand. I was not able to reproduce a small instance
-            of this problem. */
+
     private:
+        
+        /* the version is used to detect if the slot has been recycled by 
+           a more recent slot. The is_allocated is necessary when the internal
+           vector reallocates after exceeding capacity, to know if the slot 
+           contains an object or a link of the free list. */
+        
         // UINT m_version : (std::numeric_limits<UINT>::digits - 1);
         // UINT m_is_allocated : 1;
-
+        
+        /** Apparently Visual Studio 17.13.4 has a bug that wraps to 0
+            a 63-bit field when incrementing it from 1, so we handle
+            the bits by hand. I was not able to reproduce a small instance
+            of this problem, and reducing this one may be too time consuming. */
+        UINT m_version__is_allocated;
         constexpr static UINT s_version_mask = bits<UINT>(0, std::numeric_limits<UINT>::digits - 1);
         constexpr static UINT s_is_allocated_mask = bit_reverse<UINT>(0);
-        
-        UINT m_version__is_allocated;
-    
+
     public:
         UINT GetVersion() const { return m_version__is_allocated & s_version_mask; }
 
@@ -214,6 +220,8 @@ namespace core
     template <typename ELEMENT, typename UINT>
         void Pool<ELEMENT, UINT>::Deallocate(Handle i_handle)
     {
+        assert(IsValid(i_handle));
+
         Item & item = m_items[i_handle.m_index];      
 
         // the newly deallocated item has as next the former first free
@@ -240,8 +248,11 @@ namespace core
     template <typename ELEMENT, typename UINT>
         bool Pool<ELEMENT, UINT>::IsValid(Handle i_handle) const
     {
-        if (~i_handle.m_index == 0 && ~i_handle.m_version == 0)
+        /* The last bit of the version is used as 'is_allocated' flag,
+            so the version can never be so high. */
+        if (~i_handle.m_version == 0)
             return false;
+
         const Item& item = m_items[i_handle.m_index];
         return i_handle.m_version == item.GetVersion();
     }
@@ -275,6 +286,196 @@ namespace core
         UINT Pool<ELEMENT, UINT>::GetObjectCount() const
     {
         return m_allocated_objects;
+    }
+
+    // Iterator
+    template <typename ELEMENT, typename UINT>
+        class Pool<ELEMENT, UINT>::Iterator
+    {
+    public:
+
+        using iterator_category = std::forward_iterator_tag;
+        //using difference_type = std::make_signed_t<UINT>;
+        using value_type = ELEMENT;
+        using pointer = ELEMENT*;
+        using reference = ELEMENT&;
+
+        enum class BeginTag {};
+        enum class EndTag {};
+
+        Iterator(Pool& i_pool, BeginTag)
+            : m_pool(i_pool), m_index(0) 
+        {
+            SkipSlotsNotAllocated();
+        }
+
+        Iterator(Pool& i_pool, EndTag)
+            : m_pool(i_pool), m_index(NumericCast<UINT>(i_pool.m_items.size()))
+        {
+            
+        }
+
+        reference operator*() const { return m_pool.m_items[m_index].m_element; }
+
+        pointer operator -> () { return &m_pool.m_items[m_index].m_element; }
+
+        Iterator & operator ++() 
+        { 
+            ++m_index; 
+            SkipSlotsNotAllocated();
+            return *this; 
+        }
+
+        Iterator operator ++(int)
+        {
+            const Iterator result = *this;
+            ++m_index;
+            SkipSlotsNotAllocated();
+            return result;
+        }
+
+        bool operator == (const Iterator& i_second) const
+        {
+            return &m_pool == &i_second.m_pool &&
+                m_index == i_second.m_index;
+        }
+
+        bool operator != (const Iterator& i_second) const
+        {
+            return &m_pool != &i_second.m_pool ||
+                m_index != i_second.m_index;
+        }
+
+    private:
+
+        void SkipSlotsNotAllocated()
+        {
+            while (m_index < m_pool.m_items.size() &&
+                !m_pool.m_items[m_index].IsAllocated() )
+            {
+                ++m_index;
+            }
+        }
+
+    private:
+        Pool & m_pool;
+        UINT m_index;
+    };
+
+    template <typename ELEMENT, typename UINT>
+        typename Pool<ELEMENT, UINT>::Iterator
+            Pool<ELEMENT, UINT>::begin()
+    {
+        return Iterator( *this, typename Iterator::BeginTag() );
+    }
+
+    template <typename ELEMENT, typename UINT>
+        typename Pool<ELEMENT, UINT>::Iterator
+            Pool<ELEMENT, UINT>::end()
+    {
+        return Iterator( *this, typename Iterator::EndTag() );
+    }
+
+
+    // ConstIterator
+    template <typename ELEMENT, typename UINT>
+        class Pool<ELEMENT, UINT>::ConstIterator
+    {
+    public:
+
+        using iterator_category = std::forward_iterator_tag;
+        //using difference_type = std::make_signed_t<UINT>;
+        using value_type = const ELEMENT;
+        using pointer = const ELEMENT*;
+        using reference = const ELEMENT&;
+
+        enum class BeginTag {};
+        enum class EndTag {};
+
+        ConstIterator(const Pool& i_pool, BeginTag)
+            : m_pool(i_pool), m_index(0) 
+        {
+            SkipSlotsNotAllocated();
+        }
+
+        ConstIterator(const Pool& i_pool, EndTag)
+            : m_pool(i_pool), m_index(NumericCast<UINT>(i_pool.m_items.size()))
+        {
+        }
+
+        reference operator*() const { return m_pool.m_items[m_index].m_element; }
+
+        pointer operator -> () { return &m_pool.m_items[m_index].m_element; }
+
+        ConstIterator & operator ++() 
+        { 
+            ++m_index; 
+            SkipSlotsNotAllocated();
+            return *this; 
+        }
+
+        ConstIterator operator ++(int)
+        {
+            const ConstIterator result = *this;
+            ++m_index;
+            SkipSlotsNotAllocated();
+            return result;
+        }
+
+        bool operator == (const ConstIterator& i_second) const
+        {
+            return &m_pool == &i_second.m_pool &&
+                m_index == i_second.m_index;
+        }
+
+        bool operator != (const ConstIterator& i_second) const
+        {
+            return &m_pool != &i_second.m_pool ||
+                m_index != i_second.m_index;
+        }
+
+    private:
+
+        void SkipSlotsNotAllocated()
+        {
+            while (m_index < m_pool.m_items.size() &&
+                !m_pool.m_items[m_index].IsAllocated() )
+            {
+                ++m_index;
+            }
+        }
+
+    private:
+        const Pool & m_pool;
+        UINT m_index;
+    };
+
+    template <typename ELEMENT, typename UINT>
+        typename Pool<ELEMENT, UINT>::ConstIterator
+            Pool<ELEMENT, UINT>::begin() const
+    {
+        return ConstIterator( *this, typename ConstIterator::BeginTag() );
+    }
+
+    template <typename ELEMENT, typename UINT>
+        typename Pool<ELEMENT, UINT>::ConstIterator
+            Pool<ELEMENT, UINT>::end() const
+    {
+        return ConstIterator(*this, typename ConstIterator::EndTag());
+    }
+
+    template <typename ELEMENT, typename UINT>
+        typename Pool<ELEMENT, UINT>::ConstIterator
+            Pool<ELEMENT, UINT>::cbegin() const
+    {
+        return ConstIterator( *this, typename ConstIterator::BeginTag() );
+    }
+
+    template <typename ELEMENT, typename UINT>
+        typename Pool<ELEMENT, UINT>::ConstIterator
+            Pool<ELEMENT, UINT>::cend() const
+    {
+        return ConstIterator( *this, typename ConstIterator::EndTag() );
     }
 
 } // namespace core
