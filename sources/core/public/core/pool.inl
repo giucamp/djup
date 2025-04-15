@@ -107,6 +107,8 @@ namespace core
             SetVersionAndIsAllocated(0, false);
         }
         
+        /* this is used when the internal vector is relocated
+           because of capacity exhaustion */
         Item(const Item & i_source)
         {
             SetVersion(i_source.GetVersion());
@@ -122,6 +124,8 @@ namespace core
             }
         }
 
+        /* this is used when the internal vector is relocated
+           because of capacity exhaustion */
         Item(Item && i_source) noexcept
         {
             SetVersion(i_source.GetVersion());
@@ -166,7 +170,7 @@ namespace core
         Pool<ELEMENT, UINT>::~Pool()
     {
         assert(m_allocated_objects == 0); /* in order to be destroyed
-            the allocator must be empty: non-deallocated object won't
+            the pool must be empty: non-deallocated object won't
             be destroyed*/
     }
 
@@ -267,6 +271,15 @@ namespace core
     }
 
     template <typename ELEMENT, typename UINT>
+        const ELEMENT & Pool<ELEMENT, UINT>::GetObject(Handle i_handle) const
+    {
+        const Item& item = m_items[i_handle.m_index];
+        assert(IsValid(i_handle) && item.IsAllocated());
+        assert(i_handle.m_version == item.GetVersion()); // invalid object access
+        return item.m_element;
+    }
+
+    template <typename ELEMENT, typename UINT>
         ELEMENT * Pool<ELEMENT, UINT>::TryGetObject(Handle i_handle)
     {
         if (!IsValid(i_handle))
@@ -280,6 +293,37 @@ namespace core
         }
         else
             return nullptr;
+    }
+
+    template <typename ELEMENT, typename UINT>
+        const ELEMENT * Pool<ELEMENT, UINT>::TryGetObject(Handle i_handle) const
+    {
+        if (!IsValid(i_handle))
+            return nullptr;
+
+        const Item & item = m_items[i_handle.m_index];
+        if (i_handle.m_version == item.GetVersion() && IsValid(i_handle))
+        {
+            assert(item.IsAllocated());
+            return &item.m_element;
+        }
+        else
+            return nullptr;
+    }
+
+    template <typename ELEMENT, typename UINT>
+        typename Pool<ELEMENT, UINT>::Handle
+            Pool<ELEMENT, UINT>::HandleOf(const ELEMENT& i_element) const
+    {
+        auto const begin = reinterpret_cast<const char*>(m_items.data());
+        auto const end = reinterpret_cast<const char*>(m_items.data() + m_items.size());
+        auto const ptr = reinterpret_cast<const char*>(&i_element);
+        
+        assert(ptr >= begin && ptr < end);
+        
+        UINT const byte_offset = NumericCast<UINT>(ptr - begin);
+        UINT const index = byte_offset / sizeof(Item);
+        return { index, m_items[index].GetVersion() };
     }
 
     template <typename ELEMENT, typename UINT>

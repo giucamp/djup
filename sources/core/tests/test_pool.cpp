@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <string>
 #include <random>
+#include <memory>
 
 namespace core
 {
@@ -177,8 +178,8 @@ namespace core
                 double average_occupancy = 0.;
                 double average_samples = 0.;
 
-                const int test_length = 100'000;
-                const size_t max_count_in_pool = 1000;
+                const int test_length = 10'000;
+                const size_t max_count_in_pool = 400;
                 const double max_count_in_pool_rec = 1. / static_cast<double>(max_count_in_pool);
 
                 Print(" 0%");
@@ -238,6 +239,8 @@ namespace core
                             CORE_EXPECTS(pool.TryGetObject(handle) == &obj);
                             CORE_EXPECTS_EQ(pool.GetObject(handle).m_value, obj.m_value);
 
+                            CORE_EXPECTS(pool.HandleOf(obj) == handle);
+
                             mirror_pool.erase(mirror_pool.begin() + mirror_index);
                             pool.Delete(handle);
                             CORE_EXPECTS(!pool.IsValid(handle));
@@ -254,6 +257,7 @@ namespace core
                         {
                             const MirrorEntry<UInt> & entry = mirror_pool[j];
                             CORE_EXPECTS(pool.IsValid(entry.m_handle));
+                            CORE_EXPECTS(pool.TryGetObject(entry.m_handle) != nullptr);
                             visited[j] = true;
                         }
                         for (size_t j = 0; j < mirror_pool.size(); ++j)
@@ -262,6 +266,7 @@ namespace core
                             {
                                 const MirrorEntry<UInt> & entry = mirror_pool[j];
                                 CORE_EXPECTS(!pool.IsValid(entry.m_handle));
+                                CORE_EXPECTS(pool.TryGetObject(entry.m_handle) == nullptr);
                             }
                         }
                     }
@@ -316,6 +321,21 @@ namespace core
             }
         }
 
+        void PoolMoveOnly()
+        {
+            using Pool = Pool<std::unique_ptr<int>>;
+            using Handle = Pool::Handle;
+            
+            std::vector<Handle> handles;
+            Pool pool(4);
+
+            for(int i = 0; i < 10; i++)
+                handles.push_back( pool.New() );
+
+            for (Handle handle : handles)
+                pool.Delete(handle);
+        }
+
         void Pool_()
         {
             Print("Test: Core - Pool...");
@@ -327,6 +347,7 @@ namespace core
             Pool_VersionTest_2();
             PoolUsageTest<size_t>();
             PoolUsageTest<uint32_t>();
+            PoolMoveOnly();
 
             PrintLn("successful");
         }

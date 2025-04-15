@@ -28,14 +28,14 @@ namespace core
         use less than 32 bits for UINT.
         UINT must be an unsigned integer type.
 
-    Item layout:
-    ------------------------------------------------ - - - - --
-    |           |               | next-free   is_allocated     |
-    |           |               | (63 bits)      (1 bit)       |
-    |  version  | is_allocated  | ---------                    |
-    | (63 bits) |   (1 bit)     | element                      |
-    |           |               | (n-bits)                     |
-    ------------------------------------------------ - - - - --|            
+    Item layout with 64-bit UINT:
+    ----------------------------------------- - - - - --
+    |           |               | next-free            |
+    |           |               | (64 bits)            |
+    |  version  | is_allocated  | --- or ------        |
+    | (63 bits) |   (1 bit)     | element              |
+    |           |               | (n-bits)             |
+    ---------------------------------------- - - - - --|            
     */  
     template <typename ELEMENT, typename UINT = size_t>
         class Pool
@@ -94,6 +94,9 @@ namespace core
             refer to the object. */
         ELEMENT & GetObject(Handle i_handle);
 
+        /** Const overload of GetObject. */
+        const ELEMENT & GetObject(Handle i_handle) const;
+
         /** Returns a direct pointer to an object allocated in the pool,
             or nullptr if the object has been deallocated or is a null handle.
             The pointer is valid as long as the pool is not altered.
@@ -101,6 +104,14 @@ namespace core
             so use direct pointers only locally, and keep the handle to 
             refer to the object. */
         ELEMENT * TryGetObject(Handle i_handle);
+
+        /** Const overload of TryGetObject. */
+        const ELEMENT * TryGetObject(Handle i_handle) const;
+
+        /** Returns the handle of a given object in the pool. If the object
+            is not present in the pool, or it has been deleted, the behavior
+            is undefined. A null handle is never returned. */
+        Handle HandleOf(const ELEMENT & i_element) const;
 
         /** Returns the currently allocated object count. */
         UINT GetObjectCount() const;
