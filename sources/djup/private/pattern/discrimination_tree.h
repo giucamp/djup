@@ -5,6 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
+#include <core/graph_wiz.h>
 #include <djup/tensor.h>
 #include <private/old_pattern_match.h>
 #include <private/pattern/pattern_info.h>
@@ -22,6 +23,8 @@ namespace djup
         {
         public:
 
+            DiscriminationTree();
+
             // the pattern id must be positive
             void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern,
                 const Tensor & i_condition = true);
@@ -36,10 +39,6 @@ namespace djup
             };
 
             static uint32_t GetRootNodeIndex() { return s_root_node_index; }
-
-            const Edge* GetRootNode() const;
-
-            const Edge & GetNodeFrom(uint32_t i_source_node) const;
 
             class EdgeSetIterator
             {
@@ -75,17 +74,13 @@ namespace djup
             int32_t GetPatternId(int32_t i_node_index) const { return m_leaf_pattern_id[i_node_index]; }
 
             /** Converts the discrimination net to a string processable with GraphWiz */
-            std::string ToDotLanguage(std::string_view i_graph_name) const;
+            GraphWizGraph ToGraphWiz(std::string_view i_graph_name) const;
 
         private:
 
             constexpr static uint32_t s_root_node_index = 0;
 
-            static bool SamePatterns(Span<const Tensor> i_first_patterns, Span<const Tensor> i_second_patterns);
-
-            /** Returns the destination node */
-            Edge * AddPatternFrom(uint32_t i_source_node,
-                const Tensor& i_source, const PatternInfo & pattern_info);
+            static bool SameRootPatterns(Span<const Tensor> i_first_patterns, Span<const Tensor> i_second_patterns);
 
             DiscriminationTree::Edge* ProcessPattern(
                 int32_t i_source_node, Span<const Tensor> i_patterns, const PatternInfo& i_pattern_info);
@@ -94,10 +89,12 @@ namespace djup
                 uint32_t i_source_node, Span<const Tensor> i_patterns,
                 const PatternInfo& i_source_pattern_info);
 
+            int32_t NewNode();
+
             /** The key is the source node index */
             std::unordered_multimap<uint32_t, Edge> m_edges; 
 
-            /** Id of the pattern if the node is a leaf, -1 otherwise */
+            /** Indicized by nosed. Id of the pattern if the node is a leaf, -1 otherwise */
             std::vector<int32_t> m_leaf_pattern_id; 
 
             #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
@@ -110,7 +107,7 @@ namespace djup
             
             /** every node is identified by an index. INdices are not recycled.
                 This is the last index assigned to a node. */
-            int32_t m_last_node_index = s_root_node_index;
+            int32_t m_node_count = 0;
         };
 
     } // namespace pattern

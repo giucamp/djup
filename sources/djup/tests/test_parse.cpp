@@ -19,8 +19,8 @@ namespace djup
             
             Tensor v1("real [2 4] m");
 
-            "SubstitutionAxiom(real f(real x), , Namespace(SubstitutionAxiom(a, , 1), "
-                "SubstitutionAxiom(b, , 1), Stack(Add(a, b), 4)))"_t;
+            "SubstitutionAxiom(real f(real x), , Namespace(SubstitutionAxiom(any a, , 1), "
+                "SubstitutionAxiom(any b, , 1), Stack(Add(a, b), 4)))"_t;
 
             DJUP_EXPR_EXPECTS_EQ("real f(real x) = { a = 1 b = 1 [a + b, 4] }",
                 "SubstitutionAxiom(real f(real x), , Namespace(SubstitutionAxiom(a, , 1), SubstitutionAxiom(b, , 1), Stack(Add(a, b), 4)))");

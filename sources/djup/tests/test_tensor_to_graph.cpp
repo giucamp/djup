@@ -42,15 +42,15 @@ namespace djup
             // SaveGraph(test_dir + "\\expr.txt", "expr", dot);
             std::string expected = R"(digraph unnamed_graph
 {
-	v0[shape = ellipse label = "Add" color = "#000000" fontcolor = "#000000"]
-	v1[shape = ellipse label = "Mul" color = "#000000" fontcolor = "#000000"]
-	v2[shape = ellipse label = "2" color = "#000000" fontcolor = "#000000"]
-	v3[shape = ellipse label = "5" color = "#000000" fontcolor = "#000000"]
-	v4[shape = ellipse label = "3" color = "#000000" fontcolor = "#000000"]
-	v1 -> v2
-	v1 -> v3
-	v0 -> v1
-	v0 -> v4
+	v0[shape = ellipse label = "Add" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
+	v1[shape = ellipse label = "Mul" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
+	v2[shape = ellipse label = "2" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
+	v3[shape = ellipse label = "5" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
+	v4[shape = ellipse label = "3" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
+	v1 -> v2[label = "" style = "solid"]
+	v1 -> v3[label = "" style = "solid"]
+	v0 -> v1[label = "" style = "solid"]
+	v0 -> v4[label = "" style = "solid"]
 }
 )";
             CORE_EXPECTS_EQ(dot, expected);

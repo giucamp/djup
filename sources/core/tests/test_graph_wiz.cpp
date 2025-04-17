@@ -64,36 +64,36 @@ namespace core
             const std::string dot = graph.ToDotLanguage();
             const std::string expected = R"(digraph unnamed_graph
 {
-	v0[shape = ellipse label = "abc" color = "#000000" fontcolor = "#000000"]
-	v1[shape = ellipse label = "def" color = "#000000" fontcolor = "#000000"]
-	v2[shape = ellipse label = "g\"h\"i" color = "#000000" fontcolor = "#FFFF00FF"]
-	v3[shape = box label = "\"lmno\"" color = "#0000FFFF" fontcolor = "#FFFF00FF"]
-	v4[shape = box label = "1\n2\n3" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v5[shape = box label = "single quote: \'" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v6[shape = box label = "double quote: \"" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v7[shape = box label = "question mark: \?" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v8[shape = box label = "backslash: \\" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v9[shape = box label = "audible bell: \" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v10[shape = box label = "backspace: \" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v11[shape = box label = "form feed - new page: \" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v12[shape = box label = "line feed - new line: \n" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v13[shape = box label = "carriage return: \r" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v14[shape = box label = "horizontal tab: \t" color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v15[shape = box label = "vertical tab: " color = "#00FF00FF" fontcolor = "#FFFF00FF"]
-	v0 -> v1
-	v1 -> v2
-	v3 -> v0
-	v4 -> v0
-	v6 -> v5
-	v7 -> v6
-	v8 -> v7
-	v9 -> v8
-	v10 -> v9
-	v11 -> v10
-	v12 -> v11
-	v13 -> v12
-	v14 -> v13
-	v15 -> v14
+	v0[shape = ellipse label = "abc" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
+	v1[shape = ellipse label = "def" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
+	v2[shape = ellipse label = "g\"h\"i" color = "#000000" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v3[shape = box label = "\"lmno\"" color = "#0000FFFF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v4[shape = box label = "1\n2\n3" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v5[shape = box label = "single quote: \'" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v6[shape = box label = "double quote: \"" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v7[shape = box label = "question mark: \?" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v8[shape = box label = "backslash: \\" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v9[shape = box label = "audible bell: \" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v10[shape = box label = "backspace: \" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v11[shape = box label = "form feed - new page: \" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v12[shape = box label = "line feed - new line: \n" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v13[shape = box label = "carriage return: \r" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v14[shape = box label = "horizontal tab: \t" color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v15[shape = box label = "vertical tab: " color = "#00FF00FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFF"]
+	v0 -> v1[label = "" style = "solid"]
+	v1 -> v2[label = "" style = "solid"]
+	v3 -> v0[label = "" style = "solid"]
+	v4 -> v0[label = "" style = "solid"]
+	v6 -> v5[label = "" style = "solid"]
+	v7 -> v6[label = "" style = "solid"]
+	v8 -> v7[label = "" style = "solid"]
+	v9 -> v8[label = "" style = "solid"]
+	v10 -> v9[label = "" style = "solid"]
+	v11 -> v10[label = "" style = "solid"]
+	v12 -> v11[label = "" style = "solid"]
+	v13 -> v12[label = "" style = "solid"]
+	v14 -> v13[label = "" style = "solid"]
+	v15 -> v14[label = "" style = "solid"]
 }
 )";
             CORE_EXPECTS_EQ(dot, expected);

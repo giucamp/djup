@@ -77,6 +77,8 @@ namespace core
     {
         uint32_t m_from;
         uint32_t m_to;
+        std::string m_label;
+        Attributes m_attributes;
     };
 
     std::filesystem::path GraphWizGraph::s_dot_exe = "C:\\Program Files\\Graphviz\\bin\\dot.exe";
@@ -109,6 +111,11 @@ namespace core
         m_current_attributes.m_node_shape = i_shape;
     }
 
+    void GraphWizGraph::SetEdgeStyle(EdgeStyle i_style)
+    {
+        m_current_attributes.m_edge_style = i_style;
+    }
+
     void GraphWizGraph::SetDrawingColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha)
     {
         m_current_attributes.m_drawing_color = RgbaToHex(i_red, i_green, i_blue, i_alpha);
@@ -124,19 +131,19 @@ namespace core
         m_current_attributes.m_fill_color = RgbaToHex(i_red, i_green, i_blue, i_alpha);
     }
 
-    uint32_t GraphWizGraph::AddNode(std::string_view i_label)
+    uint32_t GraphWizGraph::AddNode(std::string i_label)
     {
         Node new_node;
-        new_node.m_label = i_label;
+        new_node.m_label = std::move(i_label);
         new_node.m_attributes = m_current_attributes;
         uint32_t index = NumericCast<uint32_t>(m_nodes.size());
         m_nodes.push_back(std::move(new_node));
         return index;
     }
 
-    void GraphWizGraph::AddEdge(uint32_t i_from, uint32_t i_to)
+    void GraphWizGraph::AddEdge(uint32_t i_from, uint32_t i_to, std::string i_label)
     {
-        m_edges.push_back({i_from, i_to});
+        m_edges.push_back({i_from, i_to, i_label, m_current_attributes});
     }
 
     /** Returns the number of nodes added so far */
@@ -184,13 +191,19 @@ namespace core
             builder << " label = \"" << GetEscaped(node.m_label) << "\"";
             builder << " color = \"" << node.m_attributes.m_drawing_color << "\"";
             builder << " fontcolor = \"" << node.m_attributes.m_font_color << "\"";
+            builder << " style = \"filled\" fillcolor = \"" << node.m_attributes.m_fill_color << "\"";
             builder << "]";
             builder.NewLine();
         }
 
         for (const Edge & edge : m_edges)
         {
+            const char* edge_styles[] = {"solid", "dashed", "dotted", "bold"};
             builder << "v" << edge.m_from << " -> v" << edge.m_to;
+            builder << "[";
+            builder << "label = \"" << GetEscaped(edge.m_label) << "\"";
+            builder << " style = \"" << edge_styles[static_cast<int>(edge.m_attributes.m_edge_style)] << "\"";
+            builder << "]";
             builder.NewLine();
         }
 

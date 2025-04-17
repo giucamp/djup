@@ -9,6 +9,8 @@
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
 #include <private/pattern/debug_utils.h>
+#include <core/pool.h>
+#include <core/graph_wiz.h>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -31,35 +33,97 @@ namespace djup
 
             void FindMatches(const Tensor& i_target, std::function<void()> i_step_callback = {});
 
-            std::string ToDotLanguage(std::string_view i_graph_name) const;
+            GraphWizGraph ToDotGraphWiz(std::string_view i_graph_name) const;
 
         private:
 
+            struct DescendContext
+            {
+                std::function<void()> m_step_callback;
+            };
 
-            void ProcessAllCandidates();
+            struct Substitution
+            {
+                Name m_variable_name;
+                Tensor m_value;
+            };
 
-            int32_t ProcessSingleCandidate(Candidate& _candidate);
+            struct Candidate
+            {
+                /* Either m_parent_candidate or m_source_discr_node are valid */
+                Pool<Candidate>::Handle m_parent_candidate;
+                uint32_t m_source_discr_node = std::numeric_limits<uint32_t>::max();
 
-            bool TraverseDiscriminationTree(Span<const Tensor> i_targets,
-                std::function<void()> i_step_callback);
+                const DiscriminationTree::Edge* m_edge = nullptr;
+                
+                uint32_t m_dest_node; /** this can be an edge of the discrimination 
+                    tree or a virtual node existing on the discrimination tree 
+                    (virtual nodes). Virtual node indices starts after the last node
+                    of the discrimination tree.*/
 
-            int32_t AddCandidate(Candidate&& i_candidate, const char* phase);
+                Span<const Tensor> m_targets;
+                size_t m_label_offset{};
 
-            int32_t MatchCandidate(int32_t i_parent_candidate, Candidate& i_candidate);
+                uint32_t m_repetitions{ 1 };
+
+                uint32_t m_open{};
+                uint32_t m_close{};
+
+                uint32_t m_outcoming_edges{};
+
+                std::vector<Substitution> m_substitutions;
+
+                bool AddSubstitution(const Name& i_variable_name, const Tensor& i_value)
+                {
+                    m_substitutions.emplace_back(Substitution{ i_variable_name, i_value });
+                    return true;
+                }
+            };
+
+            using UInt = uint32_t;
+
+            using CandHandle = Pool<Candidate>::Handle;
+
+            struct DiscrNodeToProcess
+            {
+                uint32_t m_source_discr_node;
+                Span<const Tensor> m_targets;
+                CandHandle m_parent_candidate_handle;
+            };
+
+            struct DiscrNodeToProcess;
+
+            Pool<Candidate> m_candidates;            
+
+            void ExpandDiscrNode(
+                DescendContext& i_context,
+                int32_t i_discr_node,
+                Span<const Tensor> i_targets,
+                Pool<Candidate>::Handle i_parent_candidate);
+
+            void ProcessCandidate(
+                DescendContext& i_context,
+                const CandHandle& i_candidate_handle);
+
+            uint32_t NewVirtualNode() { return m_next_virtual_node++; }
 
         private:
 
-            const DiscriminationTree & m_discrimination_net;
+            const DiscriminationTree & m_discrimination_tree;
 
-            /** Candidates are arranged in a stack because CandidateRef keeps the index of the referenced candidate. With stack, 
-                popping the top of the stack does not shift the indices of the remaining candidates. Dangling indices in 
-                CandidateRef are detected with a 'version' counter. */
-            std::vector<Candidate> m_candidate_stack;
+            uint32_t m_next_virtual_node;
 
-            std::vector<uint32_t> m_discr_node_queue;
+            std::vector<DiscrNodeToProcess> m_discr_node_stack;
 
-            /* To process a discrimination node the associated candidate must be known */
-            std::vector<uint32_t> m_discr_node_to_substitution_node;
+            std::vector<CandHandle> m_pending_candidates;
+
+            struct SolutionTreeItem
+            {
+                std::vector<Substitution> m_substitutions;
+                uint32_t m_open{};
+                uint32_t m_close{};
+            };
+            std::unordered_map<uint32_t, SolutionTreeItem> m_solution_tree;
 
             struct Solution
             {
@@ -67,17 +131,6 @@ namespace djup
             };
 
             std::vector<Solution> m_solutions;
-
-            struct TerminalNode
-            {
-                uint32_t m_node_index;
-                uint32_t m_pattern_id;
-            };
-
-            std::vector<TerminalNode> m_terminal_nodes;
-
-            /** Every candidate has a unique version. */
-            uint32_t m_next_candidate_version{};
 
             #if DBG_CREATE_GRAPHVIZ_SVG
                 std::string m_graph_name;

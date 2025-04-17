@@ -30,401 +30,247 @@ namespace djup
         }
 
         SubstitutionGraph::SubstitutionGraph(const DiscriminationTree& i_discrimination_net)
-            : m_discrimination_net(i_discrimination_net)
+            : m_discrimination_tree(i_discrimination_net),
+              m_next_virtual_node(i_discrimination_net.GetNodeCount())
         {
-            /* this will tell to the first level of candidates which is
-               the associated discrimination node */
-            m_discr_node_queue.push_back(m_discrimination_net.GetRootNodeIndex());
-            
-            // this vector maps discrimination nodes to substitution nodes
-            m_discr_node_to_substitution_node.resize(
-                m_discrimination_net.GetNodeCount(), std::numeric_limits<int32_t>::max());
         }
 
         SubstitutionGraph::~SubstitutionGraph() = default;
 
-        /** returns the next candidate index in the chain */
-        int32_t SubstitutionGraph::AddCandidate(Candidate&& i_candidate, const char * phase)
+        void SubstitutionGraph::FindMatches(const Tensor& i_target, std::function<void()> i_step_callback)
         {
-            SubstGraphDebugPrintLn("* New Candidate * ", phase);
-            SubstGraphDebugPrintLn("\tTarget: ", TensorSpanToString(i_candidate.m_targets.subspan(i_candidate.m_target_offset)) );
-            /*SubstGraphDebugPrintLn("\tPattern: ", TensorSpanToString(
-                Span(i_candidate.m_discr_edge.m_arguments).subspan(i_candidate.m_pattern_offset)));*/
-            /*SubstGraphDebugPrintLn(
-                i_candidate.m_discr_edge.m_pattern_info.m_dbg_pattern);*/
             SubstGraphDebugPrintLn();
+            SubstGraphDebugPrintLn("------ FindMatches --------");
 
-            if (!i_candidate.m_discr_edge.m_labels.empty())
+            if (m_discrimination_tree.IsGraphEmpty())
             {
-                m_candidate_stack.push_back(std::move(i_candidate));
+                // empty discrimination tree
+                return;
             }
-            return NumericCast<int32_t>(m_candidate_stack.size());
+            
+            DescendContext context;
+            context.m_step_callback = i_step_callback;
+
+            if (context.m_step_callback)
+                context.m_step_callback();
+
+            // add root node for processing
+            DiscrNodeToProcess root_node;
+            root_node.m_source_discr_node = DiscriminationTree::GetRootNodeIndex();
+            root_node.m_targets = { &i_target, 1 };
+            m_discr_node_stack.push_back(root_node);
+
+            do {
+
+                // process candidates
+                while (!m_pending_candidates.empty())
+                {
+                    CandHandle cand_handle = m_pending_candidates[0];
+                    m_pending_candidates.erase(m_pending_candidates.begin());
+
+                    ProcessCandidate(context, cand_handle);
+
+                    m_candidates.Delete(cand_handle);
+                }
+
+                // process discrimination nodes
+                while (!m_discr_node_stack.empty())
+                {
+                    DiscrNodeToProcess node = m_discr_node_stack.back();
+                    m_discr_node_stack.pop_back();
+
+                    if (m_discrimination_tree.IsLeafNode(node.m_source_discr_node))
+                    {
+                        // leaf node, MATCH!!!
+                        return;
+                    }
+
+                    ExpandDiscrNode(context, node.m_source_discr_node,
+                        node.m_targets, node.m_parent_candidate_handle);
+
+                    if (context.m_step_callback)
+                        context.m_step_callback();
+                }
+
+            } while (m_pending_candidates.size() + m_discr_node_stack.size() > 0);
         }
 
-        void SubstitutionGraph::FindMatches(const Tensor& i_target,
-            std::function<void()> i_step_callback)
+        void SubstitutionGraph::ExpandDiscrNode(
+            DescendContext& i_context,
+            int32_t i_source_discr_node,
+            Span<const Tensor> i_targets,
+            Pool<Candidate>::Handle i_parent_candidate)
         {
-            int dbg_loop = 0;
-
-            if (i_step_callback)
-                i_step_callback();
-
-            // tries a match for each outgoing edge from this node
-            for (auto& edge_it : m_discrimination_net.EdgesFrom(0))
+            // expand the discrimination source node
+            for (auto& edge_it : m_discrimination_tree.EdgesFrom(i_source_discr_node))
             {
-                SubstGraphDebugPrintLn();
-                SubstGraphDebugPrintLn("-- Loop ", dbg_loop, ", queue: ");
-                PrintIntVector(m_discr_node_queue);
-                SubstGraphDebugPrintLn();
+                const DiscriminationTree::Edge& edge = edge_it.second;
 
-                // construct candidate
-                const DiscriminationTree::Edge & edge = edge_it.second;
-                Candidate candidate;
-                candidate.m_parent_candidate = 0;
-                candidate.m_discr_edge = edge;
-                candidate.m_targets = {&i_target, 1};
-
-                AddCandidate(std::move(candidate), "First Level");
-
-                ProcessSingleCandidate(m_candidate_stack.back());
-
-                if (i_step_callback)
-                    i_step_callback();
-            }
-
-            ProcessAllCandidates();
-
-            for (const Solution& solution : m_solutions)
-            {
-                SubstGraphDebugPrintLn();
-                SubstGraphDebugPrintLn("\t**** Solutions ****");
-                for (const Substitution& substitution : solution.m_substituitions)
+                /* early reject if the number of parameters (targets) is incompatible
+                    with the number of labels in the pattern */
+                if (edge.m_pattern_info.m_labels_range.IsValaueWithin(
+                    NumericCast<int32_t>(i_targets.size())))
                 {
-                    SubstGraphDebugPrintLn(substitution.m_variable_name, " = ", ToSimplifiedStringForm(substitution.m_value));
+                    CandHandle cand_handle = m_candidates.New();
+                    Candidate& candidate = m_candidates.GetObject(cand_handle);
+                    candidate.m_source_discr_node = i_source_discr_node;
+                    candidate.m_edge = &edge;
+                    // candidate.m_parent_candidate = i_parent_candidate; shouldn't be necessary
+                    candidate.m_targets = i_targets;
+                    
+                    ProcessCandidate(i_context, cand_handle);
+                    
+                    m_candidates.Delete(cand_handle);
                 }
             }
         }
 
-        void SubstitutionGraph::ProcessAllCandidates()
+        /* returns true if the candidate should be kept, false otherwise */
+        void SubstitutionGraph::ProcessCandidate(
+            DescendContext& i_context,
+            const CandHandle & i_candidate_handle)
         {
-            do {
-                Candidate candidate = std::move(m_candidate_stack.back());
-                m_candidate_stack.pop_back();
+            // extract for data in the candidate
+            Candidate * candidate = &m_candidates.GetObject(i_candidate_handle);
+            const Span<const Tensor> targets = candidate->m_targets;
+            const Span<const Tensor> labels = 
+                Span(candidate->m_edge->m_labels).subspan(candidate->m_label_offset);
+            const Span<const LabelInfo> label_infos = 
+                Span(candidate->m_edge->m_pattern_info.m_labels_info).subspan(candidate->m_label_offset);
+            const UInt repetitions = candidate->m_repetitions;
+            const uint32_t source_discr_node = candidate->m_source_discr_node;
+            const DiscriminationTree::Edge& edge = *candidate->m_edge;
+            const CandHandle parent_candidate_handle = candidate->m_parent_candidate;
+            const uint32_t discr_dest_node = candidate->m_dest_node;
+                // from now on candidate will be invalidated as soon as the pool is modified
 
-                ProcessSingleCandidate(candidate);
+            SubstGraphDebugPrintLn("Process Candidate. Discr: ", 
+                source_discr_node, " -> ", edge.m_dest_node,
+                ", rep: ", repetitions,
+                "\n\ttargets: ", TensorSpanToString(targets), 
+                "\n\tlabels: ", TensorSpanToString(labels));
 
-            } while (!m_candidate_stack.empty());
-        }
-
-        int32_t SubstitutionGraph::ProcessSingleCandidate(Candidate& i_candidate)
-        {
-            Candidate & candidate = i_candidate;
-
-            // MatchCandidate may add other candidates, take the index before
-            const int32_t candidate_index = NumericCast<int32_t>(m_candidate_stack.size());
-
-            /* a candidate may require to the target to have the same expression multiple times,
-               (in the case of variadic arguments), otherwise the number of repetitions must be 1 */
-            const int32_t repetitions = i_candidate.m_repetitions;
-
-            /* early reject if the number of parameters (targets) is incompatible
-               with the number of arguments in the pattern */
-            const Span<const Tensor> targets = i_candidate.m_targets;
-            if (!i_candidate.m_discr_edge.m_pattern_info.m_labels_range.IsValaueWithin(
-                NumericCast<int32_t>(targets.size())))
+            UInt target_index = 0;
+            for (UInt repetition = 0; repetition < repetitions; ++repetition)
             {
-                return -1;
-            }
-
-            const DiscriminationTree::Edge & discr_edge = i_candidate.m_discr_edge;
-
-            /*if (discr_edge.is_leaf_node)
-            {
-                // match found
-                int ggggg = 0;
-            }
-            else*/
-            {
-                /* loops the repetitions, advancing the target (or argument) at each iteration. */
-                int32_t target_index = i_candidate.m_target_offset;
-                for (int32_t repetition = i_candidate.m_repetitions_offset; repetition < repetitions; repetition++)
+                for (UInt label_index = 0; label_index < labels.size(); 
+                    ++label_index, ++target_index)
                 {
-                    /** for every repetition the target must have the all the expressions in
-                        the pattern. */
-                    const int32_t pattern_size = NumericCast<int32_t>(i_candidate.m_discr_edge.m_labels.size());
-                    for (int32_t pattern_index = i_candidate.m_pattern_offset;
-                        pattern_index < pattern_size; target_index++, pattern_index++)
+                    const LabelInfo & label_info = label_infos[label_index];
+                    if (label_info.m_cardinality.m_min == label_info.m_cardinality.m_max)
                     {
-                        const Tensor& pattern = i_candidate.m_discr_edge.m_labels[pattern_index];
-                        const Range argument_cardinality =
-                            i_candidate.m_discr_edge.m_pattern_info.m_labels_info[pattern_index].m_cardinality;
-                        const Range remaining =
-                            i_candidate.m_discr_edge.m_pattern_info.m_labels_info[pattern_index].m_remaining;
+                        /* non-variadic argument */
 
-                        // check if it's a single cardinality argument
-                        if (argument_cardinality.m_min == argument_cardinality.m_max)
+                        const Tensor& label = labels[label_index];
+                        const Tensor& target = targets[target_index];
+
+                        if (target_index >= labels.size())
+                            return;
+
+                        if (IsConstant(label))
                         {
-                            // the argument list does not have any varaditicity
-                            const Tensor& target = targets[target_index];
-
-                            if (IsConstant(pattern)) /* if the pattern does not have any variable then
-                               a full exact match is required (note that expressions are canonicalized) */
+                            if (!AlwaysEqual(label, target))
+                                return;
+                        }
+                        else if (NameIs(label, builtin_names::Identifier))
+                        {
+                            // check type
+                            if (Is(target, label))
                             {
-                                if (!AlwaysEqual(pattern, target))
-                                    return -1;
-                            }
-                            else if (NameIs(pattern, builtin_names::Identifier))
-                            {
-                                if (!Is(target, pattern))
-                                    return -1; // type mismatch
-
-                                i_candidate.m_substitutions.push_back({ GetIdentifierName(pattern), target });
-                            }
-                            else
-                            {
-                                // expression call
-                                if (pattern.GetExpression()->GetName() != target.GetExpression()->GetName())
-                                    return false;
-
-                                DiscriminationTree::Edge const& inner_discrimination_node =
-                                    m_discrimination_net.GetNodeFrom(i_candidate.m_discr_edge.m_dest_node);
-
-                                int32_t next_candidate_index;
-
-                                // first add a candidate with the patterns and arguments of the call
-                                Candidate args_candidate = i_candidate;
-                                args_candidate.m_parent_candidate = candidate_index;
-                                args_candidate.m_discr_edge = inner_discrimination_node;
-                                args_candidate.m_open = i_candidate.m_open;
-                                args_candidate.m_targets = target.GetExpression()->GetArguments();
-                                next_candidate_index = AddCandidate(std::move(args_candidate), "subexpr");
-
-                                // now add a candidate with the patterns and arguments following the call
-                                Candidate continuation_candidate;
-                                continuation_candidate.m_parent_candidate = next_candidate_index;
-                                continuation_candidate.m_discr_edge = discr_edge;
-                                continuation_candidate.m_targets = i_candidate.m_targets;
-                                continuation_candidate.m_target_offset = NumericCast<int32_t>(target_index + 1);
-                                continuation_candidate.m_pattern_offset = NumericCast<int32_t>(pattern_index + 1);
-                                continuation_candidate.m_repetitions_offset = repetition;
-                                next_candidate_index = AddCandidate(std::move(continuation_candidate), "remaining");
-
-                                return next_candidate_index;
+                                candidate->AddSubstitution(GetIdentifierName(label), target);
                             }
                         }
                         else
                         {
-                            /* variadic case */
-                            int32_t total_available_targets = NumericCast<int32_t>(targets.size()) - target_index;
-
-                            int32_t sub_pattern_count = NumericCast<int32_t>(pattern.GetExpression()->GetArguments().size());
-                            assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
-
-                            // compute usable range
-                            Range usable;
-                            usable.m_max = total_available_targets - remaining.m_min;
-                            usable.m_min = remaining.m_max == std::numeric_limits<uint32_t>::max() ?
-                                0 :
-                                total_available_targets - remaining.m_max;
-
-                            usable = argument_cardinality.ClampRange(usable);
-
-                            // align the usable range to be a multiple of sub_pattern_count
-                            usable.m_min += sub_pattern_count - 1;
-                            usable.m_min -= usable.m_min % sub_pattern_count;
-                            usable.m_max -= usable.m_max % sub_pattern_count;
-
-                            // number of possible repetitions
-                            uint32_t rep = NumericCast<uint32_t>(usable.m_min / sub_pattern_count);
-
-                            // 'used' is how many arguments we are going to use in this iteration
-                            for (size_t used = usable.m_min; used <= usable.m_max; used += sub_pattern_count, rep++)
+                            // function call
+                            if (label.GetExpression()->GetName() == target.GetExpression()->GetName())
                             {
-                                //assert(!nest_index); // repetitions can't be nested directly
-
-                                /*Candidate repeated_candidate;
-                                repeated_candidate.m_parent_candidate = i_parent_candidate;
-                                repeated_candidate.m_discr_edge = i_candidate.m_discr_edge;
-
-
-                                    const uint32_t meddle_node = NewNode();
-
-                                Candidate candidates[2];
-
-                                // repeated pattern
-                                candidates[0].m_open = i_candidate.m_open + 1;
-                                candidates[0].m_close = 1;
-                                candidates[0].m_repetitions = rep;
-                                candidates[0].m_targets = targets.subspan(target_index, used);
-                                candidates[0].m_discrimination_node = i_discrimination_edge.m_dest_node;
-                                AddCandidate(i_candidate.m_start_node, meddle_node, candidates[0], std::move(substitutions));
-
-                                // rest of pattern
-                                candidates[1].m_close = i_candidate.m_close;
-                                candidates[1].m_pattern_offset = pattern_index + 1;
-                                candidates[1].m_targets = targets;
-                                candidates[1].m_target_offset = target_index + used;
-                                candidates[1].m_discrimination_node = i_candidate.m_discrimination_node;
-                                candidates[1].m_discrimination_edge = &i_discrimination_edge;
-                                AddCandidate(meddle_node, i_candidate.m_end_node, candidates[1], {});
-
-                                return -1;*/
+                                DiscrNodeToProcess node_to_process;
+                                node_to_process.m_targets = target.GetExpression()->GetArguments();
+                                node_to_process.m_source_discr_node = edge.m_dest_node;
+                                node_to_process.m_parent_candidate_handle = i_candidate_handle;
+                                m_discr_node_stack.push_back(node_to_process);
                             }
                         }
+
                     }
-                }
-
-                /*AddEdge(i_candidate.m_start_node, i_candidate.m_end_node, {},
-                    i_candidate.m_open, i_candidate.m_close,
-                    std::move(substitutions));
-
-                if (i_discrimination_edge.is_leaf_node)
-                {
-                    m_terminal_nodes.push_back({ i_candidate.m_end_node , i_discrimination_edge.m_pattern_id });
-                }*/
-
-            }
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        bool SubstitutionGraph::TraverseDiscriminationTree(
-            Span<const Tensor> i_targets, std::function<void()> i_step_callback)
-        {
-            SubstGraphDebugPrintLn("----- TraverseDiscriminationTree, target: ", TensorSpanToString(i_targets));
-
-            int dbg_loop = 0;
-
-            if (i_step_callback)
-                i_step_callback();
-
-            // initialize the root candidate with the whole target
-
-
-
-            do {
-
-                // peek the last discrimination node from the root
-                const uint32_t discr_node = m_discr_node_queue.back();
-                m_discr_node_queue.pop_back();
-
-                Candidate candidate;
-                candidate.m_parent_candidate = -1;
-                candidate.m_targets = i_targets;
-                candidate.m_parent_candidate = m_discr_node_to_substitution_node[discr_node];
-
-                // tries a match for each outgoing edge from this node
-                for (auto& edge_it : m_discrimination_net.EdgesFrom(discr_node))
-                {
-                    SubstGraphDebugPrintLn();
-                    SubstGraphDebugPrintLn("-- Loop ", dbg_loop, ", queue: " );
-                    PrintIntVector(m_discr_node_queue);
-                    SubstGraphDebugPrintLn();
-
-                    const DiscriminationTree::Edge& edge = edge_it.second;
-                    candidate.m_discr_edge = edge;
-                    int32_t next_candidate_index = MatchCandidate(
-                        m_discr_node_to_substitution_node[discr_node], candidate);
-
-                    if (next_candidate_index != -1)
+                    else
                     {
-                        // target is matching (so far), then add the edge destination to the queue
-                        m_discr_node_queue.push_back(edge.m_dest_node);
+                                    /* variadic argument */
 
-                        // this will tell the candidate from which discrimination node it should start
-                        m_discr_node_to_substitution_node[next_candidate_index] = edge.m_dest_node;
+                        UInt label_size = NumericCast<UInt>(labels.size());
+                        UInt target_size = NumericCast<UInt>(targets.size());
 
-                        // check if the discrimination node is a leaf (solution)
-                        /*if (edge.is_leaf_node)
+                        // number of total parameters usable for the repeated pattern
+                        Range usable;
+                        
+                        assert(target_size >= label_infos[label_index].m_remaining.m_min + label_index);
+                        usable.m_max = target_size - label_infos[label_index].m_remaining.m_min - label_index;
+                        if (label_infos[label_index].m_remaining.m_max == Range::s_infinite)
+                            usable.m_min = 0;
+                        else
                         {
-                            std::vector<Substitution> substitutions;
-                            int32_t candidate_index = next_candidate_index;
-                            do {
-                                substitutions.insert(substitutions.end(),
-                                    candidate.m_substitutions.begin(),
-                                    candidate.m_substitutions.end());
-                                next_candidate_index = m_candidate_stack[next_candidate_index].m_parent_candidate;
-                            } while (candidate_index == 0);
+                            assert(target_size >= label_infos[label_index].m_remaining.m_max + label_index);
+                            usable.m_min = target_size - label_infos[label_index].m_remaining.m_max - label_index;
+                        }
 
-                            m_solutions.push_back({ std::move(substitutions) });
-                        }*/
+                        usable = label_infos[label_index].m_cardinality.ClampRange(usable);
+                        
+                        // align the usable range to be a multiple of sub_pattern_count
+                        const UInt sub_pattern_count = NumericCast<UInt>( 
+                            labels[label_index].GetExpression()->GetArguments().size() );
+                        usable.m_min += sub_pattern_count - 1;
+                        usable.m_min -= usable.m_min % sub_pattern_count;
+                        usable.m_max -= usable.m_max % sub_pattern_count;
+
+                        SubstGraphDebugPrintLn("\tadding variadic to use (",
+                            usable, " terms)");
+
+                        // used: total number of targets used in the target
+                        // rep: number of times the repetition is repeated
+                        uint32_t rep = NumericCast<uint32_t>(usable.m_min / sub_pattern_count);
+                        for (size_t used = usable.m_min; used <= usable.m_max; 
+                            used += sub_pattern_count, rep++)
+                        {
+                            // repetition candidate
+                            CandHandle rep_cand_handle = m_candidates.New();
+                            Candidate& rep_candidate = m_candidates.GetObject(rep_cand_handle);
+                            rep_candidate.m_targets = targets.subspan(target_index, used);
+                            rep_candidate.m_edge = &edge;
+                            rep_candidate.m_label_offset = label_index;
+                            rep_candidate.m_parent_candidate = parent_candidate_handle;
+                            rep_candidate.m_source_discr_node = source_discr_node;
+                            rep_candidate.m_repetitions = rep;
+                            m_pending_candidates.push_back(rep_cand_handle);
+
+                            // continuation candidate
+                            CandHandle cont_cand_handle = m_candidates.New();
+                            Candidate& cont_candidate = m_candidates.GetObject(cont_cand_handle);
+                            cont_candidate.m_targets = targets.subspan(target_index + used);
+                            cont_candidate.m_edge = &edge;
+                            cont_candidate.m_label_offset = label_index + used;
+                            cont_candidate.m_parent_candidate = rep_cand_handle;
+                            m_pending_candidates.push_back(cont_cand_handle);
+
+                            candidate = &m_candidates.GetObject(i_candidate_handle);
+                        }
+                        return;
                     }
-
-                    dbg_loop++;
-
-                    if (i_step_callback)
-                        i_step_callback();
-                }
-
-            } while (!m_discr_node_queue.empty());
-            return true;
-        }
-
-        
-        int32_t SubstitutionGraph::MatchCandidate(
-            int32_t i_parent_candidate, Candidate& i_candidate)
-        {
-            // MatchCandidate may add other candidates, take the index before
-            const int32_t candidate_index = NumericCast<int32_t>(m_candidate_stack.size());
-
-            /* a candidate may require to the target to have the same expression multiple times,
-                (in the case of variadic arguments), otherwise the number of repetitions must be 1 */
-            const int32_t repetitions = i_candidate.m_repetitions;
-
-            /* early reject if the number of parameters (targets) is incompatible
-               with the number of arguments in the pattern */
-            const Span<const Tensor> targets = i_candidate.m_targets;
-            if (!i_candidate.m_discr_edge.m_pattern_info.m_labels_range.IsValaueWithin(
-                NumericCast<int32_t>(targets.size())))
-            {
-                return -1;
+                }                
             }
 
-            
-            return true;
+            // check if the discrimination edge is complete
+            bool labels_finished = true; /*edge.m_pattern_info.m_labels_info.data() +
+                edge.m_pattern_info.m_labels_info.size() == &label_infos[label_index]; */
+
+            std::vector<Substitution> & substitutions = m_solution_tree[discr_dest_node].m_substitutions;
+
+
+
+            /*SolutionTreeItem & solution_item = m_solution_tree[edge.m_dest_node];
+            for(Substitution & subst : substitutions)
+                m_solution_tree[edge.m_dest_node].m_substitutions.push_back(subst);*/
         }
-        
-        /*{
-            if (i_step_callback)
-                i_step_callback();
-
-            do {
-
-                Candidate candidate = std::move(m_candidate_stack.back());
-                m_candidate_stack.pop_back();
-
-                if (!candidate.m_decayed)
-                {
-                    MatchCandidate(std::move(candidate), 0);
-                }
-
-                if (i_step_callback)
-                    i_step_callback();
-
-            } while (!m_candidate_stack.empty());
-        }*/
-
-
-
 
     } // namespace pattern
 

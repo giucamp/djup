@@ -9,35 +9,56 @@
 #include <private/pattern/candidate.h>
 #include <private/pattern/debug_utils.h>
 
+
 namespace djup
 {
     namespace pattern
     {
-        std::string SubstitutionGraph::ToDotLanguage(std::string_view i_graph_name) const
+
+        GraphWizGraph SubstitutionGraph::ToDotGraphWiz(std::string_view i_graph_name) const
         {
-            const std::string escaped_newline = "\\n";
+            GraphWizGraph graph;
 
-            StringBuilder dest;
-
-            dest << "digraph G";
-            dest.NewLine();
-            dest << "{";
-            dest.NewLine();
-            dest.Tab();
-
-            for (size_t i = 0; i < m_candidate_stack.size(); i++)
+            using Handle = Pool<Candidate>::Handle;
+            
+            struct HandleHash
             {
-                const Candidate& candidate = m_candidate_stack[i];
-                dest << "v" << i << "[" << "label = \""
-                    << TensorSpanToString(candidate.m_targets, 1)
-                    << "\"]";
+                std::size_t operator()(const Handle& i_source) const noexcept
+                {
+                    return i_source.m_index ^ i_source.m_version; // or use boost::hash_combine
+                }
+            };
+            
+            std::unordered_map<Handle, uint32_t, HandleHash> handles;
+
+            uint32_t index = 0;
+            for (const Candidate& candidate : m_candidates)
+            {
+                auto label = ToString(
+                    candidate.m_source_discr_node, " -> ", candidate.m_edge->m_dest_node
+                );
+                graph.AddNode(label);
+                handles.insert(std::make_pair(m_candidates.HandleOf(candidate), index));
+
+                ++index;
             }
 
-            dest.Untab();
-            dest << "}";
-            dest.NewLine();
+            index = 0;
+            for (auto handle_it : handles)
+            {
+                const Candidate& candidate = m_candidates.GetObject(handle_it.first);
 
-            return dest.StealString();
+                auto from_it = handles.find(candidate.m_parent_candidate);
+                auto to_it = handles.find(handle_it.first);
+
+                if (from_it != handles.end() && to_it != handles.end())
+                {
+                    graph.AddEdge(from_it->second, to_it->second);
+                }
+                ++index;
+            }
+
+            return graph;
         }
 
     } // namespace pattern

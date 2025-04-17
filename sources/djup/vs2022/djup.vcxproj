@@ -76,6 +76,9 @@
       <Project>{a00ddaa3-66e9-408c-ad6e-a877b67c2b59}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

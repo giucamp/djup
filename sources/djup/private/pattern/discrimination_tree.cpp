@@ -20,14 +20,14 @@ namespace djup
         namespace
         {
             template< typename... ARGS>
-                void DiscrTreeDebugPrintLn(ARGS&&... args)
+            void DiscrTreeDebugPrintLn(ARGS&&... args)
             {
-                #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
-                    #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
-                #endif
-                #if DJUP_DEBUG_DISCRIMINATION_TREE
-                    PrintLn(args...);
-                #endif
+#if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
+#error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
+#endif
+#if DJUP_DEBUG_DISCRIMINATION_TREE
+                PrintLn(args...);
+#endif
             }
         }
 
@@ -36,45 +36,50 @@ namespace djup
             return SubstituteByPredicate(i_pattern, [](const Tensor& i_candidate) {
                 FunctionFlags flags = GetFunctionFlags(i_candidate.GetExpression()->GetName());
 
-            bool some_substitution = false;
-            std::vector<Tensor> new_arguments;
+                bool some_substitution = false;
+                std::vector<Tensor> new_arguments;
 
-            const std::vector<Tensor>& arguments = i_candidate.GetExpression()->GetArguments();
-            const size_t argument_count = arguments.size();
+                const std::vector<Tensor>& arguments = i_candidate.GetExpression()->GetArguments();
+                const size_t argument_count = arguments.size();
 
-            // substitute identifiers in associative functions with AssociativeIdentifier()
-            if (HasFlag(flags, FunctionFlags::Associative))
-            {
-                size_t index = 0;
-
-                for (; index < argument_count; index++)
+                // substitute identifiers in associative functions with AssociativeIdentifier()
+                if (HasFlag(flags, FunctionFlags::Associative))
                 {
-                    const Tensor& argument = arguments[index];
-                    if (IsIdentifier(argument))
+                    size_t index = 0;
+
+                    for (; index < argument_count; index++)
                     {
-                        new_arguments = arguments;
-                        some_substitution = true;
-                        break;
+                        const Tensor& argument = arguments[index];
+                        if (IsIdentifier(argument))
+                        {
+                            new_arguments = arguments;
+                            some_substitution = true;
+                            break;
+                        }
+                    }
+
+                    for (; index < argument_count; index++)
+                    {
+                        const Tensor& argument = arguments[index];
+                        if (IsIdentifier(argument))
+                        {
+                            new_arguments[index] = MakeExpression(builtin_names::AssociativeIdentifier,
+                                { argument },
+                                argument.GetExpression()->GetMetadata());
+                        }
                     }
                 }
 
-                for (; index < argument_count; index++)
-                {
-                    const Tensor& argument = arguments[index];
-                    if (IsIdentifier(argument))
-                    {
-                        new_arguments[index] = MakeExpression(builtin_names::AssociativeIdentifier,
-                            { argument },
-                            argument.GetExpression()->GetMetadata());
-                    }
-                }
-            }
+                if (some_substitution)
+                    return MakeExpression(i_candidate.GetExpression()->GetName(), new_arguments, i_candidate.GetExpression()->GetMetadata());
+                else
+                    return i_candidate;
+                });
+        }
 
-            if (some_substitution)
-                return MakeExpression(i_candidate.GetExpression()->GetName(), new_arguments, i_candidate.GetExpression()->GetMetadata());
-            else
-                return i_candidate;
-            });
+        DiscriminationTree::DiscriminationTree()
+        {
+            NewNode();
         }
 
         /** This is the entry point to add a pattern */
@@ -85,22 +90,28 @@ namespace djup
 
             const Tensor preprocessed = PreprocessPattern(i_pattern);
 
-            // pattern info for the level node (the one that starts from the root)
+            // pattern info for the first level node (the one that starts from the root)
             PatternInfo pattern_info;
-            pattern_info.m_labels_range = {1, 1};
+            pattern_info.m_labels_range = { 1, 1 };
             pattern_info.m_labels_info.resize(1);
             pattern_info.m_labels_info[0].m_cardinality = { 1, 1 };
             pattern_info.m_labels_info[0].m_remaining = { 0, 0 };
-            pattern_info.m_dbg_pattern = i_pattern;
             pattern_info.m_flags = {};
+            #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
+                #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
+            #endif
+            #if DJUP_DEBUG_PATTERN_INFO
+                pattern_info.m_dbg_pattern = i_pattern;
+            #endif
 
             Edge* curr_edge = AddEdge(s_root_node_index, { &preprocessed, 1 }, pattern_info);
 
-            ProcessPattern(curr_edge->m_dest_node, 
+            ProcessPattern(curr_edge->m_dest_node,
                 preprocessed.GetExpression()->GetArguments(), BuildPatternInfo(i_pattern));
 
+            assert(m_leaf_pattern_id.back() == -1);
             m_leaf_pattern_id.back() = i_pattern_id;
-            
+
             #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
                 #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
             #endif
@@ -110,40 +121,45 @@ namespace djup
         }
 
         DiscriminationTree::Edge* DiscriminationTree::ProcessPattern(
-            int32_t i_source_node, Span<const Tensor> i_patterns, const PatternInfo & i_pattern_info)
+            int32_t i_source_node, Span<const Tensor> i_patterns, const PatternInfo& i_pattern_info)
         {
-            Edge * curr_edge = AddEdge(i_source_node, i_patterns, i_pattern_info);
+            Edge* curr_edge = AddEdge(i_source_node, i_patterns, i_pattern_info);
 
             // process arguments
             for (size_t i = 0; i < i_patterns.size(); i++)
             {
+                // literals and identifiers are considered terminal nodes
                 if (!IsLiteral(i_patterns[i]) && !IsIdentifier(i_patterns[i]))
                 {
                     Span<const Tensor> arguments = i_patterns[i].GetExpression()->GetArguments();
-                    
-                    const PatternInfo pattern_info = BuildPatternInfo(i_patterns[i]);
-
-                    curr_edge = AddEdge(curr_edge->m_dest_node, 
-                        arguments, pattern_info);
+                    if (!arguments.empty())
+                    {
+                        curr_edge = ProcessPattern(curr_edge->m_dest_node,
+                            arguments, BuildPatternInfo(i_patterns[i]));
+                    }
                 }
             }
 
             return curr_edge;
         }
 
-        /** Adds an edge, or returns an identical one */
+        /** Adds an edge to a new node, or returns an identical one */
         DiscriminationTree::Edge* DiscriminationTree::AddEdge(
             uint32_t i_source_node, Span<const Tensor> i_patterns,
             const PatternInfo& i_source_pattern_info)
         {
-            DiscrTreeDebugPrintLn("Adding edge from ", i_source_node, " with label ", TensorSpanToString(i_patterns, 1));
+            DiscrTreeDebugPrintLn("Adding edge from ", i_source_node,
+                " with label ", TensorSpanToString(i_patterns, 1));
 
             // search for an identical edge with the same patterns
             auto range = m_edges.equal_range(i_source_node);
             for (auto it = range.first; it != range.second; it++)
             {
                 Edge& existing_edge = it->second;
-                if (SamePatterns(existing_edge.m_labels, i_patterns))
+                const bool same = SameRootPatterns(existing_edge.m_labels, i_patterns);
+                DiscrTreeDebugPrintLn("Comparing ", TensorSpanToString(existing_edge.m_labels),
+                    " to ", TensorSpanToString(i_patterns), ": ", same);
+                if (same)
                 {
                     // merge the cardinalities in the exiting edge
                     existing_edge.m_pattern_info.m_flags = i_source_pattern_info.m_flags;
@@ -161,20 +177,29 @@ namespace djup
                 }
             }
 
-            // insert and setup a new edge
-            uint32_t new_node = ++m_last_node_index;
+            // new node
+            uint32_t new_node = NewNode();
+
+            // new edge
             Edge new_edge;
             new_edge.m_pattern_info = i_source_pattern_info;
             new_edge.m_labels.assign(i_patterns.begin(), i_patterns.end());
             new_edge.m_dest_node = new_node;
             auto res = m_edges.insert(std::pair(i_source_node, std::move(new_edge)));
-            m_leaf_pattern_id.push_back(-1);
-            assert(m_edges.size() == m_leaf_pattern_id.size());
             return &res->second;
         }
 
+        int32_t DiscriminationTree::NewNode()
+        {
+            uint32_t new_node = m_node_count++;
+            m_leaf_pattern_id.push_back(-1);
+            assert(m_leaf_pattern_id.size() == m_node_count);
+            DiscrTreeDebugPrintLn("\tnew node: ", new_node);
+            return new_node;
+        }
+
         /** Checks whether two pattern list are equal */
-        bool DiscriminationTree::SamePatterns(Span<const Tensor> i_first_patterns, Span<const Tensor> i_second_patterns)
+        bool DiscriminationTree::SameRootPatterns(Span<const Tensor> i_first_patterns, Span<const Tensor> i_second_patterns)
         {
             if (i_first_patterns.size() != i_second_patterns.size())
                 return false;
@@ -198,29 +223,8 @@ namespace djup
             
             return true;
         }
-        
-        const DiscriminationTree::Edge* DiscriminationTree::GetRootNode() const
-        {
-            auto const root_edje_it = std::as_const(m_edges).find(0);
-            if (root_edje_it == m_edges.end())
-            {
-                // empty tree
-                return nullptr;
-            }
-            return &root_edje_it->second;
-        }
 
-        const DiscriminationTree::Edge& DiscriminationTree::GetNodeFrom(uint32_t i_source_node) const
-        {
-            auto const edge_it = std::as_const(m_edges).find(i_source_node);
-            if (edge_it == m_edges.end())
-            {
-                Error("Discrimination tree: non-existing node");
-            }
-            return edge_it->second;
-        }
-
-        std::string DiscriminationTree::ToDotLanguage(std::string_view i_graph_name) const
+        GraphWizGraph DiscriminationTree::ToGraphWiz(std::string_view i_graph_name) const
         {
             DiscrTreeDebugPrintLn("---------------------------");
             for (const auto& edge : m_edges)
@@ -233,83 +237,51 @@ namespace djup
             }
             DiscrTreeDebugPrintLn("---------------------------");
 
-            StringBuilder dest;
-        
-            dest << "digraph G";
-            dest.NewLine();
-            dest << "{";
-            dest.NewLine();
-            dest.Tab();
+            GraphWizGraph graph(i_graph_name);
 
-            dest << "label = \"" << i_graph_name << "\"";
-            dest.NewLine();
-
-            const std::string escaped_newline = "\\n";
-
-            // nodes
-            for(int32_t i = 0; i <= m_last_node_index; i++)
+            for (int32_t i = 0; i < m_node_count; i++)
             {
-                dest << "v" << i;
                 if (i == s_root_node_index)
                 {
-                    dest << "[shape = box] [style=filled] [fontcolor=\"black\"] [fillcolor=\"#bee3fb\"]";
-                    dest << "[label = \"Root\"]";
+                    graph.SetNodeShape(core::GraphWizGraph::Box);
+                    graph.SetFillColor(235, 200, 255);
+                    graph.AddNode("Root");
+                }
+                else if (IsLeafNode(i))
+                {
+                    std::string text = ToString("Pattern ", m_leaf_pattern_id[i], " - node ",  i);
+                    #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
+                        #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
+                    #endif
+                    #if DJUP_DEBUG_DISCRIMINATION_TREE
+                        const auto full_pattern_it = m_dbg_full_patterns.find(m_leaf_pattern_id[i]);
+                        assert(full_pattern_it != m_dbg_full_patterns.end());
+                        text += "\n" + full_pattern_it->second;
+                    #endif
+
+                    graph.SetNodeShape(core::GraphWizGraph::Box);
+                    graph.SetFillColor(235, 200, 255);
+                    graph.AddNode(text);
                 }
                 else
                 {
-                    dest << "[label = \"" << i << "\"] [style=filled] "
-                        "[fontcolor=\"black\"] [fillcolor=\"#a3ebc5\"]";
+                    graph.SetNodeShape(core::GraphWizGraph::Ellipse);
+                    graph.SetFillColor(200, 230, 255);
+                    graph.AddNode(ToString(i));
                 }
-                
-                dest.NewLine();
             }
 
             // edges
-            for(const auto & edge : m_edges)
+            for (const auto & edge : m_edges)
             {
                 std::string text = TensorSpanToString(edge.second.m_labels, 1, true);
-                
-                // uncomment the following to see the raw form of edge patterns
-                // text += escaped_newline + TensorSpanToString(edge.second.m_arguments, 1, false);
+                if (!edge.second.m_pattern_info.m_labels_range.HasSingleValue())
+                    text += "\n{" + edge.second.m_pattern_info.m_labels_range.ToString() + "}";
 
-                std::string color = "black";
-
-                std::string dest_node = 
-                    ToString("v", edge.second.m_dest_node);
-                if (!edge.second.m_pattern_info.m_labels_range.IsSingleValue())
-                    text += escaped_newline + "{" + edge.second.m_pattern_info.m_labels_range.ToString() + "}";
-
-                dest << 'v' << edge.first << " -> " << dest_node;
-                dest << "[style=\"solid\", color=\"" << color << "\", label=\"" << text;
-                dest << "\"]" << ';';
-
-                if (IsLeafNode(edge.first))
-                {
-                    // draw pattern box
-                    #if DJUP_DEBUG_DISCRIMINATION_TREE
-                        const auto full_pattern_it = m_dbg_full_patterns.find(m_leaf_pattern_id[edge.first]);
-                        assert(full_pattern_it != m_dbg_full_patterns.end());
-                        dest << "v" << edge.second.m_dest_node;
-                        dest << "[shape = box, label = \"";
-                        dest << full_pattern_it->second;
-                        dest << escaped_newline << "Pattern " << m_leaf_pattern_id[edge.first] << "\"]";
-                    #else
-                        dest << "v" << edge.second.m_dest_node;
-                        dest << "[shape = box, label = \"";
-                        dest << "Pattern " << edge.second.m_dest_node << "\"]";
-                    #endif
-                    dest.NewLine();
-                }
-
-                dest.NewLine();
+                graph.AddEdge(edge.first, edge.second.m_dest_node, text);
             }
 
-            dest.Untab();
-            dest << "}";
-            dest.NewLine();
-
-            std::string dot = dest.StealString();
-            return dot;
+            return graph;
         }
 
     } // namespace pattern

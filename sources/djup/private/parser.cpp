@@ -135,8 +135,13 @@ namespace djup
                         return ParseIdentifier(std::move(name), i_context);
 
                     std::vector<Tensor> arguments;
-                    if(lexer.TryAccept(SymbolId::LeftParenthesis))
+                    if (lexer.TryAccept(SymbolId::LeftParenthesis))
                         arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
+                    /* else
+                        Error("Undeclared symbol", name.AsString(), " - use () to enter function with no arguments"); */
+                        
+                        /* This should be treated as undeclared identifier if not yet declared
+                           with a type (even any), and if not part of a Past chain. */
 
                     return MakeExpression(name_token->m_source_chars, arguments);
                 }

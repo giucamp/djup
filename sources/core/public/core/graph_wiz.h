@@ -50,6 +50,16 @@ namespace core
 
         void SetNodeShape(NodeShape i_shape);
 
+        enum EdgeStyle
+        {
+            Solid,
+            Dashed,
+            Dotted,
+            Bold
+        };
+
+        void SetEdgeStyle(EdgeStyle i_style);
+
         void SetDrawingColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha = 255);
 
         void SetFontColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha = 255);
@@ -58,7 +68,7 @@ namespace core
 
         /** Adds a node using the currently set attributes and
             the provided label. Returns the index of the new node. */
-        uint32_t AddNode(std::string_view i_label);
+        uint32_t AddNode(std::string i_label);
 
         /** Returns the number of nodes added so far */
         uint32_t GetNodeCount() const;
@@ -67,7 +77,7 @@ namespace core
         uint32_t GetEdgeCount() const;
 
         /** Adds an edge given a source and a destination node index */
-        void AddEdge(uint32_t i_from, uint32_t i_to);
+        void AddEdge(uint32_t i_from, uint32_t i_to, std::string i_label = {});
 
         /** Renders the graph to dot language */
         std::string ToDotLanguage() const;
@@ -86,6 +96,7 @@ namespace core
             std::string m_drawing_color = "#000000"; //black
             std::string m_font_color = "#000000"; //black
             std::string m_fill_color = "#FFFFFF"; // white
+            EdgeStyle m_edge_style = EdgeStyle::Solid;
         };
 
     private: // data members

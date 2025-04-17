@@ -53,7 +53,7 @@ namespace djup
 
         /** Constructs a Lexer to tokenize the specified source. If the memory referred by
             this string_view is not valid through the entire life-time of the Lexer, the 
-            behaviour is undefined. */
+            behavior is undefined. */
         Lexer(std::string_view i_source);
 
         /** Returns the current token without accepting it. Heading spaces are skipped */
@@ -78,7 +78,7 @@ namespace djup
         Token AcceptInline(SymbolId i_symbol_id);
 
         /** Moves to the next token, and returns it. Heading spaces are ignored. 
-            The behaviour is undefined if the id of the current symbol is 
+            The behavior is undefined if the id of the current symbol is 
             SymbolId::EndOfSource (or equivalently IsSourceOver() returns true). */
         const Token & NextToken();
 

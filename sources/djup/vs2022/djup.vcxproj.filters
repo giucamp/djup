@@ -161,4 +161,7 @@
       <Filter>private</Filter>
     </Natvis>
   </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+  </ItemGroup>
 </Project>

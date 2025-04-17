@@ -60,7 +60,7 @@ namespace djup
             Range ClampRange(Range i_range) const noexcept;
 
             /** Returns whether one and only on value lies in the range */
-            bool IsSingleValue() const noexcept { return m_min == m_max; }
+            bool HasSingleValue() const noexcept { return m_min == m_max; }
 
             // returns a string representation of the range, for example:
             // "1, 1", "0, 1", "0, Inf", "1, Inf"
@@ -95,7 +95,8 @@ namespace djup
 
             FunctionFlags m_flags{}; //>** Associativity or commutativity of the pattern */
 
-            /** Minimum and maximum number of parameters that may match this pattern */
+            /** Minimum and maximum number of parameters that may match this pattern.
+                Used to early reject target spans. */
             Range m_labels_range;
 
             /** Describes every single label of the pattern. */
@@ -120,7 +121,7 @@ namespace core
         {
             const int32_t infinite = djup::pattern::Range::s_infinite;
 
-            if (i_source.m_min == i_source.m_max)
+            if (i_source.m_min > i_source.m_max)
                 i_dest << "empty";
             else if (i_source.m_min == infinite && i_source.m_max == infinite)
                 i_dest << "Inf, Inf";

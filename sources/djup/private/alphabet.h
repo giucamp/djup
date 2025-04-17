@@ -93,7 +93,7 @@ namespace djup
 
     /* The lexer recognizes symbols in the order they appear in this array.
         Shadowing must be considered: so ">" must appear after ">=", otherwise
-        the former would always shadow the latter. */
+        the former would always shadows the latter. */
     constexpr Symbol g_alphabet[] = 
     {
         // comparison

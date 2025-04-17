@@ -152,7 +152,7 @@ namespace djup
 
     std::string Namespace::SubstitutionGraphToDotLanguage() const
     {
-        return m_substitution_axioms_patterns.ToDotLanguage("Substitutions");
+        return m_substitution_axioms_patterns.ToGraphWiz("Substitutions").ToDotLanguage();
     }
 
     namespace
