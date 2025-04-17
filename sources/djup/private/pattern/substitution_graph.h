@@ -1,10 +1,11 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
+#include <private/common.h>
 #include <private/expression.h>
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
@@ -86,9 +87,8 @@ namespace djup
 
             struct DiscrNodeToProcess
             {
-                uint32_t m_source_discr_node;
+                uint32_t m_source_discr_node; /** index of the discrimination node to be expanded. */
                 Span<const Tensor> m_targets;
-                CandHandle m_parent_candidate_handle;
             };
 
             struct DiscrNodeToProcess;
@@ -98,12 +98,11 @@ namespace djup
             void ExpandDiscrNode(
                 DescendContext& i_context,
                 int32_t i_discr_node,
-                Span<const Tensor> i_targets,
-                Pool<Candidate>::Handle i_parent_candidate);
+                Span<const Tensor> i_targets);
 
             void ProcessCandidate(
                 DescendContext& i_context,
-                const CandHandle& i_candidate_handle);
+                CandHandle i_candidate_handle);
 
             uint32_t NewVirtualNode() { return m_next_virtual_node++; }
 
@@ -117,13 +116,15 @@ namespace djup
 
             std::vector<CandHandle> m_pending_candidates;
 
-            struct SolutionTreeItem
+            struct SolutionEdge
             {
+                uint32_t m_next_node{std::numeric_limits<uint32_t>::max()};
                 std::vector<Substitution> m_substitutions;
                 uint32_t m_open{};
                 uint32_t m_close{};
             };
-            std::unordered_map<uint32_t, SolutionTreeItem> m_solution_tree;
+            // the key is the 'lower' node
+            std::unordered_map<uint32_t, SolutionEdge> m_solution_tree;
 
             struct Solution
             {

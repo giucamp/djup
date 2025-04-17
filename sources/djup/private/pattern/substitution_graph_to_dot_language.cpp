@@ -1,14 +1,14 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <private/common.h>
 #include <private/pattern/substitution_graph.h>
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
 #include <private/pattern/debug_utils.h>
-
 
 namespace djup
 {
@@ -44,7 +44,7 @@ namespace djup
             }
 
             index = 0;
-            for (auto handle_it : handles)
+            for (const auto & handle_it : handles)
             {
                 const Candidate& candidate = m_candidates.GetObject(handle_it.first);
 

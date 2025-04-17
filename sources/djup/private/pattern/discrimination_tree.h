@@ -1,10 +1,11 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
+#include <private/common.h>
 #include <core/graph_wiz.h>
 #include <djup/tensor.h>
 #include <private/old_pattern_match.h>
@@ -34,7 +35,7 @@ namespace djup
                 PatternInfo m_pattern_info; /* do do: debug info here are always 
                     incomplete because of merging multiple patterns */
                 std::vector<Tensor> m_labels;
-                uint32_t m_dest_node;
+                uint32_t m_dest_node = std::numeric_limits<uint32_t>::max();
             };
 
             static uint32_t GetRootNodeIndex() { return s_root_node_index; }

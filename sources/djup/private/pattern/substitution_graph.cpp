@@ -1,9 +1,10 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <private/common.h>
 #include <private/pattern/substitution_graph.h>
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/candidate.h>
@@ -18,17 +19,6 @@ namespace djup
 {
     namespace pattern
     {
-        template< typename... ARGS>
-            void SubstGraphDebugPrintLn(ARGS&&... args)
-        {
-            #if !defined(DJUP_DEBUG_PATTERN_MATCHING)
-                #error DJUP_DEBUG_PATTERN_MATCHING must be defined
-            #endif
-            #if DJUP_DEBUG_PATTERN_MATCHING
-                PrintLn(args...);
-            #endif
-        }
-
         SubstitutionGraph::SubstitutionGraph(const DiscriminationTree& i_discrimination_net)
             : m_discrimination_tree(i_discrimination_net),
               m_next_virtual_node(i_discrimination_net.GetNodeCount())
@@ -39,8 +29,8 @@ namespace djup
 
         void SubstitutionGraph::FindMatches(const Tensor& i_target, std::function<void()> i_step_callback)
         {
-            SubstGraphDebugPrintLn();
-            SubstGraphDebugPrintLn("------ FindMatches --------");
+            DJUP_DEBUG_SUBSTGRAPH_PRINTLN();
+            DJUP_DEBUG_SUBSTGRAPH_PRINTLN("------ FindMatches --------");
 
             if (m_discrimination_tree.IsGraphEmpty())
             {
@@ -85,8 +75,7 @@ namespace djup
                         return;
                     }
 
-                    ExpandDiscrNode(context, node.m_source_discr_node,
-                        node.m_targets, node.m_parent_candidate_handle);
+                    ExpandDiscrNode(context, node.m_source_discr_node, node.m_targets);
 
                     if (context.m_step_callback)
                         context.m_step_callback();
@@ -98,8 +87,7 @@ namespace djup
         void SubstitutionGraph::ExpandDiscrNode(
             DescendContext& i_context,
             int32_t i_source_discr_node,
-            Span<const Tensor> i_targets,
-            Pool<Candidate>::Handle i_parent_candidate)
+            Span<const Tensor> i_targets)
         {
             // expand the discrimination source node
             for (auto& edge_it : m_discrimination_tree.EdgesFrom(i_source_discr_node))
@@ -115,7 +103,6 @@ namespace djup
                     Candidate& candidate = m_candidates.GetObject(cand_handle);
                     candidate.m_source_discr_node = i_source_discr_node;
                     candidate.m_edge = &edge;
-                    // candidate.m_parent_candidate = i_parent_candidate; shouldn't be necessary
                     candidate.m_targets = i_targets;
                     
                     ProcessCandidate(i_context, cand_handle);
@@ -128,7 +115,7 @@ namespace djup
         /* returns true if the candidate should be kept, false otherwise */
         void SubstitutionGraph::ProcessCandidate(
             DescendContext& i_context,
-            const CandHandle & i_candidate_handle)
+            CandHandle i_candidate_handle)
         {
             // extract for data in the candidate
             Candidate * candidate = &m_candidates.GetObject(i_candidate_handle);
@@ -144,7 +131,7 @@ namespace djup
             const uint32_t discr_dest_node = candidate->m_dest_node;
                 // from now on candidate will be invalidated as soon as the pool is modified
 
-            SubstGraphDebugPrintLn("Process Candidate. Discr: ", 
+            DJUP_DEBUG_SUBSTGRAPH_PRINTLN("Process Candidate. Discr: ", 
                 source_discr_node, " -> ", edge.m_dest_node,
                 ", rep: ", repetitions,
                 "\n\ttargets: ", TensorSpanToString(targets), 
@@ -188,7 +175,6 @@ namespace djup
                                 DiscrNodeToProcess node_to_process;
                                 node_to_process.m_targets = target.GetExpression()->GetArguments();
                                 node_to_process.m_source_discr_node = edge.m_dest_node;
-                                node_to_process.m_parent_candidate_handle = i_candidate_handle;
                                 m_discr_node_stack.push_back(node_to_process);
                             }
                         }
@@ -204,13 +190,15 @@ namespace djup
                         // number of total parameters usable for the repeated pattern
                         Range usable;
                         
-                        assert(target_size >= label_infos[label_index].m_remaining.m_min + label_index);
+                        DJUP_ASSERT(target_size >= label_infos[label_index].m_remaining.m_min + label_index);
                         usable.m_max = target_size - label_infos[label_index].m_remaining.m_min - label_index;
                         if (label_infos[label_index].m_remaining.m_max == Range::s_infinite)
+                        {
                             usable.m_min = 0;
+                        }
                         else
                         {
-                            assert(target_size >= label_infos[label_index].m_remaining.m_max + label_index);
+                            DJUP_ASSERT(target_size >= label_infos[label_index].m_remaining.m_max + label_index);
                             usable.m_min = target_size - label_infos[label_index].m_remaining.m_max - label_index;
                         }
 
@@ -223,7 +211,7 @@ namespace djup
                         usable.m_min -= usable.m_min % sub_pattern_count;
                         usable.m_max -= usable.m_max % sub_pattern_count;
 
-                        SubstGraphDebugPrintLn("\tadding variadic to use (",
+                        DJUP_DEBUG_SUBSTGRAPH_PRINTLN("\tadding variadic to use (",
                             usable, " terms)");
 
                         // used: total number of targets used in the target
@@ -259,17 +247,28 @@ namespace djup
                 }                
             }
 
-            // check if the discrimination edge is complete
-            bool labels_finished = true; /*edge.m_pattern_info.m_labels_info.data() +
-                edge.m_pattern_info.m_labels_info.size() == &label_infos[label_index]; */
-
-            std::vector<Substitution> & substitutions = m_solution_tree[discr_dest_node].m_substitutions;
-
-
-
-            /*SolutionTreeItem & solution_item = m_solution_tree[edge.m_dest_node];
-            for(Substitution & subst : substitutions)
-                m_solution_tree[edge.m_dest_node].m_substitutions.push_back(subst);*/
+            /* The pattern of this candidate is fully matched, so if the target
+               is exhausted too the candidate is promoted to edge of the solution. */
+            if (target_index == candidate->m_targets.size())
+            {
+                // candidate completed
+                SolutionEdge& solution_edge = m_solution_tree[discr_dest_node];
+                solution_edge.m_substitutions = std::move(candidate->m_substitutions);
+                solution_edge.m_open = candidate->m_open;
+                solution_edge.m_close = candidate->m_close;
+                if (~candidate->m_source_discr_node != 0)
+                {
+                    // the parent of this candidate is a discrimination node
+                    solution_edge.m_next_node = candidate->m_source_discr_node;
+                }
+                else
+                {
+                    // the parent of this candidate is another candidate
+                    Candidate& parent_candidate = m_candidates.GetObject(candidate->m_parent_candidate);
+                    DJUP_ASSERT(parent_candidate.m_source_discr_node != std::numeric_limits<uint32_t>::max());
+                    solution_edge.m_next_node = parent_candidate.m_source_discr_node;
+                }
+            }
         }
 
     } // namespace pattern

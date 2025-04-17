@@ -1,9 +1,10 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <private/common.h>
 #include <private/namespace.h>
 #include <core/diagnostic.h>
 #include <fstream>
@@ -24,6 +25,13 @@ namespace djup
             #if !defined DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING
                 #error DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING must be defined
             #endif
+            {
+                auto target = "g(3 z(1) z(2) z(3) p(10) 6)";
+                auto pattern = "g(3 z(real r)... p(real) 6)";
+                size_t solutions = PatternMatchingCount(target, pattern);
+                CORE_EXPECTS(solutions == 1);
+            }
+
             volatile bool skip = DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING;
             if (skip)
             {

@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\private\alphabet.h" />
     <ClInclude Include="..\private\builtin_names.h" />
+    <ClInclude Include="..\private\common.h" />
     <ClInclude Include="..\private\diagnostic.h" />
     <ClInclude Include="..\private\expression.h" />
     <ClInclude Include="..\private\constant_shape.h" />

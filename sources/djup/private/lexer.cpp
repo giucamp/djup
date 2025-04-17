@@ -1,9 +1,10 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <private/common.h>
 #include <private/lexer.h>
 #include <core/diagnostic.h>
 #include <string>
@@ -115,7 +116,7 @@ namespace djup
 
         Token ParseNumericLiteral(std::string_view & io_source)
         {
-            assert(!io_source.empty());
+            DJUP_ASSERT(!io_source.empty());
 
             auto SkipDigits = [&]{
                 while(!io_source.empty() && IsDigit(io_source.front()))
@@ -146,8 +147,8 @@ namespace djup
 
         Token ParseName(std::string_view & io_source)
         {
-            assert(!io_source.empty());
-            assert(IsAlpha(io_source.front()) || io_source.front() == '_');
+            DJUP_ASSERT(!io_source.empty());
+            DJUP_ASSERT(IsAlpha(io_source.front()) || io_source.front() == '_');
 
             while(!io_source.empty() && IsAlphaNumOrUnderscore(io_source.front()))
             {
@@ -252,7 +253,7 @@ namespace djup
 
     const Token & Lexer::NextToken()
     {
-        assert(!IsSourceOver());
+        DJUP_ASSERT(!IsSourceOver());
         NextTokenImpl();
         return m_curr_token;
     }

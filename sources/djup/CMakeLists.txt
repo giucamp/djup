@@ -14,6 +14,7 @@ add_library(djup STATIC
 	private/pattern/substitution_graph_to_dot_language.cpp
 	private/pattern/debug_utils.h
 	private/pattern/debug_utils.cpp
+	private/common.h
 	private/alphabet.h
 	private/builtin_names.h
 	private/constant_shape.h

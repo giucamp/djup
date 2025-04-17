@@ -1,9 +1,10 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <private/common.h>
 #include <private/old_pattern_match.h>
 #include <private/builtin_names.h>
 #include <private/substitute_by_predicate.h>
@@ -83,7 +84,7 @@ namespace djup
             PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern, Span<const LabelInfo> i_arguments)
                 : m_flags(i_flags), m_pattern(i_pattern), m_labels(i_arguments)
             {
-                assert(m_labels.size() == m_pattern.size());
+                DJUP_ASSERT(m_labels.size() == m_pattern.size());
             }
         };
 
@@ -100,7 +101,7 @@ namespace djup
             Span<const Tensor> m_target_arguments;
             PatternSegment m_pattern;
             uint32_t m_repetitions = 0;
-            uint32_t m_version;
+            uint32_t m_version{};
             bool m_decayed = false;
             uint32_t m_open{};
             uint32_t m_close{};
@@ -278,7 +279,7 @@ namespace djup
             if(it != i_context.m_pattern_infos.end())
                 return it->second;
             auto res = i_context.m_pattern_infos.insert({expr, BuildPatternInfo(i_pattern)});
-            assert(res.second);
+            DJUP_ASSERT(res.second);
             return res.first->second;
         }
 
@@ -334,7 +335,7 @@ namespace djup
             uint32_t i_open, uint32_t i_close,
             uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
         {
-            assert(i_start_node != i_dest_node);
+            DJUP_ASSERT(i_start_node != i_dest_node);
 
             Candidate new_candidate;
             new_candidate.m_start_node = i_start_node;
@@ -461,7 +462,7 @@ namespace djup
                         size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
 
                         size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
-                        assert(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
+                        DJUP_ASSERT(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                         // compute usable range
                         Range usable;
@@ -482,7 +483,7 @@ namespace djup
                         uint32_t rep = NumericCast<uint32_t>(usable.m_min / sub_pattern_count);
                         for(size_t used = usable.m_min; used <= usable.m_max; used += sub_pattern_count, rep++)
                         {
-                            assert(!nest_index); // repetitions can't be nested directly
+                            DJUP_ASSERT(!nest_index); // repetitions can't be nested directly
 
                             LinearPath path(i_context, i_candidate);
 
@@ -608,7 +609,7 @@ namespace djup
                         }
                     }
 
-                    assert(i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges > 0);
+                    DJUP_ASSERT(i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges > 0);
                     i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges--;
                     it = i_context.m_edges.erase(it);
 
@@ -630,20 +631,20 @@ namespace djup
             for(auto it = range.first; it != range.second; it++)
             {
                 // the candidate has just been removed from the stack
-                // assert(IsCandidateRefValid(i_context, it->second.m_candidate_ref));
+                // DJUP_ASSERT(IsCandidateRefValid(i_context, it->second.m_candidate_ref));
 
                 if(it->second.m_source_index == i_start_node &&
                     it->second.m_candidate_ref.m_index == i_candidate_ref.m_index &&
                     it->second.m_candidate_ref.m_version == i_candidate_ref.m_version)
                 {
-                    assert(i_context.m_graph_nodes[i_start_node].m_outgoing_edges > 0);
+                    DJUP_ASSERT(i_context.m_graph_nodes[i_start_node].m_outgoing_edges > 0);
                     i_context.m_graph_nodes[i_start_node].m_outgoing_edges--;
                     i_context.m_edges.erase(it);
                     found = true;
                     break;
                 }
             }
-            assert(found);
+            DJUP_ASSERT(found);
 
             if(i_context.m_graph_nodes[i_start_node].m_outgoing_edges == 0)
             {
@@ -713,7 +714,7 @@ namespace djup
                         for(auto it = range.first; it != range.second; it++)
                         {
                             // the candidate has just been removed from the stack
-                            // assert(IsCandidateRefValid(i_context, it->second.m_candidate_ref));
+                            // DJUP_ASSERT(IsCandidateRefValid(i_context, it->second.m_candidate_ref));
 
                             if(it->second.m_source_index == candidate.m_start_node &&
                                 it->second.m_candidate_ref.m_index == candidate_index &&
@@ -721,13 +722,13 @@ namespace djup
                             {
                                 it->second.m_candidate_ref = {};
 
-                                assert(it->second.m_substitutions.empty());
+                                DJUP_ASSERT(it->second.m_substitutions.empty());
                                 it->second.m_substitutions = std::move(candidate.m_substitutions);
                                 found = true;
                                 break;
                             }
                         }
-                        assert(found);
+                        DJUP_ASSERT(found);
                     }
 
                     #if DBG_CREATE_GRAPHVIZ_SVG
@@ -780,7 +781,7 @@ namespace djup
 
         void VariadicReduceDepth(VariadicValue & i_dest)
         {
-            assert(i_dest.m_stack.size() >= 2);
+            DJUP_ASSERT(i_dest.m_stack.size() >= 2);
 
             const size_t size = i_dest.m_stack.size();
             i_dest.m_stack[size - 2].push_back(Tuple(i_dest.m_stack[size - 1]));
@@ -789,7 +790,7 @@ namespace djup
 
         Tensor VariadicClear(VariadicValue & i_dest)
         {
-            assert(i_dest.m_stack.size() >= 1);
+            DJUP_ASSERT(i_dest.m_stack.size() >= 1);
 
             while(i_dest.m_stack.size() > 1)
                 VariadicReduceDepth(i_dest);
@@ -850,7 +851,7 @@ namespace djup
 
                 if(solution.m_depth == 0)
                 {
-                    assert(edge_it->second.m_open == 0);
+                    DJUP_ASSERT(edge_it->second.m_open == 0);
 
                     for(const Substitution & substitution : edge_it->second.m_substitutions)
                     {
@@ -871,7 +872,7 @@ namespace djup
                     if(edge_it->second.m_open)
                     {
                         solution.m_depth -= edge_it->second.m_open;
-                        assert(solution.m_depth >= 0);
+                        DJUP_ASSERT(solution.m_depth >= 0);
 
                         if(solution.m_depth == 0)
                         {
@@ -900,7 +901,7 @@ namespace djup
                 solution.m_node = edge_it->second.m_source_index;
                 if(solution.m_node == g_start_node_index)
                 {
-                    assert(solution.m_depth == 0);
+                    DJUP_ASSERT(solution.m_depth == 0);
                     return PatternMatch{1, std::move(solution.m_substitutions) };
                 }
 

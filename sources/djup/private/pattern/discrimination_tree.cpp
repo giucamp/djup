@@ -1,9 +1,10 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <private/common.h>
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/pattern_info.h>
 #include <private/pattern/debug_utils.h>
@@ -86,7 +87,7 @@ namespace djup
         void DiscriminationTree::AddPattern(uint32_t i_pattern_id,
             const Tensor& i_pattern, const Tensor& i_condition)
         {
-            assert(i_pattern_id >= 0);
+            DJUP_ASSERT(i_pattern_id >= 0);
 
             const Tensor preprocessed = PreprocessPattern(i_pattern);
 
@@ -109,7 +110,7 @@ namespace djup
             ProcessPattern(curr_edge->m_dest_node,
                 preprocessed.GetExpression()->GetArguments(), BuildPatternInfo(i_pattern));
 
-            assert(m_leaf_pattern_id.back() == -1);
+            DJUP_ASSERT(m_leaf_pattern_id.back() == -1);
             m_leaf_pattern_id.back() = i_pattern_id;
 
             #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
@@ -193,7 +194,7 @@ namespace djup
         {
             uint32_t new_node = m_node_count++;
             m_leaf_pattern_id.push_back(-1);
-            assert(m_leaf_pattern_id.size() == m_node_count);
+            DJUP_ASSERT(m_leaf_pattern_id.size() == m_node_count);
             DiscrTreeDebugPrintLn("\tnew node: ", new_node);
             return new_node;
         }
@@ -206,8 +207,8 @@ namespace djup
 
             for (size_t i = 0; i < i_first_patterns.size(); i++)
             {
-                assert(!IsEmpty(i_first_patterns[i]));
-                assert(!IsEmpty(i_second_patterns[i]));
+                DJUP_ASSERT(!IsEmpty(i_first_patterns[i]));
+                DJUP_ASSERT(!IsEmpty(i_second_patterns[i]));
 
                 if (IsLiteral(i_first_patterns[i]) || IsIdentifier(i_first_patterns[i]))
                 {
@@ -226,7 +227,7 @@ namespace djup
 
         GraphWizGraph DiscriminationTree::ToGraphWiz(std::string_view i_graph_name) const
         {
-            DiscrTreeDebugPrintLn("---------------------------");
+            /*DiscrTreeDebugPrintLn("---------------------------");
             for (const auto& edge : m_edges)
             {
                 std::string dest = std::to_string(edge.second.m_dest_node);
@@ -235,7 +236,7 @@ namespace djup
                 DiscrTreeDebugPrintLn(edge.first, "->", dest, ": ", 
                     TensorSpanToString(Span(edge.second.m_labels), 1));
             }
-            DiscrTreeDebugPrintLn("---------------------------");
+            DiscrTreeDebugPrintLn("---------------------------");*/
 
             GraphWizGraph graph(i_graph_name);
 
@@ -255,7 +256,7 @@ namespace djup
                     #endif
                     #if DJUP_DEBUG_DISCRIMINATION_TREE
                         const auto full_pattern_it = m_dbg_full_patterns.find(m_leaf_pattern_id[i]);
-                        assert(full_pattern_it != m_dbg_full_patterns.end());
+                        DJUP_ASSERT(full_pattern_it != m_dbg_full_patterns.end());
                         text += "\n" + full_pattern_it->second;
                     #endif
 
@@ -274,11 +275,16 @@ namespace djup
             // edges
             for (const auto & edge : m_edges)
             {
-                std::string text = TensorSpanToString(edge.second.m_labels, 1, false);
-                text += "\n" + TensorSpanToString(edge.second.m_labels, 1, true);
+                std::string text = TensorSpanToString(edge.second.m_labels, 1, true);
+                {
+                    std::string non_tidy_text = TensorSpanToString(edge.second.m_labels, 1, false);
+                    if(non_tidy_text != text)
+                        text += "\n" + non_tidy_text;
+                }
                 if (!edge.second.m_pattern_info.m_labels_range.HasSingleValue())
+                {
                     text += "\n{" + edge.second.m_pattern_info.m_labels_range.ToString() + "}";
-
+                }
                 graph.AddEdge(edge.first, edge.second.m_dest_node, text);
             }
 

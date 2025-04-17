@@ -1,9 +1,10 @@
 
-//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021.
+//   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <private/common.h>
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/substitution_graph.h>
 #include <private/pattern/pattern_info.h>
@@ -43,8 +44,8 @@ namespace djup
             pattern::DiscriminationTree discrimination_net;
             
             discrimination_net.AddPattern(2,  "g(3 z(real r)... p(real) 6)");
-            discrimination_net.AddPattern(21, "g(3 w(real r)... p(real) 6)");
-            discrimination_net.AddPattern(22, "g(3 w(1 2 3 x)... p(real) 6)");
+            //discrimination_net.AddPattern(21, "g(3 w(real r)... p(real) 6)");
+            //discrimination_net.AddPattern(22, "g(3 w(1 2 3 x)... p(real) 6)");
             //discrimination_net.AddPattern(3, "g(3 m(real r) p(real) 7)");
             //discrimination_net.AddPattern(4, "g(3 m(real r) w(real) 3)");
             //discrimination_net.AddPattern(5, "Func(1 2 3)");
