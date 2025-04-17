@@ -274,7 +274,8 @@ namespace djup
             // edges
             for (const auto & edge : m_edges)
             {
-                std::string text = TensorSpanToString(edge.second.m_labels, 1, true);
+                std::string text = TensorSpanToString(edge.second.m_labels, 1, false);
+                text += "\n" + TensorSpanToString(edge.second.m_labels, 1, true);
                 if (!edge.second.m_pattern_info.m_labels_range.HasSingleValue())
                     text += "\n{" + edge.second.m_pattern_info.m_labels_range.ToString() + "}";
 

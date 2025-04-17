@@ -42,13 +42,13 @@ namespace djup
             
             pattern::DiscriminationTree discrimination_net;
             
-            discrimination_net.AddPattern(2, "g(3 z(real r)... p(real) 6)");
-            discrimination_net.AddPattern(21,"g(3 w(real r)... p(real) 6)");
+            discrimination_net.AddPattern(2,  "g(3 z(real r)... p(real) 6)");
+            discrimination_net.AddPattern(21, "g(3 w(real r)... p(real) 6)");
             discrimination_net.AddPattern(22, "g(3 w(1 2 3 x)... p(real) 6)");
-            discrimination_net.AddPattern(3, "g(3 m(real r) p(real) 7)");
-            discrimination_net.AddPattern(4, "g(3 m(real r) w(real) 3)");
-            discrimination_net.AddPattern(5, "Func(1 2 3)");
-            discrimination_net.AddPattern(6, "f(1, 2, real x..., 6, 7, 8, real y..., 12, 13, 14, 15)");
+            //discrimination_net.AddPattern(3, "g(3 m(real r) p(real) 7)");
+            //discrimination_net.AddPattern(4, "g(3 m(real r) w(real) 3)");
+            //discrimination_net.AddPattern(5, "Func(1 2 3)");
+            //discrimination_net.AddPattern(6, "f(1, 2, real x..., 6, 7, 8, real y..., 12, 13, 14, 15)");
 
             //discrimination_net.AddPattern(22, "g( r(w(1 2 3 x y)) )");
             //discrimination_net.AddPattern(21, "g( r(w(real q)) )");
@@ -80,8 +80,8 @@ namespace djup
             //std::string target = "Func(1 2 3)";
             
             auto callback = [&] {
-                //std::string name = step == 0 ? "Initial" : ToString("Step_", step);
-                //substitution_graph.ToDotGraphWiz(name).SaveAsImage(test_dir + "subst\\" + name);
+                std::string name = step == 0 ? "Initial" : ToString("Step_", step);
+                substitution_graph.ToDotGraphWiz(name).SaveAsImage(test_dir + "subst\\" + name);
                 step++;
             };
 

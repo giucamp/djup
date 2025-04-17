@@ -29,7 +29,6 @@ namespace djup
             void AddPattern(uint32_t i_pattern_id, const Tensor & i_pattern,
                 const Tensor & i_condition = true);
             
-            /** In leaf edges m_expression is empty, and m_pattern_id is valid */
             struct Edge
             {
                 PatternInfo m_pattern_info; /* do do: debug info here are always 
@@ -105,8 +104,6 @@ namespace djup
                 std::unordered_map<int32_t, std::string> m_dbg_full_patterns;
             #endif
             
-            /** every node is identified by an index. INdices are not recycled.
-                This is the last index assigned to a node. */
             int32_t m_node_count = 0;
         };
 
