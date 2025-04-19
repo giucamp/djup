@@ -40,10 +40,43 @@ namespace djup
             Print("Test: djup - Pattern Matching...");
 
             CORE_EXPECTS_EQ(ToSimplifiedStringForm("4"_t), "4");
+
+            // pattern 1
+            {
+                pattern::DiscriminationTree discrimination_net;
+                discrimination_net.AddPattern(2, "g(1 2 3 any a any b any c)");
+
+                pattern::SubstitutionGraph substs_graph(discrimination_net);
+                substs_graph.FindMatches("g(1 2 3 4 5 6)"_t);
+                CORE_EXPECTS(substs_graph.GetSolutions().size() == 1);
+                const auto& solution = substs_graph.GetSolutions()[0];
+
+                CORE_EXPECTS(solution.m_substitutions.size() == 3);
+                
+                CORE_EXPECTS_EQ(solution.m_substitutions[0].m_variable_name, "a");
+                CORE_EXPECTS(AlwaysEqual(solution.m_substitutions[0].m_value, "4"_t));
+
+                CORE_EXPECTS_EQ(solution.m_substitutions[1].m_variable_name, "b");
+                CORE_EXPECTS(AlwaysEqual(solution.m_substitutions[1].m_value, "5"_t));
+
+                CORE_EXPECTS_EQ(solution.m_substitutions[2].m_variable_name, "c");
+                CORE_EXPECTS(AlwaysEqual(solution.m_substitutions[2].m_value, "6"_t));
+            }
+
+            // pattern 2
+            {
+                pattern::DiscriminationTree discrimination_net;
+                discrimination_net.AddPattern(2, "g(1 2 3 any a any b any a)");
+
+                pattern::SubstitutionGraph substs_graph(discrimination_net);
+                substs_graph.FindMatches("g(1 2 3 4 5 6)"_t);
+                CORE_EXPECTS(substs_graph.GetSolutions().size() == 0);
+            }
             
             pattern::DiscriminationTree discrimination_net;
             
-            discrimination_net.AddPattern(2,  "g(3 z(real r)... p(real) 6)");
+            discrimination_net.AddPattern(2, "g(1 2 3 any a any b any c)");
+            //discrimination_net.AddPattern(2,  "g(3 z(real r)... p(real) 6)");
             //discrimination_net.AddPattern(21, "g(3 w(real r)... p(real) 6)");
             //discrimination_net.AddPattern(22, "g(3 w(1 2 3 x)... p(real) 6)");
             //discrimination_net.AddPattern(3, "g(3 m(real r) p(real) 7)");
@@ -77,7 +110,8 @@ namespace djup
 
             pattern::SubstitutionGraph substitution_graph(discrimination_net);
             int step = 0;
-            std::string target = "g(3 z(1) z(2) z(3) p(10) 6)";
+            std::string target = "g(1 2 3 4 5 6)";
+            //std::string target = "g(3 z(1) z(2) z(3) p(10) 6)";
             //std::string target = "Func(1 2 3)";
             
             auto callback = [&] {

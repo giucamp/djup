@@ -18,8 +18,9 @@ namespace djup
 {
     namespace pattern
     {
-        /** A discrimination tree represent a series o pattern to be tested against
-            an expression (the target at the same time). */
+        /** A discrimination tree represent a series of patterns to be tested against
+            a target expression. Patterns are identified by ids, whose value is picked
+            by the user. */
         class DiscriminationTree
         {
         public:
@@ -71,7 +72,7 @@ namespace djup
 
             bool IsLeafNode(int32_t i_node_index) const { return m_leaf_pattern_id[i_node_index] != -1; }
 
-            int32_t GetPatternId(int32_t i_node_index) const { return m_leaf_pattern_id[i_node_index]; }
+            int32_t GetPatternId(int32_t i_node_index) const;
 
             /** Converts the discrimination net to a string processable with GraphWiz */
             GraphWizGraph ToGraphWiz(std::string_view i_graph_name) const;
@@ -91,10 +92,10 @@ namespace djup
 
             int32_t NewNode();
 
-            /** The key is the source node index */
+            /** Keys are the source node indices */
             std::unordered_multimap<uint32_t, Edge> m_edges; 
 
-            /** Indicized by nosed. Id of the pattern if the node is a leaf, -1 otherwise */
+            /** Indicized by source nodes. Id of the pattern if the node is a leaf, -1 otherwise */
             std::vector<int32_t> m_leaf_pattern_id; 
 
             #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)

@@ -164,7 +164,7 @@ namespace djup
                 {
                     // merge the cardinalities in the exiting edge
                     existing_edge.m_pattern_info.m_flags = i_source_pattern_info.m_flags;
-                    existing_edge.m_pattern_info.m_labels_range |= i_source_pattern_info.m_labels_range;
+                    existing_edge.m_pattern_info.m_labels_range|= i_source_pattern_info.m_labels_range;
                     existing_edge.m_pattern_info.m_labels_info.resize(existing_edge.m_pattern_info.m_labels_info.size());
                     for (size_t i = 0; i < existing_edge.m_labels.size(); i++)
                     {
@@ -223,6 +223,12 @@ namespace djup
             }
             
             return true;
+        }
+
+        int32_t DiscriminationTree::GetPatternId(int32_t i_node_index) const
+        {
+            DJUP_ASSERT(IsLeafNode(i_node_index));
+            return m_leaf_pattern_id[i_node_index];
         }
 
         GraphWizGraph DiscriminationTree::ToGraphWiz(std::string_view i_graph_name) const

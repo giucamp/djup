@@ -19,7 +19,7 @@ namespace djup
         {
             GraphWizGraph graph;
 
-            using Handle = Pool<Candidate>::Handle;
+            /*using Handle = Pool<CandidateEdge>::Handle;
             
             struct HandleHash
             {
@@ -56,7 +56,7 @@ namespace djup
                     graph.AddEdge(from_it->second, to_it->second);
                 }
                 ++index;
-            }
+            }*/
 
             return graph;
         }
