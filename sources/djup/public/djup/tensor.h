@@ -211,12 +211,4 @@ namespace djup
 
     std::string ToSimplifiedStringForm(const Tensor & i_source,
         size_t i_depth = std::numeric_limits<size_t>::max(), bool tidy = true);
-
-    /*template <> struct CharWriter<Tensor>
-    {
-        void operator() (CharBufferView & i_dest, const Tensor & i_source)
-        {
-            assert(false); // to do
-        }
-    };*/
 }

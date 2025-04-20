@@ -157,8 +157,65 @@ namespace djup
                     }
                     else
                     {
-                        /* non-variadic argument */
-                        DJUP_ASSERT(false);
+                                    /* variadic argument */
+
+                        const uint32_t target_size = NumericCast<uint32_t>(candidate->m_targets.size());
+
+                        // number of total parameters usable for the repeated pattern
+                        Range usable;
+
+                        DJUP_ASSERT(target_size >= label_infos[label_index].m_remaining.m_min + label_index);
+                        usable.m_max = target_size - label_infos[label_index].m_remaining.m_min - label_index;
+                        if (label_infos[label_index].m_remaining.m_max == Range::s_infinite)
+                        {
+                            usable.m_min = 0;
+                        }
+                        else
+                        {
+                            DJUP_ASSERT(target_size >= label_infos[label_index].m_remaining.m_max + label_index);
+                            usable.m_min = target_size - label_infos[label_index].m_remaining.m_max - label_index;
+                        }
+
+                        usable = label_infos[label_index].m_cardinality.ClampRange(usable);
+
+                        // align the usable range to be a multiple of sub_pattern_count
+                        const uint32_t sub_pattern_count = NumericCast<uint32_t>(
+                            labels[label_index].GetExpression()->GetArguments().size());
+                        usable.m_min += sub_pattern_count - 1;
+                        usable.m_min -= usable.m_min % sub_pattern_count;
+                        usable.m_max -= usable.m_max % sub_pattern_count;
+
+                        DJUP_DEBUG_SUBSTGRAPH_PRINTLN("\tadding variadic to use (",
+                            usable, " terms)");
+
+                        // used: total number of targets used in the target
+                        // rep: number of times the repetition is repeated
+                        uint32_t rep = NumericCast<uint32_t>(usable.m_min / sub_pattern_count);
+                        for (size_t used = usable.m_min; used <= usable.m_max;
+                            used += sub_pattern_count, rep++)
+                        {
+                            // repetition candidate
+                            /*CandHandle rep_cand_handle = m_candidate_edges.New();
+                            CandidateEdge & rep_candidate = m_candidate_edges.GetObject(rep_cand_handle);
+                            rep_candidate.m_targets = targets.subspan(target_index, used);
+                            rep_candidate.m_edge = &edge;
+                            rep_candidate.m_label_offset = label_index;
+                            rep_candidate.m_parent_candidate = parent_candidate_handle;
+                            rep_candidate.m_source_discr_node = source_discr_node;
+                            rep_candidate.m_repetitions = rep;
+                            m_pending_candidates.push_back(rep_cand_handle);
+
+                            // continuation candidate
+                            CandHandle cont_cand_handle = m_candidate_edges.New();
+                            CandidateEdge & cont_candidate = m_candidate_edges.GetObject(cont_cand_handle);
+                            cont_candidate.m_targets = targets.subspan(target_index + used);
+                            cont_candidate.m_edge = &edge;
+                            cont_candidate.m_label_offset = label_index + used;
+                            cont_candidate.m_parent_candidate = rep_cand_handle;
+                            m_pending_candidates.push_back(cont_cand_handle);
+
+                            candidate = &m_candidate_edges.GetObject(i_candidate_handle);*/
+                        }
                     }
 
                 } // for each label
