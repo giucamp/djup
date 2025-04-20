@@ -8,19 +8,28 @@
 #include <private/namespace.h>
 #include <private/pattern/substitution_graph.h>
 #include <private/expression.h>
+#include <private/builtin_names.h>
 #include <core/algorithms.h>
 
 namespace djup
 {
     const std::shared_ptr<const Namespace> & Namespace::Root()
     {
-        static const std::shared_ptr<const Namespace> root = std::make_shared<Namespace>("Root", nullptr);
+        static const std::shared_ptr<const Namespace> root = std::shared_ptr<Namespace>(
+            new Namespace( TagRoot{} ) );
         return root;
+    }
+
+    Namespace::Namespace(Namespace::TagRoot)
+        : m_parent(nullptr), m_name("Root")
+    {
     }
 
     Namespace::Namespace(Name i_name, const std::shared_ptr<const Namespace> & i_parent)
         : m_parent(i_parent), m_name(std::move(i_name))
     {
+        if (m_parent == nullptr)
+            m_parent = Root();
     }
 
     void Namespace::AddScalarType(Name i_name, Span<const Name> i_subsets)
@@ -87,6 +96,25 @@ namespace djup
         const size_t pattern_id = m_substitution_axioms_rhss.size();
         m_substitution_axioms_rhss.push_back(i_with);
         m_substitution_axioms_patterns.AddPattern(NumericCast<int32_t>(pattern_id), i_what, i_when);
+
+        const Expression * what_expr = i_what.GetExpression().get();
+        if (what_expr->GetArguments().empty())
+        {
+            auto metadata = what_expr->GetMetadata();
+            if (metadata && metadata->m_type.GetExpression() != nullptr)
+            {
+                // it's an identifier
+                auto res = m_identifiers.insert(std::make_pair(what_expr->GetName(), i_with));
+                if (!res.second)
+                    Error("Identifier ", what_expr->GetName(), " already declared");
+            }
+            else
+            {
+                auto it = m_identifiers.find(what_expr->GetName());
+                if (it == m_identifiers.end())
+                    Error("Undeclared identifier ", what_expr->GetName());
+            }
+        }
     }
 
     void Namespace::AddTypeInferenceAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when)
@@ -158,8 +186,6 @@ namespace djup
 
     namespace
     {
-        thread_local std::shared_ptr<Namespace> g_active_namespace = GetDefaultNamespace();
-
         std::shared_ptr<Namespace> MakeDefaultNamespace()
         {
             std::shared_ptr<Namespace> default_namespace = std::make_shared<Namespace>("Default", GetStandardNamespace());
@@ -171,40 +197,5 @@ namespace djup
     {
         static thread_local std::shared_ptr<Namespace> default_namespace = MakeDefaultNamespace();
         return default_namespace;
-    }
-
-    void SetActiveNamespace(std::shared_ptr<Namespace> i_namespace)
-    {
-        g_active_namespace = std::move(i_namespace);
-    }
-
-    std::shared_ptr<Namespace> GetActiveNamespace()
-    {
-        return g_active_namespace;
-    }
-
-    NamespaceScope::NamespaceScope(std::shared_ptr<Namespace> i_new_namespace)
-        : m_prev_namespace(GetActiveNamespace())
-    {
-        SetActiveNamespace(std::move(i_new_namespace));
-    }
-
-    NamespaceScope::~NamespaceScope()
-    {
-        if(m_prev_namespace)
-            SetActiveNamespace(std::move(m_prev_namespace));
-    }
-
-    NamespaceScope::NamespaceScope(NamespaceScope && i_source) noexcept
-        : m_prev_namespace(i_source.m_prev_namespace)
-    {
-        i_source.m_prev_namespace.reset();
-    }
-
-    const NamespaceScope & NamespaceScope::operator = (NamespaceScope && i_source) noexcept
-    {
-        m_prev_namespace = i_source.m_prev_namespace;
-        i_source.m_prev_namespace.reset();
-        return *this;
     }
 }

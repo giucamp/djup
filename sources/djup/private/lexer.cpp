@@ -169,7 +169,7 @@ namespace djup
                     if(TryParseString(new_source, symbol.m_chars))
                     {
                         /* the operator was accepted on a copy of source, so that we are able to
-                            reject the matching if white simmetry is not respected. Now we do a 
+                            reject the matching if white symmetry is not respected. Now we do a 
                             read-ahead of the spaces following the operator, but even if we accept 
                             the operator we keep the spaces before the next token (that's why we save
                             another copy of the source if new_source_with_spaces). */

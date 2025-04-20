@@ -12,10 +12,15 @@
 
 namespace djup
 {
+    /** A namespace is a named object which contains axioms and types. Every 
+        namespace has a parent namespace, from which inherits all axioms with recursion. 
+        There is a global root immutable namespace, which does not have a parent,
+        from which all namespaces inherit. */
     class Namespace
     {
     public:
 
+        /** If i_parent is null, the parent will be set to the root namespace. */
         Namespace(Name i_name, const std::shared_ptr<const Namespace> & i_parent);
 
         // disable copy
@@ -61,11 +66,18 @@ namespace djup
         pattern::DiscriminationTree m_type_inference_axioms_patterns;
         std::vector<Tensor> m_type_inference_axioms_rhss;
 
+        /* identifiers */
+        std::unordered_map<Name, Tensor> m_identifiers;
+
         // namespace data
-        std::shared_ptr<const Namespace> const m_parent;
+        std::shared_ptr<const Namespace> m_parent;
         Name m_name;
 
     private:
+
+        struct TagRoot {};
+
+        Namespace(Namespace::TagRoot);
 
         void AppendScalarTypeSubsets(const Name & i_name, std::vector<Name> & io_subsets);
         
@@ -80,23 +92,5 @@ namespace djup
 
     std::shared_ptr<Namespace> GetDefaultNamespace();
 
-    void SetActiveNamespace(std::shared_ptr<Namespace> i_namespace);
-
-    std::shared_ptr<Namespace> GetActiveNamespace();
-
     Tensor MakeNamespace(Span<Tensor const> i_arguments);
-
-    class NamespaceScope
-    {
-    public:
-
-        NamespaceScope(std::shared_ptr<Namespace> i_new_namespace);
-        ~NamespaceScope();
-
-        NamespaceScope(NamespaceScope &&) noexcept;
-        const NamespaceScope & operator = (NamespaceScope &&) noexcept;
-
-    private:
-        std::shared_ptr<Namespace> m_prev_namespace;
-    };
 }

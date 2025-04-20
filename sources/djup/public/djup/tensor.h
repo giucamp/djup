@@ -157,8 +157,6 @@ namespace djup
     
     Tensor Less(const Tensor & i_first, const Tensor & i_second);
 
-    Tensor SubstitutionAxiom(const Tensor & i_what, const Tensor & i_when, const Tensor & i_with);
-
     Tensor operator + (const Tensor & i_operand);
     Tensor operator - (const Tensor & i_operand);
 

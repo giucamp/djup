@@ -18,7 +18,7 @@
 
 namespace djup
 {
-    // https://en.wikipedia.org/wiki/Operator-precedence_parser
+    // inspired by https://en.wikipedia.org/wiki/Operator-precedence_parser
 
     namespace
     {   
@@ -70,7 +70,8 @@ namespace djup
             }
 
             // parses a space-separated or comma-separated list of expressions
-            static std::vector<Tensor> ParseExpressionList(ParsingContext & i_context, SymbolId i_terminator_symbol)
+            static std::vector<Tensor> ParseExpressionList(
+                ParsingContext & i_context, SymbolId i_terminator_symbol)
             {
                 Lexer & lexer = i_context.m_lexer;
                 
@@ -102,7 +103,7 @@ namespace djup
                 return MakeNamespace(statements);
             }
 
-            static Tensor ParseIdentifier(Name i_scalar_type, ParsingContext & i_context)
+            static Tensor ParseTypedIdentifier(Name i_scalar_type, ParsingContext & i_context)
             {
                 Lexer & lexer = i_context.m_lexer;
 
@@ -118,9 +119,11 @@ namespace djup
                 if(lexer.TryAccept(SymbolId::LeftParenthesis))
                     arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
 
-                return Identifier(
+                Tensor result = Identifier(
                     TensorType(MakeExpression(std::move(i_scalar_type), {}), std::move(shape)), 
                     MakeExpression(std::move(name), {}), arguments);
+
+                return result;
             }
 
             // parses an expression that may be the left-hand-side of a binary operator
@@ -133,16 +136,11 @@ namespace djup
                     Name name = name_token->m_source_chars;
 
                     if(i_context.m_namespace.IsScalarType(name))
-                        return ParseIdentifier(std::move(name), i_context);
+                        return ParseTypedIdentifier(std::move(name), i_context);
 
                     std::vector<Tensor> arguments;
                     if (lexer.TryAccept(SymbolId::LeftParenthesis))
                         arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
-                    /* else
-                        Error("Undeclared symbol", name.AsString(), " - use () to enter function with no arguments"); */
-                        
-                        /* This should be treated as undeclared identifier if not yet declared
-                           with a type (even any), and if not part of a Past chain. */
 
                     return MakeExpression(name_token->m_source_chars, arguments);
                 }
@@ -151,7 +149,7 @@ namespace djup
                     int64_t exponent = 0;
                     std::string value_chars = AcceptNumericLiteral(token->m_source_chars, &exponent);
 
-                    // to do: use multi-precion ints
+                    // to do: use multi-precision ints
                     if(exponent == 0)
                         return Tensor(Parse<int64_t>(value_chars));
                     else
@@ -235,7 +233,7 @@ namespace djup
             }
 
             /* given a left operand, tries to parse a binary expression ignoring operators
-                whoose precedence is less than i_min_precedence. The operator cannot be 
+                whose precedence is less than i_min_precedence. The operator cannot be 
                 preceded by a line_break. */
             static Tensor CombineWithOperator(ParsingContext & i_context,
                 const Tensor & i_left_operand, int32_t i_min_precedence)
@@ -248,11 +246,11 @@ namespace djup
                     && lexer.GetCurrentToken().IsBinaryOperator()
                     && lexer.GetCurrentToken().m_symbol->m_precedence >= i_min_precedence)
                 {
-                    /* now we have the left-hand operatand and the operator.
+                    /* now we have the left-hand operand and the operator.
                        we just need the right-hand operand. */
                     Token const operator_token = lexer.GetCurrentToken();
 
-                    // we have accepted the operator, so we must move to the lext token
+                    // we have accepted the operator, so we must move to the next token
                     lexer.NextToken();
 
                     Tensor right = ParseLeftExpression(i_context);
@@ -321,7 +319,7 @@ namespace djup
                     return {};
 
                 /* if the expression has a name, and it's not followed by line break, it may 
-                   be a replacement axiom */
+                   be a substitution axiom */
                 if(!expression.GetExpression()->GetName().IsEmpty() &&
                     !i_context.m_lexer.GetCurrentToken().m_follows_line_break)
                 {
@@ -332,7 +330,8 @@ namespace djup
                     if(i_context.m_lexer.TryAccept(SymbolId::SubstitutionAxiom))
                     {
                         Tensor right_hand_side = ParseExpression(i_context);
-                        expression = SubstitutionAxiom(expression, when, right_hand_side);
+                        i_context.m_namespace.AddSubstitutionAxiom(expression, right_hand_side, when);
+                        expression = MakeExpression(builtin_names::SubstitutionAxiom, { expression, when, right_hand_side });
                     }
                     else if(!IsEmpty(when))
                         Error("'when' clause without axiom");
@@ -371,8 +370,8 @@ namespace djup
 
         try
         {
-            std::shared_ptr<Namespace> active_namespace = GetActiveNamespace();
-            ParsingContext context{lexer, *active_namespace};
+            Namespace temporary_namespace("", GetDefaultNamespace());
+            ParsingContext context{lexer, temporary_namespace };
             Tensor result = ParserImpl::ParseExpressionOrAxiom(context);
 
             // all the source must be consumed

@@ -276,11 +276,6 @@ namespace djup
         return AlwaysEqual(*i_first.GetExpression(), *i_second.GetExpression());
     }
 
-    Tensor SubstitutionAxiom(const Tensor & i_what, const Tensor & i_when, const Tensor & i_with)
-    {
-        return MakeExpression(builtin_names::SubstitutionAxiom, {i_what, i_when, i_with});
-    }
-
     bool IsConstant(const Tensor & i_tensor)
     {
         return i_tensor.GetExpression()->IsConstant();
