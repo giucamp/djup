@@ -11,6 +11,9 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 add_library(djup STATIC
+	public/djup/expression.h
+	public/djup/name.h
+	public/djup/tensor.h
 	private/pattern/candidate.h
 	private/pattern/candidate.cpp
 	private/pattern/discrimination_tree.h
@@ -27,10 +30,8 @@ add_library(djup STATIC
 	private/builtin_names.h
 	private/constant_shape.h
 	private/diagnostic.h
-	private/expression.h
 	private/indices.h
-	private/lexer.h
-	private/name.h
+	private/lexer.h	
 	private/namespace.h
 	private/parser.h
 	private/standard_scope.h
@@ -50,7 +51,6 @@ add_library(djup STATIC
 	private/standard_namespace.cpp
 	private/expression_to_graph.cpp
 	private/tensor.cpp
-	public/djup/tensor.h
 	tests/test_djup.cpp
 	tests/test_lexer.cpp
 	tests/test_parse.cpp

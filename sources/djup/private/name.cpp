@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/name.h>
+#include <djup/name.h>
 
 namespace djup
 {

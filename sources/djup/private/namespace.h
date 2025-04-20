@@ -8,7 +8,7 @@
 #include <private/common.h>
 #include <memory>
 #include <private/pattern/discrimination_tree.h>
-#include <private/name.h>
+#include <djup/name.h>
 
 namespace djup
 {

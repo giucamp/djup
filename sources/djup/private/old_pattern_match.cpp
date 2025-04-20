@@ -8,7 +8,7 @@
 #include <private/old_pattern_match.h>
 #include <private/builtin_names.h>
 #include <private/substitute_by_predicate.h>
-#include <private/expression.h>
+#include <djup/expression.h>
 #include <private/pattern/pattern_info.h>
 #include <core/flags.h>
 #include <core/diagnostic.h>

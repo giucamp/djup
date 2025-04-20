@@ -7,8 +7,8 @@
 #pragma once
 #include <private/common.h>
 #include <djup/tensor.h>
-#include <private/name.h>
-#include <private/expression.h>
+#include <djup/name.h>
+#include <djup/expression.h>
 #include <variant>
 
 namespace djup

@@ -72,6 +72,28 @@ namespace djup
                 substs_graph.FindMatches("g(1 2 3 4 5 6)"_t);
                 CORE_EXPECTS(substs_graph.GetSolutions().size() == 0);
             }
+
+            // pattern 3
+            {
+                pattern::DiscriminationTree discrimination_net;
+                discrimination_net.AddPattern(2, "g(1 2 3 f(real a h(real b)) real c)");
+
+                pattern::SubstitutionGraph substs_graph(discrimination_net);
+                substs_graph.FindMatches("g(1 2 3 f(4 h(5)) 6)"_t);
+                CORE_EXPECTS(substs_graph.GetSolutions().size() == 1);
+                const auto& solution = substs_graph.GetSolutions()[0];
+
+                CORE_EXPECTS(solution.m_substitutions.size() == 3);
+
+                /*CORE_EXPECTS_EQ(solution.m_substitutions[0].m_variable_name, "a");
+                CORE_EXPECTS(AlwaysEqual(solution.m_substitutions[0].m_value, "4"_t));
+
+                CORE_EXPECTS_EQ(solution.m_substitutions[1].m_variable_name, "b");
+                CORE_EXPECTS(AlwaysEqual(solution.m_substitutions[1].m_value, "5"_t));
+
+                CORE_EXPECTS_EQ(solution.m_substitutions[2].m_variable_name, "c");
+                CORE_EXPECTS(AlwaysEqual(solution.m_substitutions[2].m_value, "6"_t));*/
+            }
             
             pattern::DiscriminationTree discrimination_net;
             

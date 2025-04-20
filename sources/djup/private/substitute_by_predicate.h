@@ -7,7 +7,7 @@
 #pragma once
 #include <private/common.h>
 #include "djup/tensor.h"
-#include <private/expression.h>
+#include <djup/expression.h>
 #include <unordered_map>
 
 namespace djup

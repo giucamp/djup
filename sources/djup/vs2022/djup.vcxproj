@@ -23,11 +23,9 @@
     <ClInclude Include="..\private\builtin_names.h" />
     <ClInclude Include="..\private\common.h" />
     <ClInclude Include="..\private\diagnostic.h" />
-    <ClInclude Include="..\private\expression.h" />
     <ClInclude Include="..\private\constant_shape.h" />
     <ClInclude Include="..\private\indices.h" />
     <ClInclude Include="..\private\lexer.h" />
-    <ClInclude Include="..\private\name.h" />
     <ClInclude Include="..\private\parser.h" />
     <ClInclude Include="..\private\namespace.h" />
     <ClInclude Include="..\private\pattern\candidate.h" />
@@ -38,6 +36,8 @@
     <ClInclude Include="..\private\pattern\debug_utils.h" />
     <ClInclude Include="..\private\substitute_by_predicate.h" />
     <ClInclude Include="..\private\tensor_map.h" />
+    <ClInclude Include="..\public\djup\expression.h" />
+    <ClInclude Include="..\public\djup\name.h" />
     <ClInclude Include="..\public\djup\tensor.h" />
   </ItemGroup>
   <ItemGroup>

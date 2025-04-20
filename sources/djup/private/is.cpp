@@ -6,7 +6,7 @@
 
 #include <private/common.h>
 #include <djup/tensor.h>
-#include <private/expression.h>
+#include <djup/expression.h>
 #include <private/namespace.h>
 #include <private/builtin_names.h>
 

@@ -5,12 +5,11 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
-#include <private/common.h>
 #include <vector>
 #include <optional>
 #include <core/graph_wiz.h>
 #include <core/hash.h>
-#include <private/name.h>
+#include <djup/name.h>
 #include <djup/tensor.h>
 
 namespace djup

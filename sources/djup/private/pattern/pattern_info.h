@@ -6,7 +6,7 @@
 
 #pragma once
 #include <private/common.h>
-#include <private/expression.h>
+#include <djup/expression.h>
 #include <private/pattern/debug_utils.h>
 #include <vector>
 #include <string>
