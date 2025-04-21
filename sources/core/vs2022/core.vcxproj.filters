@@ -63,6 +63,12 @@
     <ClCompile Include="..\tests\test_pool.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\system_utils.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_system_utils.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\core\hash_variant.h">
@@ -120,6 +126,9 @@
       <Filter>public</Filter>
     </ClInclude>
     <ClInclude Include="..\public\core\pool.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\system_utils.h">
       <Filter>public</Filter>
     </ClInclude>
   </ItemGroup>

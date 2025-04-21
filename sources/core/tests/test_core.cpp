@@ -17,6 +17,7 @@ namespace core
 {
     namespace tests
     {
+        void TestSystemUtils();
         void Traits();
         void Pool_();
         void Bits();
@@ -32,6 +33,7 @@ namespace core
         {
             PrintLn("Test: Core...");
 
+            TestSystemUtils();
             Pool_();
             GraphWiz();
             Traits();

@@ -12,10 +12,10 @@
 
 namespace djup
 {
-    /** A namespace is a named object which contains axioms and types. Every 
-        namespace has a parent namespace, from which inherits all axioms with recursion. 
-        There is a global root immutable namespace, which does not have a parent,
-        from which all namespaces inherit. */
+    /** A namespace is a named object which contains declarations (axioms and types).
+        Every namespace has a parent namespace, from which inherits all declarations 
+        with recursion. There is a global root immutable namespace, which does not 
+        have a parent, from which all namespaces directly or indirectly inherit. */
     class Namespace
     {
     public:

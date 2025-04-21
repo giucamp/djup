@@ -9,33 +9,29 @@
 #include <djup/expression.h>
 #include <private/builtin_names.h>
 #include <core/to_string.h>
+#include <core/flags.h>
 
 namespace djup
 {
     namespace
     {
-        void TensorToString(StringBuilder & i_dest, const Tensor & i_source, bool /*tidy*/)
-        {
-            i_dest << i_source.GetExpression()->GetName();
-        }
-
-        void TensorSpanToString(StringBuilder& i_dest, Span<const Tensor> i_tensors, size_t i_depth, bool tidy = true)
+        void TensorSpanToString(StringBuilder& i_dest, Span<const Tensor> i_tensors, size_t i_depth, FormatFlags i_format_flags = FormatFlags::Tidy)
         {
             i_dest << '(';
             for (size_t i = 0; i < i_tensors.size(); i++)
             {
                 if (i != 0)
                     i_dest << ", ";
-                ToSimplifiedStringForm(i_dest, i_tensors[i], i_depth, tidy);
+                ToSimplifiedStringForm(i_dest, i_tensors[i], i_depth, i_format_flags);
             }
             i_dest << ')';
         }
     }
 
     void ToSimplifiedStringForm(StringBuilder& i_dest, const Expression& i_source,
-        size_t i_depth, bool tidy)
+        size_t i_depth, FormatFlags i_format_flags)
     {
-        if (tidy)
+        if (HasFlag(i_format_flags, FormatFlags::Tidy))
         {
             if (i_source.GetName() == builtin_names::Identifier)
             {
@@ -59,17 +55,17 @@ namespace djup
                 if (i_source.GetArguments().size() == 1)
                     ToSimplifiedStringForm(i_dest, i_source.GetArgument(0), i_depth);
                 else
-                    TensorSpanToString(i_dest, i_source.GetArguments(), i_depth, tidy);
+                    TensorSpanToString(i_dest, i_source.GetArguments(), i_depth, i_format_flags);
                 i_dest << "...";
             }
             else if (i_source.GetName() == builtin_names::RepetitionsOneToMany)
             {
-                ToSimplifiedStringForm(i_dest, i_source.GetArgument(0), i_depth, tidy);
+                ToSimplifiedStringForm(i_dest, i_source.GetArgument(0), i_depth, i_format_flags);
                 i_dest << "..";
             }
             else if (i_source.GetName() == builtin_names::RepetitionsZeroToOne)
             {
-                ToSimplifiedStringForm(i_dest, i_source.GetArgument(0), i_depth, tidy);
+                ToSimplifiedStringForm(i_dest, i_source.GetArgument(0), i_depth, i_format_flags);
                 i_dest << "?";
             }
             else
@@ -81,7 +77,7 @@ namespace djup
                     auto arguments = Span(i_source.GetArguments());
                     if (!arguments.empty())
                     {
-                        TensorSpanToString(i_dest, arguments, i_depth - 1, tidy);
+                        TensorSpanToString(i_dest, arguments, i_depth - 1, i_format_flags);
                     }
                 }
             }
@@ -95,31 +91,31 @@ namespace djup
                 auto arguments = Span(i_source.GetArguments());
                 if (!arguments.empty())
                 {
-                    TensorSpanToString(i_dest, arguments, i_depth - 1, false);
+                    TensorSpanToString(i_dest, arguments, i_depth - 1, {});
                 }
             }
         }
     }
 
-    std::string ToSimplifiedStringForm(const Expression& i_source, size_t i_depth, bool tidy)
+    std::string ToSimplifiedStringForm(const Expression& i_source, size_t i_depth, FormatFlags i_format_flags)
     {
         StringBuilder dest;
-        ToSimplifiedStringForm(dest, i_source, i_depth, tidy);
+        ToSimplifiedStringForm(dest, i_source, i_depth, i_format_flags);
         return dest.StealString();
     }
 
-    void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source, size_t i_depth, bool tidy)
+    void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source, size_t i_depth, FormatFlags i_format_flags)
     {
         if(!IsEmpty(i_source))
         {
             const Expression & expr = *i_source.GetExpression();
-            ToSimplifiedStringForm(i_dest, expr, i_depth, tidy);
+            ToSimplifiedStringForm(i_dest, expr, i_depth, i_format_flags);
         }
     }
 
-    StringBuilder & operator << (StringBuilder & i_dest, const Tensor & i_source)
+    /*StringBuilder & operator << (StringBuilder & i_dest, const Tensor & i_source)
     {
-        TensorToString(i_dest, i_source, true);
+        TensorToString(i_dest, i_source, FormatFlags::Tidy);
         return i_dest;
-    }
+    }*/
 }

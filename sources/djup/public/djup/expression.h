@@ -80,10 +80,10 @@ namespace djup
     bool NameIs(const Tensor & i_tensor, const ConstexprName & i_name);
 
     void ToSimplifiedStringForm(StringBuilder & i_dest, const Tensor & i_source, 
-        size_t i_depth = std::numeric_limits<size_t>::max(), bool tidy = true);
+        size_t i_depth = std::numeric_limits<size_t>::max(), FormatFlags i_format_flags = FormatFlags::Tidy);
 
     std::string ToSimplifiedStringForm(const Expression& i_source,
-        size_t i_depth = std::numeric_limits<size_t>::max(), bool tidy = true);
+        size_t i_depth = std::numeric_limits<size_t>::max(), FormatFlags i_format_flags = FormatFlags::Tidy);
 
     enum class FunctionFlags : uint16_t
     {
@@ -95,10 +95,10 @@ namespace djup
     FunctionFlags GetFunctionFlags(const Name & i_function_name);
 
     GraphWizGraph ExpressionToGraph(const Expression& i_source,
-        size_t i_depth = std::numeric_limits<int32_t>::max(), bool i_tidy = true);
+        size_t i_depth = std::numeric_limits<int32_t>::max(), FormatFlags i_format_flags = FormatFlags::Tidy);
 
     GraphWizGraph TensorToGraph(const Tensor& i_source,
-        size_t i_depth = std::numeric_limits<int32_t>::max(), bool i_tidy = true);
+        size_t i_depth = std::numeric_limits<int32_t>::max(), FormatFlags i_format_flags = FormatFlags::Tidy);
 
     template <auto VALUE>
         [[nodiscard]] const Tensor & MakeLiteral()

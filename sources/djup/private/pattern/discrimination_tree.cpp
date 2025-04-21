@@ -281,9 +281,9 @@ namespace djup
             // edges
             for (const auto & edge : m_edges)
             {
-                std::string text = TensorSpanToString(edge.second.m_labels, 1, true);
+                std::string text = TensorSpanToString(edge.second.m_labels, 1, FormatFlags::Tidy);
                 {
-                    std::string non_tidy_text = TensorSpanToString(edge.second.m_labels, 1, false);
+                    std::string non_tidy_text = TensorSpanToString(edge.second.m_labels, 1, {});
                     if(non_tidy_text != text)
                         text += "\n" + non_tidy_text;
                 }

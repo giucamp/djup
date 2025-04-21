@@ -23,6 +23,7 @@
     <ClCompile Include="..\private\from_chars.cpp" />
     <ClCompile Include="..\private\graph_wiz.cpp" />
     <ClCompile Include="..\private\sockets.cpp" />
+    <ClCompile Include="..\private\system_utils.cpp" />
     <ClCompile Include="..\private\to_chars.cpp" />
     <ClCompile Include="..\private\to_string.cpp" />
     <ClCompile Include="..\tests\test_bits.cpp" />
@@ -32,6 +33,7 @@
     <ClCompile Include="..\tests\test_memory.cpp" />
     <ClCompile Include="..\tests\test_pool.cpp" />
     <ClCompile Include="..\tests\test_split.cpp" />
+    <ClCompile Include="..\tests\test_system_utils.cpp" />
     <ClCompile Include="..\tests\test_to_chars.cpp" />
     <ClCompile Include="..\tests\test_to_string.cpp" />
     <ClCompile Include="..\tests\test_traits.cpp" />
@@ -54,6 +56,7 @@
     <ClInclude Include="..\public\core\sockets.h" />
     <ClInclude Include="..\public\core\span.h" />
     <ClInclude Include="..\public\core\split.h" />
+    <ClInclude Include="..\public\core\system_utils.h" />
     <ClInclude Include="..\public\core\to_chars.h" />
     <ClInclude Include="..\public\core\to_string.h" />
     <ClInclude Include="..\public\core\traits.h" />

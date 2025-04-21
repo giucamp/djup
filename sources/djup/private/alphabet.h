@@ -12,8 +12,9 @@
 
 namespace djup
 {
-    /* Every symbol in the alphabet has its own SymbolId. Anyway some SymbolId's
-        (i.e. dynamic symbols and special symbols) have no matching alphabet symbol. */
+    /* Id of a symbol recognizable by the Lexer. Usually symbols in the alphabet have their
+        own SymbolId, anyway some SymbolId's (like dynamic symbols and special symbols)
+        have no matching alphabet symbol. */
     enum class SymbolId : uint32_t
     {
         // arithmetic unary operators
@@ -62,8 +63,14 @@ namespace djup
     constexpr SymbolFlags operator | (SymbolFlags i_first, SymbolFlags i_second)
         { return CombineFlags(i_first, i_second); }
 
+    /** Type for a function called to associate an operator to an applier function.
+        For example "!a" becomes "Not(a)". */
+    using UnaryApplier = Tensor(*)(const Tensor& i_operand);
+
+    /** Type for a function called to associate an operator to an applier function. 
+        For example "a * b" becomes "Mul(a b)", and  "a == b" becomes "Equal(a b)." */
     using BinaryApplier = Tensor (*)(const Tensor & i_left, const Tensor & i_right);
-    using UnaryApplier = Tensor (*)(const Tensor & i_operand);
+
     using OperatorApplier = std::variant<std::monostate, UnaryApplier, BinaryApplier>;
 
     // element of the alphabet
@@ -86,11 +93,6 @@ namespace djup
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     #endif
-
-    inline Tensor NotEqual(const Tensor & i_first, const Tensor & i_second)
-    {
-        return !(i_first == i_second);
-    }
 
     /* The lexer recognizes symbols in the order they appear in this array.
         Shadowing must be considered: so ">" must appear after ">=", otherwise

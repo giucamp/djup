@@ -11,6 +11,7 @@
 
 namespace core
 {
+    /** A type for which core::CharWriter is specialized can */
     class StringBuilder
     {
     public:
@@ -80,8 +81,8 @@ namespace core
     private:
         CharBufferView m_writer;
         std::string m_dest;
-        int32_t m_tabs : 31;
-        int32_t m_tab_pending : 1;
+        uint32_t m_tabs : 31;
+        uint32_t m_tab_pending : 1;
         char m_new_line[4] = {};
     };
 

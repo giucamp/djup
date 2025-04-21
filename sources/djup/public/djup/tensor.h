@@ -155,6 +155,8 @@ namespace djup
 
     Tensor Equal(const Tensor & i_first, const Tensor & i_second);
     
+    Tensor NotEqual(const Tensor& i_first, const Tensor& i_second);
+
     Tensor Less(const Tensor & i_first, const Tensor & i_second);
 
     Tensor operator + (const Tensor & i_operand);
@@ -198,17 +200,12 @@ namespace djup
     Tensor RepetitionsOneToMany(Span<Tensor const> i_tensors);
     Tensor RepetitionsZeroToOne(Span<Tensor const> i_tensors);
 
-    // to implement
-    Tensor Substitute(const Tensor & i_where, const Tensor & i_what,
-        const Tensor & i_with, const Tensor & i_when = true);
-
-    struct Rule
+    enum class FormatFlags
     {
-        Tensor const m_what, m_with, m_when = true;
+        None = 0,
+        Tidy = 1 << 0,
     };
 
-    Tensor Substitute(const Tensor & i_where, Span<const Rule> i_rules);
-
     std::string ToSimplifiedStringForm(const Tensor & i_source,
-        size_t i_depth = std::numeric_limits<size_t>::max(), bool tidy = true);
+        size_t i_depth = std::numeric_limits<size_t>::max(), FormatFlags i_format_flags = FormatFlags::Tidy);
 }

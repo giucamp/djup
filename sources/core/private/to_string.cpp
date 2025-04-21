@@ -34,13 +34,14 @@ namespace core
         m_tab_pending = false;
 
         const char tab_chars[] = "\t\t\t\t\t\t\t\t";
-        const int32_t tab_char_count = static_cast<int32_t>(std::size(tab_chars));
+        const uint32_t tab_char_count = static_cast<uint32_t>(std::size(tab_chars));
 
-        int32_t tabs = m_tabs;
+        uint32_t tabs = m_tabs;
         while(tabs > 0)
         {
-            int32_t len = std::min(tabs, tab_char_count);
+            uint32_t len = std::min(tabs, tab_char_count);
             *this << std::string_view(tab_chars, len);
+            assert(tabs >= len); // detects overflow
             tabs -= len;
         }
     }
@@ -77,10 +78,12 @@ namespace core
         std::swap(i_first.m_writer, i_second.m_writer);
         std::swap(i_first.m_new_line, i_second.m_new_line);
 
-        int32_t park = i_first.m_tabs;
+        // can't use std::swap for bitfields
+        uint32_t park = i_first.m_tabs;
         i_first.m_tabs = i_second.m_tabs;
         i_second.m_tabs = park;
 
+        // can't use std::swap for bitfields
         park = i_first.m_tab_pending;
         i_first.m_tab_pending = i_second.m_tab_pending;
         i_second.m_tab_pending = park;

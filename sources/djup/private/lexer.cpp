@@ -14,10 +14,12 @@ namespace djup
 {
     bool IsSpace(uint32_t i_char)
     {
-        if( i_char >= 0x0009 && i_char <= 0x000D )
+        // from horizontal tabulation to carriage return...
+        if( i_char >= 0x09 && i_char <= 0x0D )
             return true;
 
-        if(i_char == 0x0020)
+        // 0x20 is space
+        if(i_char == 0x20)
             return true;
 
         return false;

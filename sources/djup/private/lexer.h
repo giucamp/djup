@@ -13,20 +13,18 @@
 namespace djup
 {
     /* A token is a range of chars recognized by the lexer. Accessing the content of this struct
-        outside the lifetime of the Lexer that returned it causes undefined behaviour. */
+        outside the lifetime of the Lexer that returned it causes undefined behavior. */
     struct Token
     {
-                                                                                        // [64-bit block]
-        SymbolId m_symbol_id = SymbolId::EndOfSource; /* describe the category of the token (see SymbolId). */ 
-        bool m_follows_line_break = false; /** wheter the spaces before this token include any '/n' */
+        SymbolId m_symbol_id = SymbolId::EndOfSource; /* describes the category of the token (see SymbolId). */ 
+     
+        bool m_follows_line_break = false; /** weather the spaces before this token include any '/n' */
 
-                                                                                        // [64-bit block]
-        const Symbol * m_symbol = nullptr; /** if non-null contains detail about char-representation, precedence, 
-            associativity and applier of the token. Usually this pointer is null for tokens with no fixed
-            char-representation, like literals and names, and also for SymbolId::EndOfSource. */
+        const Symbol * m_symbol = nullptr; /** if non-null contains detail about char-representation,
+            precedence, associativity and applier of the token. This pointer is null for tokens with no 
+            fixed char-representation, like literals and names, and also for SymbolId::EndOfSource. */
 
-                                                                                        // [64-bit block * 2]
-        std::string_view m_source_chars; /** the portion of source that compose the token, excluding 
+        std::string_view m_source_chars; /** the portion of source that composes the token, excluding 
             any heading or tailing space. */
 
         Token() = default;
@@ -98,15 +96,26 @@ namespace djup
         std::string_view m_whole_source;
     };
 
+    /** Returns true is the argument is a white char, like a space or a tabulation */
     bool IsSpace(uint32_t i_char);
+    
+    /** Returns true is the argument is a numeric digit */
     bool IsDigit(uint32_t i_char);
+
+    /** Returns true is the argument is a letter, underscore or upperscore.
+        For simplicity all chars from 0x7F (DEL) on are also considered letters. */
     bool IsAlpha(uint32_t i_char);
+
+    /** IsAlpha(i_char) || i_char == '_' || IsDigit(i_char) */
     bool IsAlphaOrUnderscore(uint32_t i_char);
 
 } // namespace djup
 
 namespace core
 {
+    /** Converts to char the current state of a Lexer. The result includes
+        the line number and a '^' char in the next line under the current
+        consume location of the lexer. */
     template <> struct CharWriter<djup::Lexer>
     {
         void operator() (CharBufferView& i_dest, const djup::Lexer& i_source) noexcept;

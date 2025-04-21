@@ -246,6 +246,11 @@ namespace djup
         return MakeExpression(builtin_names::Equal, {i_first, i_second});
     }
 
+    Tensor NotEqual(const Tensor& i_first, const Tensor& i_second)
+    {
+        return !Equal(i_first, i_second);
+    }
+
     Tensor Less(const Tensor & i_first, const Tensor & i_second)
     {
         return MakeExpression(builtin_names::Less, {i_first, i_second});
@@ -311,10 +316,10 @@ namespace djup
         return MakeExpression(builtin_names::RepetitionsZeroToOne, i_tensors);
     }
 
-    std::string ToSimplifiedStringForm(const Tensor & i_source, size_t i_depth, bool tidy)
+    std::string ToSimplifiedStringForm(const Tensor & i_source, size_t i_depth, FormatFlags i_format_flags)
     {
         StringBuilder builder;
-        ToSimplifiedStringForm(builder, i_source, i_depth, tidy);
+        ToSimplifiedStringForm(builder, i_source, i_depth, i_format_flags);
         return builder.ShrinkAndGetString();
     }
 }

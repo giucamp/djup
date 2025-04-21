@@ -9,6 +9,7 @@
 #include <djup/expression.h>
 #include <private/builtin_names.h>
 #include <core/graph_wiz.h>
+#include <core/flags.h>
 
 namespace djup
 {
@@ -21,11 +22,11 @@ namespace djup
         };
 
         int32_t ExpressionToGraph(ExpressionToGraphContext & i_context,
-            const Expression& i_source, size_t i_depth, bool i_tidy)
+            const Expression& i_source, size_t i_depth, FormatFlags i_format_flags)
         {
             uint32_t vertex_index;
             
-            if (i_tidy)
+            if (HasFlag(i_format_flags, FormatFlags::Tidy))
             {
                 if (i_source.GetName() == builtin_names::Identifier)
                 {
@@ -58,7 +59,7 @@ namespace djup
                         {
                             uint32_t arg_vertex = ExpressionToGraph(
                                 i_context, *argument.GetExpression(),
-                                i_depth - 1, i_tidy);
+                                i_depth - 1, i_format_flags);
                             i_context.m_graph.AddEdge(vertex_index, arg_vertex);
                         }
                     }
@@ -75,7 +76,7 @@ namespace djup
                     {
                         uint32_t arg_vertex = ExpressionToGraph(
                             i_context, *argument.GetExpression(),
-                            i_depth - 1, i_tidy);
+                            i_depth - 1, i_format_flags);
                         i_context.m_graph.AddEdge(vertex_index, arg_vertex);
                     }
                 }
@@ -89,16 +90,16 @@ namespace djup
     } // namespace
 
     GraphWizGraph ExpressionToGraph(const Expression& i_source,
-        size_t i_depth, bool i_tidy)
+        size_t i_depth, FormatFlags i_format_flags)
     {    
         ExpressionToGraphContext context;
-        ExpressionToGraph(context, i_source, i_depth, i_tidy);
+        ExpressionToGraph(context, i_source, i_depth, i_format_flags);
         return context.m_graph;
     }
 
     GraphWizGraph TensorToGraph(const Tensor& i_source,
-        size_t i_depth, bool i_tidy)
+        size_t i_depth, FormatFlags i_format_flags)
     {
-        return ExpressionToGraph(*i_source.GetExpression(), i_depth, i_tidy);
+        return ExpressionToGraph(*i_source.GetExpression(), i_depth, i_format_flags);
     }
 }
