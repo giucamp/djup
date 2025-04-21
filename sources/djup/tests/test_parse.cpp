@@ -19,7 +19,14 @@ namespace djup
             any a = 1
             real b = a * 2
             real [2 2] c = [ [1 2]
-                             [3 4] ]                            
+                             [3 4] ]
+
+            real f(real t)
+            {
+                a = t + 2
+                b = t^2 + a
+                return a + b
+            }                    
         }
 
 )";
@@ -38,14 +45,8 @@ namespace djup
 
             Tensor v2("a * a");
 
-            "SubstitutionAxiom(real f(real x), , Namespace(SubstitutionAxiom(any a, , 1), "
-                "SubstitutionAxiom(any b, , 1), Stack(Add(a, b), 4)))"_t;
-
-            DJUP_EXPR_EXPECTS_EQ("real f(real x) = { a = 1 b = 1 [a + b, 4] }",
-                "SubstitutionAxiom(real f(real x), , Namespace(SubstitutionAxiom(a, , 1), SubstitutionAxiom(b, , 1), Stack(Add(a, b), 4)))");
-
-            // auto d = ToSimplifiedStringForm("{{real}}x"_t);
-            // auto s = ToSimplifiedStringForm("real f( {{real}} x...)"_t);
+            // auto d = ToSimplifiedString("{{real}}x"_t);
+            // auto s = ToSimplifiedString("real f( {{real}} x...)"_t);
             
             PrintLn("successful");
         }

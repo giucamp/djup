@@ -33,39 +33,18 @@ namespace djup
             return result;
         }
 
-        std::string TensorSpanToString(Span<const Tensor> i_tensor, size_t i_depth, FormatFlags i_format_flags)
+        std::string TensorSpanToString(Span<const Tensor> i_tensor, FormatFlags i_format_flags, size_t i_depth)
         {
             std::string result;
             for (size_t i = 0; i < i_tensor.size(); i++)
             {
                 if (i != 0)
                     result += ", ";
-                result += ToSimplifiedStringForm(i_tensor[i], i_depth, i_format_flags);
+                result += ToSimplifiedString(i_tensor[i], i_format_flags, i_depth);
             }
             return result;
         }
-
-        void PrintIntVector(const std::vector<uint32_t>& s)
-        {
-            for (size_t i = 0; i < s.size(); i++)
-            {
-                if (i != 0)
-                    Print(" ");
-                Print(s[i]);
-            }
-        }
-
-        void PrintIntSpan(const Span<uint32_t>& s)
-        {
-            for (size_t i = 0; i < s.size(); i++)
-            {
-                if (i != 0)
-                    Print(" ");
-                Print(s[i]);
-            }
-        }
-
-        
+    
     } // namespace pattern
 
 } // namespace djup

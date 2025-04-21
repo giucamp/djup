@@ -18,6 +18,10 @@
 
 namespace djup
 {
+    // defined in TensorToString.cpp
+    void ToSimplifiedString(StringBuilder& i_dest, const Expression& i_source,
+        FormatFlags i_format_flags, size_t i_depth);
+
     Expression::Expression()
     {
         m_hash << m_name;
@@ -59,7 +63,9 @@ namespace djup
         m_hash = HashFromValue(hash);
 
         #if DJUP_DEBUG_STRING
-            m_debug_string = ToSimplifiedStringForm(*this);
+            StringBuilder dest;
+            ToSimplifiedString(dest, *this, FormatFlags::Tidy, std::numeric_limits<size_t>::max());
+            m_debug_string = dest.StealString();
         #endif
     }
 

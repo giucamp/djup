@@ -39,7 +39,7 @@ namespace djup
         {
             Print("Test: djup - Pattern Matching...");
 
-            CORE_EXPECTS_EQ(ToSimplifiedStringForm("4"_t), "4");
+            CORE_EXPECTS_EQ(ToSimplifiedString("4"_t), "4");
 
             // pattern 1
             {

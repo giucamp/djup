@@ -16,25 +16,6 @@ namespace djup
 {
     namespace tests
     {
-        namespace
-        {
-            const std::string test_dir = "C:\\repos\\djup\\tests\\";
-            const std::string dot_exe = "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\"";
-
-            void SaveGraph(std::string i_dir, std::string i_name, std::string i_dot)
-            {
-                std::string dot_file_path(i_dir + i_name + ".txt");
-                std::ofstream(dot_file_path) << i_dot;
-                std::string cmd = ToString("\"", dot_exe, " -T png -O ", dot_file_path, "\"");
-                int res = std::system(cmd.c_str());
-                //std::filesystem::remove(dot_file_path);
-                if (res != 0)
-                    Error("The command ", cmd, " returned ", res);
-
-                std::filesystem::remove(dot_file_path);
-            }
-        }
-
         void TensorToGraph()
         {
             Print("Test: djup - TensorToGraph...");

@@ -222,7 +222,6 @@ namespace core
 
         // content of the file
         const std::string dot = ToDotLanguage();
-        PrintLn(dot);
 
         // path of the source file
         path dot_file_path = i_path;

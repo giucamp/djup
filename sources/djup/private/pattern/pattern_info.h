@@ -13,6 +13,11 @@
 #include <cstdint>
 #include <limits>
 
+/* Warning: this flags will alter the layout of classes, adding
+   string where it is useful for debug purpose. They can also
+   enable some Print. */
+#define DJUP_DEBUG_PATTERN_INFO                         false
+
 namespace djup
 {
     namespace pattern

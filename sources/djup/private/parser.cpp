@@ -331,7 +331,8 @@ namespace djup
                     {
                         Tensor right_hand_side = ParseExpression(i_context);
                         i_context.m_namespace.AddSubstitutionAxiom(expression, right_hand_side, when);
-                        expression = MakeExpression(builtin_names::SubstitutionAxiom, { expression, when, right_hand_side });
+                        expression = MakeExpression(builtin_names::SubstitutionAxiom, 
+                            { expression, right_hand_side, when });
                     }
                     else if(!IsEmpty(when))
                         Error("'when' clause without axiom");

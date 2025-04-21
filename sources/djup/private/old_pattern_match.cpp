@@ -64,7 +64,7 @@ namespace djup
             {
                 if(i)
                     result += ", ";
-                result += ToSimplifiedStringForm(i_tensors[i]);
+                result += ToSimplifiedString(i_tensors[i]);
             }
             return result;
         }
@@ -257,7 +257,7 @@ namespace djup
                     std::string label;
                     for(const auto & substitution : edge.second.m_substitutions)
                     {
-                        label += ToString(substitution.m_variable_name, " = ", ToSimplifiedStringForm(substitution.m_value), escaped_newline);
+                        label += ToString(substitution.m_variable_name, " = ", ToSimplifiedString(substitution.m_value), escaped_newline);
                     }
                     i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
                         << "[label=\"" << label << "\"" << labels << "]"  << ';';
@@ -466,15 +466,16 @@ namespace djup
 
                         // compute usable range
                         Range usable;
-                        usable.m_max = total_available_targets - i_candidate.m_pattern.m_labels[pattern_index].m_remaining.m_min;
-                        usable.m_min = i_candidate.m_pattern.m_labels[pattern_index].m_remaining.m_max == s_max_reps ?
+                        usable.m_max = static_cast<int32_t>(total_available_targets - 
+                            i_candidate.m_pattern.m_labels[pattern_index].m_remaining.m_min);
+                        usable.m_min = static_cast<int32_t>(i_candidate.m_pattern.m_labels[pattern_index].m_remaining.m_max == s_max_reps ?
                             0 :
-                            total_available_targets - i_candidate.m_pattern.m_labels[pattern_index].m_remaining.m_max;
+                            total_available_targets - i_candidate.m_pattern.m_labels[pattern_index].m_remaining.m_max);
 
                         usable = i_candidate.m_pattern.m_labels[pattern_index].m_cardinality.ClampRange(usable);
 
                         // align the usable range to be a multiple of sub_pattern_count
-                        usable.m_min += sub_pattern_count - 1;
+                        usable.m_min += static_cast<int32_t>(sub_pattern_count - 1);
                         usable.m_min -= usable.m_min % sub_pattern_count;
                         usable.m_max -= usable.m_max % sub_pattern_count;
 

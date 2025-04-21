@@ -162,7 +162,7 @@ namespace djup
             #if DJUP_DEBUG_PATTERN_INFO
                 result.m_dbg_pattern = i_pattern;
 
-                result.m_dbg_str_pattern = ToSimplifiedStringForm(result.m_dbg_pattern);
+                result.m_dbg_str_pattern = ToSimplifiedString(result.m_dbg_pattern);
 
                 result.m_dbg_labels = "Arguments: " + result.m_labels_range.ToString();
                 for (size_t i = 0; i < result.m_labels_info.size(); ++i)

@@ -9,8 +9,8 @@
 
 namespace core
 {
-    /** Returns the path of the executable file. 
-        Currently implemented only on Windows and Linux (on other
+    /** Returns the path of the executable file. Currently 
+        implemented only on Windows and Linux (on other
         platforms the function is not defined). */
     std::filesystem::path GetExecutablePath();
 }

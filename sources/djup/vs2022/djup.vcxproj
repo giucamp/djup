@@ -41,7 +41,7 @@
     <ClInclude Include="..\public\djup\tensor.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\private\expression_to_graph.cpp" />
+    <ClCompile Include="..\private\tensor_to_graph.cpp" />
     <ClCompile Include="..\private\is.cpp" />
     <ClCompile Include="..\private\expression.cpp" />
     <ClCompile Include="..\private\constant_shape.cpp" />
@@ -59,7 +59,7 @@
     <ClCompile Include="..\private\pattern\debug_utils.cpp" />
     <ClCompile Include="..\private\standard_namespace.cpp" />
     <ClCompile Include="..\private\tensor.cpp" />
-    <ClCompile Include="..\private\expression_to_string.cpp" />
+    <ClCompile Include="..\private\tensor_to_string.cpp" />
     <ClCompile Include="..\tests\test_djup.cpp" />
     <ClCompile Include="..\tests\test_tensor_to_graph.cpp" />
     <ClCompile Include="..\tests\test_lexer.cpp" />

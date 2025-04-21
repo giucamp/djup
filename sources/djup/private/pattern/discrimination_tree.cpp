@@ -20,18 +20,6 @@ namespace djup
     {
         namespace
         {
-            template< typename... ARGS>
-            void DiscrTreeDebugPrintLn(ARGS&&... args)
-            {
-#if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
-#error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
-#endif
-#if DJUP_DEBUG_DISCRIMINATION_TREE
-                PrintLn(args...);
-#endif
-            }
-        }
-
         Tensor PreprocessPattern(const Tensor& i_pattern)
         {
             return SubstituteByPredicate(i_pattern, [](const Tensor& i_candidate) {
@@ -76,6 +64,7 @@ namespace djup
                 else
                     return i_candidate;
                 });
+            }
         }
 
         DiscriminationTree::DiscriminationTree()
@@ -117,7 +106,7 @@ namespace djup
                 #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
             #endif
             #if DJUP_DEBUG_DISCRIMINATION_TREE
-                m_dbg_full_patterns[i_pattern_id] = ToSimplifiedStringForm(i_pattern);
+                m_dbg_full_patterns[i_pattern_id] = ToSimplifiedString(i_pattern);
             #endif
         }
 
@@ -149,8 +138,8 @@ namespace djup
             uint32_t i_source_node, Span<const Tensor> i_patterns,
             const PatternInfo& i_source_pattern_info)
         {
-            DiscrTreeDebugPrintLn("Adding edge from ", i_source_node,
-                " with label ", TensorSpanToString(i_patterns, 1));
+            DJUP_DEBUG_DISCRTREE_PRINTLN("Adding edge from ", i_source_node,
+                " with label ", TensorSpanToString(i_patterns, FormatFlags::Tidy, 1));
 
             // search for an identical edge with the same patterns
             auto range = m_edges.equal_range(i_source_node);
@@ -158,7 +147,7 @@ namespace djup
             {
                 Edge& existing_edge = it->second;
                 const bool same = SameRootPatterns(existing_edge.m_labels, i_patterns);
-                DiscrTreeDebugPrintLn("Comparing ", TensorSpanToString(existing_edge.m_labels),
+                DJUP_DEBUG_DISCRTREE_PRINTLN("Comparing ", TensorSpanToString(existing_edge.m_labels),
                     " to ", TensorSpanToString(i_patterns), ": ", same);
                 if (same)
                 {
@@ -195,7 +184,7 @@ namespace djup
             uint32_t new_node = m_node_count++;
             m_leaf_pattern_id.push_back(-1);
             DJUP_ASSERT(m_leaf_pattern_id.size() == m_node_count);
-            DiscrTreeDebugPrintLn("\tnew node: ", new_node);
+            DJUP_DEBUG_DISCRTREE_PRINTLN("\tnew node: ", new_node);
             return new_node;
         }
 
@@ -233,16 +222,16 @@ namespace djup
 
         GraphWizGraph DiscriminationTree::ToGraphWiz(std::string_view i_graph_name) const
         {
-            /*DiscrTreeDebugPrintLn("---------------------------");
+            /*DJUP_DEBUG_DISCRTREE_PRINTLN("---------------------------");
             for (const auto& edge : m_edges)
             {
                 std::string dest = std::to_string(edge.second.m_dest_node);
                 if (IsLeafNode(edge.first))
                     dest += "(Leaf)";
-                DiscrTreeDebugPrintLn(edge.first, "->", dest, ": ", 
+                DJUP_DEBUG_DISCRTREE_PRINTLN(edge.first, "->", dest, ": ", 
                     TensorSpanToString(Span(edge.second.m_labels), 1));
             }
-            DiscrTreeDebugPrintLn("---------------------------");*/
+            DJUP_DEBUG_DISCRTREE_PRINTLN("---------------------------");*/
 
             GraphWizGraph graph(i_graph_name);
 
@@ -281,9 +270,9 @@ namespace djup
             // edges
             for (const auto & edge : m_edges)
             {
-                std::string text = TensorSpanToString(edge.second.m_labels, 1, FormatFlags::Tidy);
+                std::string text = TensorSpanToString(edge.second.m_labels, FormatFlags::Tidy, 1);
                 {
-                    std::string non_tidy_text = TensorSpanToString(edge.second.m_labels, 1, {});
+                    std::string non_tidy_text = TensorSpanToString(edge.second.m_labels, {}, 1);
                     if(non_tidy_text != text)
                         text += "\n" + non_tidy_text;
                 }

@@ -33,8 +33,8 @@ namespace djup
         if (!(AlwaysEqual(first, second)))
         {
             Error(i_source_file, "(", i_source_line, ") - CORE_EXPECTS_EQ - first is:\n",
-                ToSimplifiedStringForm(first), ", \nsecond is:\n", 
-                ToSimplifiedStringForm(second));
+                ToSimplifiedString(first), ", \nsecond is:\n", 
+                ToSimplifiedString(second));
         }
     }
 

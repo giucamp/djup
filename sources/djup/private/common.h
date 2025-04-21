@@ -20,12 +20,16 @@
 #endif
 
 // DJUP_ASSERT
-#ifdef _DEBUG
+#ifndef NDEBUG
     #define DJUP_ASSERT(condition)      if(!(condition)) {DJUP_DEBUG_BREAK;} else { }
 #else
     #define DJUP_ASSERT(condition)      (void)0
 #endif
 
-// DJUP_SUBST_GRAPH_DEBUG_PRINTLN
-// #define DJUP_DEBUG_SUBSTGRAPH_PRINTLN(...)     (void)0
-#define DJUP_DEBUG_SUBSTGRAPH_PRINTLN(...)        PrintLn(__VA_ARGS__)
+// DJUP_SUBST_GRAPH_DEBUG_PRINTLN - debug print for substitution graph
+#define DJUP_DEBUG_SUBSTGRAPH_PRINTLN(...)     (void)0
+//#define DJUP_DEBUG_SUBSTGRAPH_PRINTLN(...)        PrintLn(__VA_ARGS__)
+
+// DJUP_DEBUG_DISCRTREE_PRINTLN - debug print for discrimination tree
+#define DJUP_DEBUG_DISCRTREE_PRINTLN(...)     (void)0
+// #define DJUP_DEBUG_DISCRTREE_PRINTLN(...)        PrintLn(__VA_ARGS__)

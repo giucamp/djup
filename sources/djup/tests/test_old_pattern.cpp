@@ -22,21 +22,20 @@ namespace djup
     {
         void OldPattern()
         {
-            #if !defined DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING
-                #error DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING must be defined
-            #endif
+            volatile bool skip = false;
+            if (skip)
+            {
+                Print("Skipping");
+                return;
+            }
+
+            Print("Test: djup - Old pattern matching...");
+
             {
                 auto target = "g(3 z(1) z(2) z(3) p(10) 6)";
                 auto pattern = "g(3 z(real r)... p(real) 6)";
                 size_t solutions = PatternMatchingCount(target, pattern);
                 CORE_EXPECTS(solutions == 1);
-            }
-
-            volatile bool skip = DJUP_DEBUG_DISABLE_ONE2ONE_PATTERN_MATCHING;
-            if (skip)
-            {
-                Print("Skipping");
-                return;
             }
 
             {

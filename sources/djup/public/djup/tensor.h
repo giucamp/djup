@@ -206,6 +206,7 @@ namespace djup
         Tidy = 1 << 0,
     };
 
-    std::string ToSimplifiedStringForm(const Tensor & i_source,
-        size_t i_depth = std::numeric_limits<size_t>::max(), FormatFlags i_format_flags = FormatFlags::Tidy);
+    std::string ToSimplifiedString(const Tensor & i_source,
+        FormatFlags i_format_flags = FormatFlags::Tidy,
+        size_t i_depth = std::numeric_limits<size_t>::max());
 }

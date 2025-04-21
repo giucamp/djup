@@ -14,6 +14,8 @@
 #include <unordered_map>
 #include <limits>
 
+#define DJUP_DEBUG_DISCRIMINATION_TREE false
+
 namespace djup
 {
     namespace pattern
@@ -98,9 +100,6 @@ namespace djup
             /** Indicized by source nodes. Id of the pattern if the node is a leaf, -1 otherwise */
             std::vector<int32_t> m_leaf_pattern_id; 
 
-            #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
-                #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
-            #endif
             #if DJUP_DEBUG_DISCRIMINATION_TREE
                 // the key is the pattern id
                 std::unordered_map<int32_t, std::string> m_dbg_full_patterns;

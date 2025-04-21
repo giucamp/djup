@@ -39,7 +39,7 @@ add_library(djup STATIC
 	private/tensor_map.h
 	private/constant_shape.cpp
 	private/expression.cpp
-	private/expression_to_string.cpp
+	private/tensor_to_string.cpp
 	private/indices.cpp
 	private/is.cpp
 	private/lexer.cpp
@@ -49,7 +49,7 @@ add_library(djup STATIC
 	private/old_pattern_match.h
 	private/old_pattern_match.cpp
 	private/standard_namespace.cpp
-	private/expression_to_graph.cpp
+	private/tensor_to_graph.cpp
 	private/tensor.cpp
 	tests/test_djup.cpp
 	tests/test_lexer.cpp

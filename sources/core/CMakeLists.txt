@@ -18,6 +18,8 @@ add_library(core STATIC
 	private/to_chars.cpp
 	private/to_string.cpp
 	private/graph_wiz.cpp
+	private/system_utils.cpp
+	public/core/system_utils.h
 	public/core/address.h
 	public/core/algorithms.h
 	public/core/diagnostic.h
@@ -38,6 +40,7 @@ add_library(core STATIC
 	public/core/to_string.h
 	public/core/traits.h
 	public/core/graph_wiz.h
+	tests/test_system_utils.cpp
 	tests/test_core.cpp
 	tests/test_from_chars.cpp
 	tests/test_split.cpp

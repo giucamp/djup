@@ -107,7 +107,7 @@
     <ClCompile Include="..\tests\test_old_pattern.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\expression_to_string.cpp">
+    <ClCompile Include="..\private\tensor_to_string.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\tests\test_lexer.cpp">
@@ -152,7 +152,7 @@
     <ClCompile Include="..\tests\test_pattern_info.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\expression_to_graph.cpp">
+    <ClCompile Include="..\private\tensor_to_graph.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\tests\test_tensor_to_graph.cpp">
