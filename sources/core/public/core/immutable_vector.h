@@ -13,13 +13,19 @@
 
 namespace core
 {
-    /**         
-    */  
+    /** Class template for immutable vectors. Copying is cheap as the
+        elements of the vector are shared (a ref-count is allocated at the
+        beginning of the memory block). */  
     template <typename ELEMENT>
         class ImmutableVector
     {
     public:
-        using Element = ELEMENT;
+
+        using iterator_category = std::random_access_iterator_tag; // could be contiguous
+        using value_type = ELEMENT;
+        using difference_type = ptrdiff_t;
+        using pointer_type = value_type*;
+        using reference_type = value_type&;
 
         ImmutableVector() noexcept
             : m_elements(GetEmptyElements()), m_size(0)
@@ -103,6 +109,49 @@ namespace core
                     alignof(ELEMENT), sizeof(Header));
             }
         }
+
+        class ConstIterator
+        {
+        public:
+
+            ConstIterator(ELEMENT* i_curr) noexcept : m_curr(i_curr) {}
+
+            const ELEMENT & operator * () const noexcept { return *m_curr; }
+
+            const ELEMENT * operator -> () const noexcept { return m_curr; }
+
+            ConstIterator& operator ++ () noexcept
+            {
+                ++m_curr;
+                return *this;
+            }
+
+            ConstIterator operator ++ (int) noexcept
+            {
+                auto copy = *this;
+                ++m_curr;
+                return copy;
+            }
+
+            bool operator == (const ConstIterator& i_other) const noexcept
+            {
+                return m_curr == i_other.m_curr;
+            }
+
+            bool operator != (const ConstIterator& i_other) const noexcept
+            {
+                return m_curr != i_other.m_curr;
+            }
+            
+        private:
+            ELEMENT* m_curr{};
+        };
+
+        ConstIterator cbegin() const noexcept { return ConstIterator(m_elements); }
+        ConstIterator cend() const noexcept { return ConstIterator(m_elements + m_size); }
+
+        ConstIterator begin() const noexcept { return ConstIterator(m_elements); }
+        ConstIterator end() const noexcept { return ConstIterator(m_elements + m_size); }
 
     private:
 

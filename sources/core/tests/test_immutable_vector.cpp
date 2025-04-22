@@ -36,6 +36,13 @@ namespace core
                 CORE_EXPECTS_EQ(iv2[0], 1);
                 CORE_EXPECTS_EQ(iv2[1], 2);
                 CORE_EXPECTS_EQ(iv2[2], 3);
+
+                int i = 1;
+                for (auto& el : iv2)
+                {
+                    CORE_EXPECTS_EQ(el, i);
+                    i++;
+                }
             }
 
             PrintLn("successful");
