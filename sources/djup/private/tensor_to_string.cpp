@@ -37,8 +37,12 @@ namespace djup
         {
             if (i_source.GetName() == builtin_names::Identifier)
             {
-                const Expression& first_arg = *i_source.GetArgument(0).GetExpression();
-                const Expression& second_arg = *i_source.GetArgument(1).GetExpression();
+                Span<const Tensor> arguments = i_source.GetArguments();
+                if (arguments.size() < 2)
+                    Error("An identifier must have at least two parameters");
+
+                const Expression& first_arg = *arguments[0].GetExpression();
+                const Expression& second_arg = *arguments[1].GetExpression();
                 DJUP_ASSERT(first_arg.GetName() == builtin_names::TensorType);
 
                 i_dest << first_arg.GetArgument(0).GetExpression()->GetName();
@@ -46,6 +50,12 @@ namespace djup
                 {
                     i_dest << ' ';
                     i_dest << second_arg.GetName();
+                }
+
+                if (arguments.size() > 2)
+                {
+                    TensorSpanToString(i_dest, arguments.subspan(2),
+                        i_format_flags, i_depth - 1);
                 }
             }
             else if (i_source.GetName() == builtin_names::Literal)
