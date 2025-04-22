@@ -13,19 +13,19 @@
 
 namespace core
 {
-    /** Class template for immutable vectors. Copying is cheap as the
+    /** Class template for immutable shared vectors. Copying is cheap as the
         elements of the vector are shared (a ref-count is allocated at the
-        beginning of the memory block). */  
+        beginning of the memory block). */
     template <typename ELEMENT>
         class ImmutableVector
     {
     public:
 
-        using iterator_category = std::random_access_iterator_tag; // could be contiguous
+        using iterator_category = std::random_access_iterator_tag; // could be contiguous in C++20
         using value_type = ELEMENT;
         using difference_type = ptrdiff_t;
-        using pointer_type = value_type*;
-        using reference_type = value_type&;
+        using pointer = value_type*;
+        using reference = value_type&;
 
         ImmutableVector() noexcept
             : m_elements(GetEmptyElements()), m_size(0)
@@ -114,6 +114,12 @@ namespace core
         {
         public:
 
+            using iterator_category = std::random_access_iterator_tag; // could be contiguous in C++20
+            using value_type = ELEMENT;
+            using difference_type = ptrdiff_t;
+            using pointer = value_type*;
+            using reference = value_type&;
+
             ConstIterator(ELEMENT* i_curr) noexcept : m_curr(i_curr) {}
 
             const ELEMENT & operator * () const noexcept { return *m_curr; }
@@ -141,6 +147,11 @@ namespace core
             bool operator != (const ConstIterator& i_other) const noexcept
             {
                 return m_curr != i_other.m_curr;
+            }
+
+            difference_type operator - (const ConstIterator& i_other) const noexcept
+            {
+                return m_curr - i_other.m_curr;
             }
             
         private:

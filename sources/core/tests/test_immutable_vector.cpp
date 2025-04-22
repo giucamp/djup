@@ -43,6 +43,12 @@ namespace core
                     CORE_EXPECTS_EQ(el, i);
                     i++;
                 }
+
+                ImmutableVector<int> iv3(iv2.begin(), iv2.end());
+                CORE_EXPECTS_EQ(iv3.size(), 3u);
+                CORE_EXPECTS_EQ(iv3[0], 1);
+                CORE_EXPECTS_EQ(iv3[1], 2);
+                CORE_EXPECTS_EQ(iv3[2], 3);
             }
 
             PrintLn("successful");
