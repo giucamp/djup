@@ -91,11 +91,9 @@ namespace djup
 
     FunctionFlags GetFunctionFlags(const Name & i_function_name);
 
-    GraphWizGraph ExpressionToGraph(const Expression& i_source,
-        size_t i_depth = std::numeric_limits<int32_t>::max(), FormatFlags i_format_flags = FormatFlags::Tidy);
-
     GraphWizGraph TensorToGraph(const Tensor& i_source,
-        size_t i_depth = std::numeric_limits<int32_t>::max(), FormatFlags i_format_flags = FormatFlags::Tidy);
+        FormatFlags i_format_flags = FormatFlags::Tidy,
+        size_t i_depth = std::numeric_limits<int32_t>::max());
 
     template <auto VALUE>
         [[nodiscard]] const Tensor & MakeLiteral()

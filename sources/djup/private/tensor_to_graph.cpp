@@ -21,8 +21,8 @@ namespace djup
             int32_t m_node_count{};
         };
 
-        int32_t ExpressionToGraph(ExpressionToGraphContext & i_context,
-            const Expression& i_source, size_t i_depth, FormatFlags i_format_flags)
+        int32_t TensorToGraph(ExpressionToGraphContext & i_context,
+            const Expression& i_source, FormatFlags i_format_flags, size_t i_depth)
         {
             uint32_t vertex_index;
             
@@ -53,13 +53,13 @@ namespace djup
                     vertex_index = i_context.m_graph.
                         AddNode(i_source.GetName().AsString());
 
-                    if (i_depth >= 0)
+                    if (i_depth > 0)
                     {
                         for (const Tensor& argument : i_source.GetArguments())
                         {
-                            uint32_t arg_vertex = ExpressionToGraph(
+                            uint32_t arg_vertex = TensorToGraph(
                                 i_context, *argument.GetExpression(),
-                                i_depth - 1, i_format_flags);
+                                i_format_flags, i_depth - 1);
                             i_context.m_graph.AddEdge(vertex_index, arg_vertex);
                         }
                     }
@@ -74,9 +74,9 @@ namespace djup
                 {
                     for (const Tensor& argument : i_source.GetArguments())
                     {
-                        uint32_t arg_vertex = ExpressionToGraph(
+                        uint32_t arg_vertex = TensorToGraph(
                             i_context, *argument.GetExpression(),
-                            i_depth - 1, i_format_flags);
+                            i_format_flags, i_depth - 1);
                         i_context.m_graph.AddEdge(vertex_index, arg_vertex);
                     }
                 }
@@ -87,19 +87,19 @@ namespace djup
             return vertex_index;
         }
 
+        GraphWizGraph TensorToGraph(const Expression& i_source,
+            FormatFlags i_format_flags, size_t i_depth)
+        {
+            ExpressionToGraphContext context;
+            TensorToGraph(context, i_source, i_format_flags, i_depth);
+            return context.m_graph;
+        }
+
     } // namespace
 
-    GraphWizGraph ExpressionToGraph(const Expression& i_source,
-        size_t i_depth, FormatFlags i_format_flags)
-    {    
-        ExpressionToGraphContext context;
-        ExpressionToGraph(context, i_source, i_depth, i_format_flags);
-        return context.m_graph;
-    }
-
     GraphWizGraph TensorToGraph(const Tensor& i_source,
-        size_t i_depth, FormatFlags i_format_flags)
+        FormatFlags i_format_flags, size_t i_depth)
     {
-        return ExpressionToGraph(*i_source.GetExpression(), i_depth, i_format_flags);
+        return TensorToGraph(*i_source.GetExpression(), i_format_flags, i_depth);
     }
 }
