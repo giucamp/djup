@@ -81,7 +81,11 @@ namespace core
         Attributes m_attributes;
     };
 
-    std::filesystem::path GraphWizGraph::s_dot_exe = "C:\\Program Files\\Graphviz\\bin\\dot.exe";
+    #ifdef _WIN32
+        std::filesystem::path GraphWizGraph::s_dot_exe = "C:\\Program Files\\Graphviz\\bin\\dot.exe";
+    #elif __linux__
+        std::filesystem::path GraphWizGraph::s_dot_exe = "/usr/bin/dot";
+    #endif
 
     void GraphWizGraph::SetDotExe(const std::filesystem::path& i_dot_exe)
     {
@@ -225,17 +229,34 @@ namespace core
 
         // path of the source file
         path dot_file_path = i_path;
-        dot_file_path += ".txt";
+        #ifdef _WIN32
+            dot_file_path += ".txt";
+        #endif
 
         // write file content
-        std::ofstream(dot_file_path) << dot;
+        std::ofstream dot_file(dot_file_path);
+        if (dot_file.fail())
+            Error("Could not write file ", dot_file_path);
+        dot_file << dot;
+        dot_file.close();
 
-        std::string cmd = ToString("\"\"", s_dot_exe.string(),
-            "\" -T png -O ", dot_file_path.string(), "\"");
+        std::string cmd = s_dot_exe.string();
+        if (cmd.find(' ') != std::string::npos)
+            cmd = "\"" + s_dot_exe.string() + "\"";
+        
+        cmd += " -T png -O ";
+        
+        std::string dot_file_path_str = dot_file_path.string();
+        cmd += dot_file_path_str;
+        #ifdef _WIN32
+            cmd = "\"" + cmd + "\"";
+        #endif  
+        
         int res = std::system(cmd.c_str());
+
         std::filesystem::remove(dot_file_path);
         if (res != 0)
-            Error("The command ", cmd, " returned ", res);
+             Error("The command ", cmd, " returned ", res);
 
         std::filesystem::remove(dot_file_path);
     }

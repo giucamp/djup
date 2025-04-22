@@ -7,7 +7,7 @@
 #include <private/common.h>
 #include <djup/tensor.h>
 #include <core/diagnostic.h>
-#include <private/diagnostic.h>
+#include <tests/test_utils.h>
 
 namespace djup
 {

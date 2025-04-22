@@ -8,7 +8,7 @@
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/substitution_graph.h>
 #include <private/pattern/pattern_info.h>
-#include <core/diagnostic.h>
+#include <tests/test_utils.h>
 #include <fstream>
 #include <filesystem>
 
@@ -118,7 +118,11 @@ namespace djup
             //TensorToGraph("f(1, 2, real x..., 6, 7, 8, real y..., 12, 13, 14, 15)"_t)
             //    .SaveAsImage(test_dir + "pattern.png");
 
-            static bool save_it = true;
+            #ifdef _WIN32
+                static bool save_it = true;
+            #else
+                static bool save_it = false;
+            #endif
             if (save_it)
             {
                 std::filesystem::create_directory(test_dir);

@@ -6,7 +6,7 @@
 
 #include <private/common.h>
 #include <private/lexer.h>
-#include <core/diagnostic.h>
+#include <tests/test_utils.h>
 
 namespace djup
 {

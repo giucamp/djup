@@ -39,9 +39,6 @@
     <ClInclude Include="..\private\substitute_by_predicate.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\diagnostic.h">
-      <Filter>private</Filter>
-    </ClInclude>
     <ClInclude Include="..\private\constant_shape.h">
       <Filter>private</Filter>
     </ClInclude>
@@ -74,6 +71,9 @@
     </ClInclude>
     <ClInclude Include="..\public\djup\expression.h">
       <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tests\test_utils.h">
+      <Filter>tests</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -156,6 +156,9 @@
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\tests\test_tensor_to_graph.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_utils.cpp">
       <Filter>tests</Filter>
     </ClCompile>
   </ItemGroup>

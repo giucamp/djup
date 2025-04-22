@@ -6,7 +6,7 @@
 
 #include <private/common.h>
 #include <private/namespace.h>
-#include <core/diagnostic.h>
+#include <tests/test_utils.h>
 #include <fstream>
 #include <private/pattern/debug_utils.h>
 

@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <core/diagnostic.h>
+#include <tests/test_utils.h>
 
 namespace djup
 {

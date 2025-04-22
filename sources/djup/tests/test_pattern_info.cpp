@@ -6,7 +6,7 @@
 
 #include <private/common.h>
 #include <private/pattern/pattern_info.h>
-#include <core/diagnostic.h>
+#include <tests/test_utils.h>
 
 namespace djup
 {

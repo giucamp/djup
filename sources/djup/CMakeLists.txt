@@ -29,7 +29,8 @@ add_library(djup STATIC
 	private/alphabet.h
 	private/builtin_names.h
 	private/constant_shape.h
-	private/diagnostic.h
+	private/../tests/test_utils.h
+	private/../tests/test_utils.cpp
 	private/indices.h
 	private/lexer.h	
 	private/namespace.h

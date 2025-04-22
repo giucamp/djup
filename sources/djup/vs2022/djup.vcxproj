@@ -22,7 +22,6 @@
     <ClInclude Include="..\private\alphabet.h" />
     <ClInclude Include="..\private\builtin_names.h" />
     <ClInclude Include="..\private\common.h" />
-    <ClInclude Include="..\private\diagnostic.h" />
     <ClInclude Include="..\private\constant_shape.h" />
     <ClInclude Include="..\private\indices.h" />
     <ClInclude Include="..\private\lexer.h" />
@@ -39,6 +38,7 @@
     <ClInclude Include="..\public\djup\expression.h" />
     <ClInclude Include="..\public\djup\name.h" />
     <ClInclude Include="..\public\djup\tensor.h" />
+    <ClInclude Include="..\tests\test_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\tensor_to_graph.cpp" />
@@ -68,6 +68,7 @@
     <ClCompile Include="..\tests\test_pattern.cpp" />
     <ClCompile Include="..\tests\test_pattern_info.cpp" />
     <ClCompile Include="..\tests\test_tensor_to_string.cpp" />
+    <ClCompile Include="..\tests\test_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis" />

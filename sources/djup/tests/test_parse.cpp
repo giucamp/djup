@@ -7,7 +7,7 @@
 #include <djup/tensor.h>
 #include <private/common.h>
 #include <private/parser.h>
-#include <private/diagnostic.h>
+#include <tests/test_utils.h>
 
 namespace djup
 {
@@ -37,7 +37,7 @@ namespace djup
             Tensor namespace_1 = ParseExpression(Namespace1);
 
             ExpressionToGraph(*namespace_1.GetExpression()).SaveAsImage(
-                GetArtifactPath() / "namespace_1.png");
+                GetArtifactPath("test_parse") / "namespace_1");
 
             Tensor v("2 + 3");
             
