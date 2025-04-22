@@ -17,6 +17,3 @@
     #define HAS_FLOAT_CHARCONV 1
 #endif
 
-#if !HAS_FLOAT_CHARCONV
-    #pragma message(__FILE__ ": based on the compiler version support for floating point functions of <charconv> has been deduced as absent")
-#endif

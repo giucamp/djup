@@ -9,6 +9,12 @@
 #include <djup/tensor.h>
 #include <core/system_utils.h>
 
+#ifdef __linux
+    #include <unistd.h>
+    #include <sys/types.h>
+    #include <pwd.h>
+#endif
+
 namespace djup
 {
     namespace tests
@@ -17,7 +23,9 @@ namespace djup
         const std::filesystem::path GetArtifactPath(std::string_view i_subdir)
         {
             #ifdef __linux__
-                std::filesystem::path dir = std::filesystem::canonical("~");
+                struct passwd* pw = getpwuid(getuid());
+                const char* homedir = pw->pw_dir;
+                std::filesystem::path dir = homedir;
             #else
                 std::filesystem::path dir = GetExecutablePath().parent_path();
             #endif
