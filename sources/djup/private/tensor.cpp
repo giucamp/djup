@@ -10,6 +10,7 @@
 #include <private/parser.h>
 #include <private/namespace.h>
 #include <private/builtin_names.h>
+#include <private/make_expr.h>
 #include <core/algorithms.h>
 
 namespace djup
@@ -89,22 +90,6 @@ namespace djup
             return std::move(m_expression);
         else
             Error("Trying to steal the expression from an empty tensor");
-    }
-
-    Tensor TensorType(Tensor i_scalar_type, Tensor i_shape)
-    {
-        return MakeExpression(builtin_names::TensorType, {i_scalar_type, i_shape});
-    }
-
-    Tensor Identifier(Tensor i_type, Tensor i_name, Span<const Tensor> i_arguments)
-    {
-        std::vector<Tensor> arguments;
-        arguments.reserve(i_arguments.size() + 2);
-        arguments.push_back(std::move(i_type));
-        arguments.push_back(std::move(i_name));
-        for(const Tensor & argument : i_arguments)
-            arguments.push_back(argument);
-        return MakeExpression(builtin_names::Identifier, arguments);
     }
 
     const Name & GetIdentifierName(const Tensor & i_identifier)

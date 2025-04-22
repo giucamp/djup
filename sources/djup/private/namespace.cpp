@@ -7,6 +7,7 @@
 #include <private/common.h>
 #include <private/namespace.h>
 #include <private/pattern/substitution_graph.h>
+#include <private/make_expr.h>
 #include <djup/expression.h>
 #include <private/builtin_names.h>
 #include <core/algorithms.h>

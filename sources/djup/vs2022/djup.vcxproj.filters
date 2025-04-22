@@ -75,6 +75,9 @@
     <ClInclude Include="..\tests\test_utils.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\make_expr.h">
+      <Filter>private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
@@ -160,6 +163,9 @@
     </ClCompile>
     <ClCompile Include="..\tests\test_utils.cpp">
       <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\make_expr.cpp">
+      <Filter>private</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -16,12 +16,7 @@ namespace djup
         // Namespace  1
         constexpr char Namespace1[] = R"(
         {
-            any a = 1
-            real b = a * 2
-            real [2 2] c = [ [1 2]
-                             [3 4] ]
-
-            real f(real t)
+            real f(real t real w real p)
             {
                 a = t + 2
                 b = t^2 + a
@@ -36,7 +31,9 @@ namespace djup
 
             Tensor namespace_1 = ParseExpression(Namespace1);
 
-            ExpressionToGraph(*namespace_1.GetExpression()).SaveAsImage(
+            auto s = ToSimplifiedString(namespace_1);
+
+            TensorToGraph(namespace_1, {}).SaveAsImage(
                 GetArtifactPath("test_parse") / "namespace_1");
 
             Tensor v("2 + 3");

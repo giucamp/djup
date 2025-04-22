@@ -9,6 +9,7 @@
 #include <private/pattern/pattern_info.h>
 #include <private/pattern/debug_utils.h>
 #include <private/builtin_names.h>
+#include <private/make_expr.h>
 #include <djup/expression.h>
 #include <private/substitute_by_predicate.h>
 #include <core/flags.h>

@@ -14,6 +14,7 @@
 #include <djup/expression.h>
 #include <private/namespace.h>
 #include <private/builtin_names.h>
+#include <private/make_expr.h>
 #include <djup/tensor.h>
 
 namespace djup
@@ -119,8 +120,9 @@ namespace djup
                 if(lexer.TryAccept(SymbolId::LeftParenthesis))
                     arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
 
-                Tensor result = Identifier(
-                    TensorType(MakeExpression(std::move(i_scalar_type), {}), std::move(shape)), 
+                Tensor type = MakeTensorType(
+                    MakeExpression(std::move(i_scalar_type), {}), std::move(shape));
+                Tensor result = MakeIdentifier(type,
                     MakeExpression(std::move(name), {}), arguments);
 
                 return result;
@@ -128,7 +130,7 @@ namespace djup
 
             // parses an expression that may be the left-hand-side of a binary operator
             static Tensor ParseLeftExpression(ParsingContext & i_context)
-            {
+            {             
                 Lexer & lexer = i_context.m_lexer;
 
                 if (std::optional<Token> name_token = lexer.TryAccept(SymbolId::Name))
@@ -320,8 +322,8 @@ namespace djup
 
                 /* if the expression has a name, and it's not followed by line break, it may 
                    be a substitution axiom */
-                if(!expression.GetExpression()->GetName().IsEmpty() &&
-                    !i_context.m_lexer.GetCurrentToken().m_follows_line_break)
+                if(!expression.GetExpression()->GetName().IsEmpty() /*&&
+                    !i_context.m_lexer.GetCurrentToken().m_follows_line_break*/)
                 {
                     Tensor when;
                     if(i_context.m_lexer.TryAccept(SymbolId::When))
@@ -330,8 +332,13 @@ namespace djup
                     if(i_context.m_lexer.TryAccept(SymbolId::SubstitutionAxiom))
                     {
                         Tensor right_hand_side = ParseExpression(i_context);
-                        i_context.m_namespace.AddSubstitutionAxiom(expression, right_hand_side, when);
                         expression = MakeExpression(builtin_names::SubstitutionAxiom, 
+                            { expression, right_hand_side, when });
+                    }
+                    else if (i_context.m_lexer.TryAccept(SymbolId::LeftBrace))
+                    {
+                        Tensor right_hand_side = ParseNamespace(i_context);
+                        expression = MakeExpression(builtin_names::SubstitutionAxiom,
                             { expression, right_hand_side, when });
                     }
                     else if(!IsEmpty(when))
@@ -377,7 +384,8 @@ namespace djup
 
             // all the source must be consumed
             if(!lexer.IsSourceOver())
-                Error("expected end of source, ", GetSymbolChars(lexer.GetCurrentToken().m_symbol_id), " found");
+                Error("expected end of source, ", 
+                    GetSymbolChars(lexer.GetCurrentToken().m_symbol_id), " found");
 
             return result;
         }

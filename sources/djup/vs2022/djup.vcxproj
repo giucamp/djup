@@ -25,6 +25,7 @@
     <ClInclude Include="..\private\constant_shape.h" />
     <ClInclude Include="..\private\indices.h" />
     <ClInclude Include="..\private\lexer.h" />
+    <ClInclude Include="..\private\make_expr.h" />
     <ClInclude Include="..\private\parser.h" />
     <ClInclude Include="..\private\namespace.h" />
     <ClInclude Include="..\private\pattern\candidate.h" />
@@ -41,6 +42,7 @@
     <ClInclude Include="..\tests\test_utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\private\make_expr.cpp" />
     <ClCompile Include="..\private\tensor_to_graph.cpp" />
     <ClCompile Include="..\private\is.cpp" />
     <ClCompile Include="..\private\expression.cpp" />

@@ -79,10 +79,6 @@ namespace djup
         return Tensor(std::string_view(i_source, i_length));
     }
 
-    Tensor TensorType(Tensor i_scalar_type, Tensor i_shape);
-
-    Tensor Identifier(Tensor i_type, Tensor i_name, Span<const Tensor> i_arguments);
-
     Tensor Rank(const Tensor & i_tensor);
 
     Tensor Shape(const Tensor & i_tensor);

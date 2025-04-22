@@ -52,6 +52,8 @@ add_library(djup STATIC
 	private/standard_namespace.cpp
 	private/tensor_to_graph.cpp
 	private/tensor.cpp
+	private/make_expr.h
+	private/make_expr.cpp
 	tests/test_djup.cpp
 	tests/test_lexer.cpp
 	tests/test_parse.cpp
@@ -63,6 +65,7 @@ add_library(djup STATIC
 )
 
 target_include_directories(djup PUBLIC public)
+target_include_directories(djup PRIVATE .)
 target_include_directories(djup PRIVATE .)
 
 target_link_libraries(djup core)

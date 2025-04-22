@@ -6,6 +6,7 @@
 
 #pragma once
 #include <private/common.h>
+#include <private/make_expr.h>
 #include "djup/tensor.h"
 #include <djup/expression.h>
 #include <unordered_map>

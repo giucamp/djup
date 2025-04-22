@@ -14,4 +14,6 @@ namespace djup
 {
     Tensor ParseExpression(std::string_view i_source);
 
+    Tensor ParseNamespace(std::string_view i_source);
+
 } // namespace djup

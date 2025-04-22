@@ -19,6 +19,8 @@ namespace djup
     struct ExpressionMetadata
     {
         Tensor m_type;
+        const char* m_source_file{}; // to do: SharedImmutableVector needed here
+        uint32_t m_source_line{std::numeric_limits<uint32_t>::max()};
         bool m_is_constant = false;
     };
 
@@ -61,17 +63,7 @@ namespace djup
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src);
 
-    [[nodiscard]] Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments = {}, std::optional<ExpressionMetadata> i_metadata = {});
-
-    [[nodiscard]] Tensor MakeExpression(Expression && i_source);
-
-    [[nodiscard]] Tensor TensorType(Name i_scalar_type, Tensor i_shape_vector);
-
-    [[nodiscard]] const Name & GetIdentifierName(const Tensor & i_identifier);
-    
-    [[nodiscard]] Tensor MakeLiteral(bool i_bool_value);
-
-    [[nodiscard]] Tensor MakeLiteral(int64_t i_integer_value);
+    [[nodiscard]] const Name& GetIdentifierName(const Tensor& i_identifier);
 
     [[nodiscard]] bool AlwaysEqual(const Expression & i_first, const Expression & i_second);
 
@@ -95,19 +87,4 @@ namespace djup
         FormatFlags i_format_flags = FormatFlags::Tidy,
         size_t i_depth = std::numeric_limits<int32_t>::max());
 
-    template <auto VALUE>
-        [[nodiscard]] const Tensor & MakeLiteral()
-    {
-        if constexpr(std::is_same_v<decltype(VALUE), bool>)
-        {
-            static const Tensor s_value = MakeLiteral(VALUE);
-            return s_value;
-        }
-        else
-        {
-            static_assert(std::is_integral_v<decltype(VALUE)>);
-            static const Tensor s_value = MakeLiteral(NumericCast<int64_t>(VALUE));
-            return s_value;
-        }
-    }
 }
