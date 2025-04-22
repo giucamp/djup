@@ -30,6 +30,7 @@
     <ClCompile Include="..\tests\test_from_chars.cpp" />
     <ClCompile Include="..\tests\test_core.cpp" />
     <ClCompile Include="..\tests\test_graph_wiz.cpp" />
+    <ClCompile Include="..\tests\test_immutable_vector.cpp" />
     <ClCompile Include="..\tests\test_memory.cpp" />
     <ClCompile Include="..\tests\test_pool.cpp" />
     <ClCompile Include="..\tests\test_split.cpp" />
@@ -44,6 +45,7 @@
     <ClInclude Include="..\public\core\algorithms.h" />
     <ClInclude Include="..\public\core\bits.h" />
     <ClInclude Include="..\public\core\graph_wiz.h" />
+    <ClInclude Include="..\public\core\immutable_vector.h" />
     <ClInclude Include="..\public\core\memory.h" />
     <ClInclude Include="..\public\core\diagnostic.h" />
     <ClInclude Include="..\public\core\flags.h" />

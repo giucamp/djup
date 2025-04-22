@@ -19,6 +19,7 @@ namespace core
     {
         void TestSystemUtils();
         void Traits();
+        void ImmutableVector_();
         void Pool_();
         void Bits();
         void Memory();
@@ -34,6 +35,7 @@ namespace core
             PrintLn("Test: Core...");
 
             TestSystemUtils();
+            ImmutableVector_();
             Pool_();
             GraphWiz();
             Traits();

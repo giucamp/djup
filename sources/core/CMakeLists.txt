@@ -29,6 +29,7 @@ add_library(core STATIC
 	public/core/hash_variant.h
 	public/core/numeric_cast.h
 	public/core/pool.h
+	public/core/immutable_vector.h
 	public/core/pointer_iterator.h
 	public/core/queue.h
 	public/core/sockets.h
@@ -51,6 +52,7 @@ add_library(core STATIC
 	tests/test_udp_socket.cpp
 	tests/test_memory.cpp
 	tests/test_graph_wiz.cpp
+	tests/test_immutable_vector.cpp
 	tests/test_pool.cpp
 )
 

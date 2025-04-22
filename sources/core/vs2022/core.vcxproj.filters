@@ -69,6 +69,9 @@
     <ClCompile Include="..\tests\test_system_utils.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\tests\test_immutable_vector.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\core\hash_variant.h">
@@ -129,6 +132,9 @@
       <Filter>public</Filter>
     </ClInclude>
     <ClInclude Include="..\public\core\system_utils.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\core\immutable_vector.h">
       <Filter>public</Filter>
     </ClInclude>
   </ItemGroup>
