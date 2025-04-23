@@ -45,6 +45,7 @@ namespace core
         {
             i_source.m_elements = GetEmptyElements();
             i_source.m_size = 0;
+            ++s_empty_header.m_ref_count;
         }
 
         template <typename INPUT_ITERATOR, 
