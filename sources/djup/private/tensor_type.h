@@ -31,6 +31,8 @@ namespace djup
 
         const Name & GetScalarType() const { return m_scalar_type; }
 
+        bool IsEmpty() const { return !HasAnyShape() && m_scalar_type.IsEmpty(); }
+
         bool HasAnyShape() const { return !std::holds_alternative<std::monostate>(m_shape); }
 
         bool HasConstantShape() const { return std::holds_alternative<ConstantShape>(m_shape); }

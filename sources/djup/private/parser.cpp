@@ -209,8 +209,17 @@ namespace djup
                     return -ParseExpression(i_context, FindSymbol(SymbolId::UnaryMinus).m_precedence);
                 else if (lexer.TryAccept(SymbolId::BinaryPlus))
                     return ParseExpression(i_context, FindSymbol(SymbolId::UnaryPlus).m_precedence);
+                
+                // return
+                else if (lexer.TryAccept(SymbolId::Return))
+                {
+                    Tensor value = ParseExpression(i_context);
+                    return MakeExpression({}, builtin_names::Return, 
+                        { std::move(value) }, {});
+                }
 
-                Error("Expected expression");
+                else
+                    Error("Expected expression");
             }
 
             static bool ShouldParseDeeper(const Token & i_look_ahead, const Token & i_operator)

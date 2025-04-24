@@ -17,7 +17,7 @@ namespace djup
         if (HasVariableShape())
         {
             const Tensor shape = GetVariableShape();
-            if (IsEmpty(shape))
+            if (djup::IsEmpty(shape))
                 m_shape = {};
         }
 

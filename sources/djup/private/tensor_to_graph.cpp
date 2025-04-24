@@ -24,37 +24,24 @@ namespace djup
         int32_t TensorToGraph(ExpressionToGraphContext & i_context,
             const Expression& i_source, FormatFlags i_format_flags, size_t i_depth)
         {
+            (void)i_format_flags;
+
             uint32_t vertex_index;
             
-            if (HasFlag(i_format_flags, FormatFlags::Tidy))
+            if (i_source.GetMetadata().m_is_literal)
             {
-                if (i_source.GetMetadata().m_is_literal)
-                {
-                    const std::string literal = i_source.GetName().AsString();
-                    vertex_index = i_context.m_graph.AddNode(std::move(literal));
-                }
-                else
-                {
-                    vertex_index = i_context.m_graph.AddNode(i_source.GetName().AsString());
-
-                    if (i_depth > 0)
-                    {
-                        for (const Tensor& argument : i_source.GetArguments())
-                        {
-                            uint32_t arg_vertex = TensorToGraph(
-                                i_context, *argument.GetExpression(),
-                                i_format_flags, i_depth - 1);
-                            i_context.m_graph.AddEdge(vertex_index, arg_vertex);
-                        }
-                    }
-                }
+                const std::string literal = i_source.GetName().AsString();
+                vertex_index = i_context.m_graph.AddNode(std::move(literal));
             }
             else
             {
-                vertex_index = i_context.m_graph.
-                    AddNode(i_source.GetName().AsString());
+                std::string name = i_source.GetName().AsString();
+                if (!i_source.GetType().IsEmpty())
+                    name = ToString(i_source.GetType()) + " " + name;
 
-                if (i_depth >= 0)
+                vertex_index = i_context.m_graph.AddNode(std::move(name));
+
+                if (i_depth > 0)
                 {
                     for (const Tensor& argument : i_source.GetArguments())
                     {

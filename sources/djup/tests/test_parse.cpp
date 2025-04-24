@@ -14,18 +14,17 @@ namespace djup
     namespace tests
     {
         // Namespace  1
-        /*constexpr char Namespace1[] = R"(
-        {
+        constexpr char Namespace1[] = R"(
+            g = 2
+            h = 2
             real f(real t real w real p)
             {
                 a = t + 2
                 b = t^2 + a
-                return a + b
+                return real a + real b
             }                    
-        }
-
-)";*/
-        constexpr char Namespace1[] = "a = 2";
+)";
+        // constexpr char Namespace1[] = "a = 2";
 
         void Parse()
         {
