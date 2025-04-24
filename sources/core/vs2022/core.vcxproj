@@ -34,7 +34,6 @@
     <ClCompile Include="..\tests\test_immutable_vector.cpp" />
     <ClCompile Include="..\tests\test_memory.cpp" />
     <ClCompile Include="..\tests\test_pool.cpp" />
-    <ClCompile Include="..\tests\test_queue.cpp" />
     <ClCompile Include="..\tests\test_split.cpp" />
     <ClCompile Include="..\tests\test_system_utils.cpp" />
     <ClCompile Include="..\tests\test_to_chars.cpp" />

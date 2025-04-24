@@ -75,9 +75,6 @@
     <ClCompile Include="..\private\name.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\tests\test_queue.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\core\hash_variant.h">
