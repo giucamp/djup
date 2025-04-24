@@ -524,7 +524,7 @@ namespace djup
                     }
                     else if( IsIdentifier(pattern) )
                     {
-                        if(!GetDefaultNamespace()->TypeBelongsTo(
+                        if(!GetStandardNamespace()->TypeBelongsTo(
                             target.GetExpression()->GetType(),
                             pattern.GetExpression()->GetType()))
                                 return false; // type mismatch

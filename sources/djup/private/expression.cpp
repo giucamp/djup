@@ -31,8 +31,8 @@ namespace djup
     Expression::Expression(TensorType i_type, Name i_name,
             Span<const Tensor> i_arguments, ExpressionMetadata i_metadata)
         : m_name(std::move(i_name)),
-          m_arguments(i_arguments.begin(), i_arguments.end()),
           m_type(std::move(i_type)),
+          m_arguments(i_arguments.begin(), i_arguments.end()),
           m_metadata(std::move(i_metadata))
     {
         static const Name non_constants[] = {builtin_names::RepetitionsZeroToMany, 
@@ -53,13 +53,14 @@ namespace djup
         m_hash << m_name;
         m_hash << m_arguments;
 
-        // constants have always lower hash than non-constants
+        /* constants have always lower hash than non-constants, so that
+           they appear first after sorting commutative function arguments
+           and parameters. */
         auto hash = m_hash.GetValue();
-        if(IsConstant())
+        if(m_metadata.m_is_constant)
             hash &= ~bit_reverse<decltype(hash)>(0);
         else
             hash |= bit_reverse<decltype(hash)>(0);
-
         m_hash = HashFromValue(hash);
 
         #if DJUP_DEBUG_STRING

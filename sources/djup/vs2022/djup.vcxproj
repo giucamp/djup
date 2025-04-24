@@ -37,7 +37,6 @@
     <ClInclude Include="..\private\substitute_by_predicate.h" />
     <ClInclude Include="..\private\tensor_type.h" />
     <ClInclude Include="..\public\djup\expression.h" />
-    <ClInclude Include="..\public\djup\name.h" />
     <ClInclude Include="..\public\djup\tensor.h" />
     <ClInclude Include="..\tests\test_utils.h" />
   </ItemGroup>
@@ -49,7 +48,6 @@
     <ClCompile Include="..\private\constant_shape.cpp" />
     <ClCompile Include="..\private\indices.cpp" />
     <ClCompile Include="..\private\lexer.cpp" />
-    <ClCompile Include="..\private\name.cpp" />
     <ClCompile Include="..\private\parser.cpp" />
     <ClCompile Include="..\private\namespace.cpp" />
     <ClCompile Include="..\private\pattern\candidate.cpp" />

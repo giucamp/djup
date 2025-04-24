@@ -27,7 +27,7 @@ namespace djup
         {
             Lexer & m_lexer;
             Namespace & m_namespace;
-            ImmutableVector<char> m_source_file;
+            Name m_source_file;
         };
 
         struct ParserImpl
@@ -169,11 +169,6 @@ namespace djup
                         return std::move(arguments.front());
                     else
                         return Tuple(arguments);
-                }
-                else if(lexer.TryAccept(SymbolId::LeftBrace))
-                {
-                    // namespace operator {}
-                    return ParseNamespace(i_context, SymbolId::RightBrace);
                 }
                 else if(lexer.TryAccept(SymbolId::If))
                 {
@@ -358,8 +353,8 @@ namespace djup
 
         try
         {
-            Namespace temporary_namespace("", GetDefaultNamespace());
-            ParsingContext context{lexer, temporary_namespace };
+            Namespace new_namespace("", GetStandardNamespace());
+            ParsingContext context{lexer, new_namespace };
             Tensor result = ParserImpl::ParseExpression(context);
 
             // all the source must be consumed
@@ -383,7 +378,7 @@ namespace djup
         }
     }
 
-    Tensor ParseNamespace(std::string_view i_source)
+    std::shared_ptr<Namespace> ParseNamespace(std::string_view i_source)
     {
         Lexer lexer(i_source);
         if (lexer.IsSourceOver())
@@ -391,16 +386,17 @@ namespace djup
 
         try
         {
-            Namespace temporary_namespace("", GetDefaultNamespace());
-            ParsingContext context{ lexer, temporary_namespace };
-            Tensor result = ParserImpl::ParseNamespace(context, SymbolId::EndOfSource);
+            std::shared_ptr<Namespace> new_namespace =
+                std::make_shared<Namespace>("", GetStandardNamespace());
+            ParsingContext context{ lexer, *new_namespace };
+            Tensor describing_expression = ParserImpl::ParseNamespace(context, SymbolId::EndOfSource);
 
             // all the source must be consumed
             if (!lexer.IsSourceOver())
                 Error("expected end of source, ",
                     GetSymbolChars(lexer.GetCurrentToken().m_symbol_id), " found");
 
-            return result;
+            return new_namespace;
         }
         catch (const std::exception& i_exc)
         {

@@ -187,10 +187,4 @@ namespace djup
             return default_namespace;
         }
     }
-
-    std::shared_ptr<Namespace> GetDefaultNamespace()
-    {
-        static thread_local std::shared_ptr<Namespace> default_namespace = MakeDefaultNamespace();
-        return default_namespace;
-    }
 }

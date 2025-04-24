@@ -27,9 +27,17 @@
 #endif
 
 // DJUP_SUBST_GRAPH_DEBUG_PRINTLN - debug print for substitution graph
-#define DJUP_DEBUG_SUBSTGRAPH_PRINTLN(...)     (void)0
+#define DJUP_DEBUG_SUBSTGRAPH_PRINTLN(...)          (void)0
 //#define DJUP_DEBUG_SUBSTGRAPH_PRINTLN(...)        PrintLn(__VA_ARGS__)
 
 // DJUP_DEBUG_DISCRTREE_PRINTLN - debug print for discrimination tree
-#define DJUP_DEBUG_DISCRTREE_PRINTLN(...)     (void)0
+#define DJUP_DEBUG_DISCRTREE_PRINTLN(...)           (void)0
 // #define DJUP_DEBUG_DISCRTREE_PRINTLN(...)        PrintLn(__VA_ARGS__)
+
+// introduce the namespace, otherwise the using would give error
+namespace core { }
+
+namespace djup
+{
+    using namespace core;
+}

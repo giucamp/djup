@@ -9,7 +9,7 @@
 #include <core/graph_wiz.h>
 #include <core/hash.h>
 #include <core/immutable_vector.h>
-#include <djup/name.h>
+#include <core/name.h>
 #include <djup/tensor.h>
 #include <private/tensor_type.h>
 
@@ -44,8 +44,6 @@ namespace djup
         const std::vector<Tensor> & GetArguments() const { return m_arguments; }
 
         const ExpressionMetadata & GetMetadata() const { return m_metadata; }
-
-        bool IsConstant() const { return m_metadata.m_is_constant; }
 
         const TensorType & GetType() const { return m_type; }
 

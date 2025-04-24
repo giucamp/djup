@@ -7,7 +7,7 @@
 #pragma once
 #include <private/common.h>
 #include <djup/tensor.h>
-#include <djup/name.h>
+#include <core/name.h>
 #include <djup/expression.h>
 #include <variant>
 

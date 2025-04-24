@@ -11,8 +11,6 @@ namespace djup
 {
     namespace tests
     {
-        using namespace core;
-
         void Lexer();
         void TensorToString();
         void Parse();

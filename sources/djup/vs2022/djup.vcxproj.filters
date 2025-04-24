@@ -63,9 +63,6 @@
     <ClInclude Include="..\private\common.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\djup\name.h">
-      <Filter>public</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\djup\expression.h">
       <Filter>public</Filter>
     </ClInclude>
@@ -81,9 +78,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
-      <Filter>private</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\name.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\namespace.cpp">

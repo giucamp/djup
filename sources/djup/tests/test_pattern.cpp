@@ -48,7 +48,7 @@ namespace djup
                 discrimination_net.AddPattern(2, "g(1 2 3 any a any b any c)");
 
                 pattern::SubstitutionGraph substs_graph(discrimination_net);
-                substs_graph.FindMatches(*GetDefaultNamespace(), "g(1 2 3 4 5 6)"_t);
+                substs_graph.FindMatches(*GetStandardNamespace(), "g(1 2 3 4 5 6)"_t);
                 CORE_EXPECTS(substs_graph.GetSolutions().size() == 1);
                 const auto& solution = substs_graph.GetSolutions()[0];
 
@@ -70,7 +70,7 @@ namespace djup
                 discrimination_net.AddPattern(2, "g(1 2 3 any a any b any a)");
 
                 pattern::SubstitutionGraph substs_graph(discrimination_net);
-                substs_graph.FindMatches(*GetDefaultNamespace(), "g(1 2 3 4 5 6)"_t);
+                substs_graph.FindMatches(*GetStandardNamespace(), "g(1 2 3 4 5 6)"_t);
                 CORE_EXPECTS(substs_graph.GetSolutions().size() == 0);
             }
 
@@ -80,7 +80,7 @@ namespace djup
                 discrimination_net.AddPattern(2, "g(1 2 3 f(real a h(real b)) real c)");
 
                 pattern::SubstitutionGraph substs_graph(discrimination_net);
-                substs_graph.FindMatches(*GetDefaultNamespace(), "g(1 2 3 f(4 h(5)) 6)"_t);
+                substs_graph.FindMatches(*GetStandardNamespace(), "g(1 2 3 f(4 h(5)) 6)"_t);
                 CORE_EXPECTS(substs_graph.GetSolutions().size() == 1);
                 const auto& solution = substs_graph.GetSolutions()[0];
 
@@ -147,7 +147,7 @@ namespace djup
                 step++;
             };
 
-            substitution_graph.FindMatches(*GetDefaultNamespace(), target.c_str(), callback);
+            substitution_graph.FindMatches(*GetStandardNamespace(), target.c_str(), callback);
 
             int h = 0;
 

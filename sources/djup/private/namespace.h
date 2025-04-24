@@ -8,7 +8,7 @@
 #include <private/common.h>
 #include <memory>
 #include <private/pattern/discrimination_tree.h>
-#include <djup/name.h>
+#include <core/name.h>
 
 namespace djup
 {
@@ -44,6 +44,10 @@ namespace djup
 
         void AddTypeInferenceAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when = {});
 
+        void SetDescribingExpression(const Tensor & i_expr) { m_describing_expression = i_expr; }
+
+        const Tensor & GetDescribingExpression() const { return m_describing_expression; }
+
         /* Applies type inference and substitutions axioms to an expr until 
            the result doesn't chance anymore */
         Tensor Canonicalize(const Tensor & i_source) const;
@@ -74,6 +78,7 @@ namespace djup
         // namespace data
         std::shared_ptr<const Namespace> m_parent;
         Name m_name;
+        Tensor m_describing_expression;
 
     private:
 
@@ -91,6 +96,4 @@ namespace djup
     };
 
     std::shared_ptr<const Namespace> GetStandardNamespace();
-
-    std::shared_ptr<Namespace> GetDefaultNamespace();
 }

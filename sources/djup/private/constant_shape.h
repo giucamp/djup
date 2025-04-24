@@ -17,8 +17,6 @@
 
 namespace djup
 {
-    using namespace core;
-
     class ConstantShape
     {
     public:

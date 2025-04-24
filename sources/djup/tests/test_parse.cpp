@@ -7,6 +7,7 @@
 #include <djup/tensor.h>
 #include <private/common.h>
 #include <private/parser.h>
+#include <private/namespace.h>
 #include <tests/test_utils.h>
 
 namespace djup
@@ -30,11 +31,11 @@ namespace djup
         {
             Print("Test: djup - Parse...");
 
-            Tensor namespace_1 = ParseNamespace(Namespace1);
+            std::shared_ptr<Namespace> namespace_1 = ParseNamespace(Namespace1);
 
-            auto s = ToSimplifiedString(namespace_1);
+            auto s = ToSimplifiedString(namespace_1->GetDescribingExpression());
 
-            TensorToGraph(namespace_1, {}).SaveAsImage(
+            TensorToGraph(namespace_1->GetDescribingExpression(), {}).SaveAsImage(
                 GetArtifactPath("test_parse") / "namespace_1");
 
             Tensor v("2 + 3");
