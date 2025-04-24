@@ -11,19 +11,18 @@
 
 namespace djup
 {
-    
-    [[nodiscard]] Tensor MakeExpression(Name i_name, Span<const Tensor> i_arguments = {}, 
-        std::optional<ExpressionMetadata> i_metadata = {});
-
-    [[nodiscard]] Tensor MakeTensorType(Name i_scalar_type, Tensor i_shape_vector);
-
-    [[nodiscard]] Tensor MakeTensorType(Tensor i_scalar_type, Tensor i_shape);
-
-    [[nodiscard]] Tensor MakeIdentifier(Tensor i_type, Tensor i_name, Span<const Tensor> i_arguments);
+    [[nodiscard]] Tensor MakeExpression(
+        TensorType i_tensor_type, Name i_name, 
+        Span<const Tensor> i_arguments, 
+        ExpressionMetadata i_metadata);
 
     [[nodiscard]] Tensor MakeLiteral(bool i_bool_value);
 
     [[nodiscard]] Tensor MakeLiteral(int64_t i_integer_value);
+
+    [[nodiscard]] Tensor MakeReturn(Tensor i_value);
+
+    [[nodiscard]] Tensor MakeNamespace(Span<Tensor const> i_statements);
 
     template <auto VALUE>
         [[nodiscard]] const Tensor & MakeLiteral()

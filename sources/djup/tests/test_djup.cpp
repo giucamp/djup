@@ -26,8 +26,8 @@ namespace djup
             PrintLn("Test: djup...");
 
             Lexer();
-            Parse();
             TensorToString();
+            Parse();
             PatternInfo();
             OldPattern();
             TensorToGraph();

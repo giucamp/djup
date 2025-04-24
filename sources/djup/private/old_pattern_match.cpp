@@ -9,6 +9,7 @@
 #include <private/builtin_names.h>
 #include <private/substitute_by_predicate.h>
 #include <private/make_expr.h>
+#include <private/namespace.h>
 #include <djup/expression.h>
 #include <private/pattern/pattern_info.h>
 #include <core/flags.h>
@@ -18,7 +19,7 @@
 
 #define DBG_CREATE_GRAPHVIZ_SVG         1
 #define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""
-#define DBG_DEST_DIR                    "C:\\repos\\djup\\tests\\subst_OLD\\"
+#define DBG_DEST_DIR                    "C:\\repos\\djup\\tests\\old\\subst_OLD\\"
 
 #if DBG_CREATE_GRAPHVIZ_SVG
     #include <fstream>
@@ -316,7 +317,9 @@ namespace djup
                         const Tensor & argument = arguments[index];
                         if(IsIdentifier(argument))
                         {
-                            new_arguments[index] = MakeExpression(builtin_names::AssociativeIdentifier, 
+                            new_arguments[index] = MakeExpression(
+                                argument.GetExpression()->GetType(),
+                                builtin_names::AssociativeIdentifier,
                                 {argument}, 
                                 argument.GetExpression()->GetMetadata());
                         }
@@ -324,7 +327,11 @@ namespace djup
                 }
 
                 if(some_substitution)
-                    return MakeExpression(i_candidate.GetExpression()->GetName(), new_arguments, i_candidate.GetExpression()->GetMetadata());
+                    return MakeExpression(
+                        i_candidate.GetExpression()->GetType(),
+                        i_candidate.GetExpression()->GetName(), 
+                        new_arguments, 
+                        i_candidate.GetExpression()->GetMetadata());
                 else
                     return i_candidate;
             });
@@ -515,12 +522,14 @@ namespace djup
                         if(!AlwaysEqual(pattern, target))
                             return false;
                     }
-                    else if(NameIs(pattern, builtin_names::Identifier))
+                    else if( IsIdentifier(pattern) )
                     {
-                        if(!Is(target, pattern))
-                            return false; // type mismatch
+                        if(!GetDefaultNamespace()->TypeBelongsTo(
+                            target.GetExpression()->GetType(),
+                            pattern.GetExpression()->GetType()))
+                                return false; // type mismatch
 
-                        if(!AddSubstitution(i_candidate, GetIdentifierName(pattern), target))
+                        if(!AddSubstitution(i_candidate, pattern.GetExpression()->GetName(), target))
                             return false; // incompatible substitution
                     }
                     else 

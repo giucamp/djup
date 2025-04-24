@@ -91,9 +91,9 @@ namespace djup
 
     bool IsLiteral(const Tensor& i_tensor);
 
-    bool IsTensorType(const Tensor & i_tensor);
+    bool IsIdentifier(const Tensor& i_tensor);
 
-    bool IsIdentifier(const Tensor & i_tensor);
+    bool IsTensorType(const Tensor & i_tensor);
 
     bool Always(const Tensor & i_bool_tensor);
 
@@ -189,8 +189,6 @@ namespace djup
     Tensor Stack(Span<Tensor const> i_tensors);
 
     Tensor Tuple(Span<Tensor const> i_arguments);
-
-    bool Is(const Tensor & i_tensor, const Tensor & i_pattern);
 
     Tensor RepetitionsZeroToMany(Span<Tensor const> i_tensors);
     Tensor RepetitionsOneToMany(Span<Tensor const> i_tensors);

@@ -28,30 +28,14 @@ namespace djup
             
             if (HasFlag(i_format_flags, FormatFlags::Tidy))
             {
-                if (i_source.GetName() == builtin_names::Identifier)
+                if (i_source.GetMetadata().m_is_literal)
                 {
-                    std::string identifier_name;
-                    const Expression& first_arg = *i_source.GetArgument(0).GetExpression();
-                    const Expression& second_arg = *i_source.GetArgument(1).GetExpression();
-                    DJUP_ASSERT(first_arg.GetName() == builtin_names::TensorType);
-
-                    identifier_name += first_arg.GetArgument(0).GetExpression()->GetName().AsString();
-                    if (!second_arg.GetName().IsEmpty())
-                    {
-                        identifier_name += ' ';
-                        identifier_name += second_arg.GetName().AsString();
-                    }
-                    vertex_index = i_context.m_graph.AddNode(identifier_name);
-                }
-                else if (i_source.GetName() == builtin_names::Literal)
-                {
-                    const std::string literal = i_source.GetArgument(0).GetExpression()->GetName().AsString();
-                    vertex_index = i_context.m_graph.AddNode(literal);
+                    const std::string literal = i_source.GetName().AsString();
+                    vertex_index = i_context.m_graph.AddNode(std::move(literal));
                 }
                 else
                 {
-                    vertex_index = i_context.m_graph.
-                        AddNode(i_source.GetName().AsString());
+                    vertex_index = i_context.m_graph.AddNode(i_source.GetName().AsString());
 
                     if (i_depth > 0)
                     {

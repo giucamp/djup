@@ -17,7 +17,7 @@ namespace core
 {
     /** Primary template for a parser. The second parameter can be used in partial
         specializations to simplify sfinae conditions. The function operator must
-        function must be noexcept, and may be constexpr. */
+        must be noexcept, and may be constexpr. */
     template <typename TYPE, typename SFINAE_CONDITION = VoidT<>> struct Parser
     {
         Expected<TYPE> operator () (std::string_view & i_source) noexcept = delete;
@@ -54,7 +54,7 @@ namespace core
         return result;
     }
 
-    /* Parse - can be used if the type has a Parser - throws on error */
+    /* Parse - can be used if the type has a Parser. Throws on error */
     template <typename TYPE, typename = std::enable_if_t<HasParserV<TYPE>>>
         constexpr TYPE Parse(std::string_view & i_source)
     {

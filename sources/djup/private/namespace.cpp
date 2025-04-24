@@ -66,13 +66,24 @@ namespace djup
         return FindScalarType(i_name) != nullptr;
     }
 
-    bool Namespace::ScalarTypeBelongsTo(const Name & i_target_type, const Name & i_set) const
+    bool Namespace::TypeBelongsTo(const TensorType & i_element, const TensorType & i_set) const
     {
-        if(i_target_type == i_set)
+        if (!ScalarTypeBelongsTo(i_element.GetScalarType(), i_set.GetScalarType()))
+            return false;
+
+        if (!i_set.HasAnyShape())
+            return true;
+
+        return ShapeEqual(i_element.GetShape(), i_set.GetShape());
+    }
+
+    bool Namespace::ScalarTypeBelongsTo(const Name & i_element, const Name & i_set) const
+    {
+        if(i_element == i_set)
             return true;
 
         if(const ScalarType * type = FindScalarType(i_set))
-            return Contains(type->m_subsets, i_target_type);
+            return Contains(type->m_subsets, i_element);
         
         return false;
     }
@@ -97,25 +108,6 @@ namespace djup
         const size_t pattern_id = m_substitution_axioms_rhss.size();
         m_substitution_axioms_rhss.push_back(i_with);
         m_substitution_axioms_patterns.AddPattern(NumericCast<int32_t>(pattern_id), i_what, i_when);
-
-        const Expression * what_expr = i_what.GetExpression().get();
-        if (what_expr->GetArguments().empty())
-        {
-            auto metadata = what_expr->GetMetadata();
-            if (metadata && metadata->m_type.GetExpression() != nullptr)
-            {
-                // it's an identifier
-                auto res = m_identifiers.insert(std::make_pair(what_expr->GetName(), i_with));
-                if (!res.second)
-                    Error("Identifier ", what_expr->GetName(), " already declared");
-            }
-            else
-            {
-                auto it = m_identifiers.find(what_expr->GetName());
-                if (it == m_identifiers.end())
-                    Error("Undeclared identifier ", what_expr->GetName());
-            }
-        }
     }
 
     void Namespace::AddTypeInferenceAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when)
@@ -131,7 +123,7 @@ namespace djup
 
         pattern::SubstitutionGraph substitution_graph(m_substitution_axioms_patterns);
         
-        substitution_graph.FindMatches(i_source);
+        substitution_graph.FindMatches(*this, i_source);
 
         if(!matches.empty())
         {
@@ -143,6 +135,7 @@ namespace djup
             return i_source;
     }
 
+    /*
     Tensor Namespace::ApplyTypeInferenceAxioms(const Tensor & i_source) const
     {
         std::vector<PatternMatch> matches;
@@ -163,6 +156,7 @@ namespace djup
         else
             return i_source;
     }
+    */
 
     Tensor Namespace::Canonicalize(const Tensor & i_source) const
     {
@@ -171,7 +165,7 @@ namespace djup
         // loop until the expression does not change
         const Expression * prev_expr = result.GetExpression().get();
         do {
-            result = ApplyTypeInferenceAxioms(result);
+            //result = ApplyTypeInferenceAxioms(result);
 
             prev_expr = result.GetExpression().get();
             result = ApplySubstitutionAxioms(result);

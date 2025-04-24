@@ -27,6 +27,7 @@ namespace djup
         {
             Lexer & m_lexer;
             Namespace & m_namespace;
+            ImmutableVector<char> m_source_file;
         };
 
         struct ParserImpl
@@ -79,51 +80,49 @@ namespace djup
                 std::vector<Tensor> result;
                 while(!lexer.TryAccept(i_terminator_symbol))
                 {
-                    result.push_back(TryParseExpression(i_context));
-                    const bool has_comma = lexer.TryAccept(SymbolId::Comma).has_value();
-                    if(!has_comma 
-                        && lexer.GetCurrentToken().m_symbol_id != i_terminator_symbol
-                        && IsEmpty(result.back()))
-                    {
-                        Error("Expected expression, comma or ", GetSymbolChars(i_terminator_symbol));
-                    }
+                    result.push_back(ParseExpression(i_context));
+                    lexer.TryAccept(SymbolId::Comma);
                 }
                 return result;
             }
 
-            static Tensor ParseNamespace(ParsingContext & i_context)
-            {
-                Lexer & lexer = i_context.m_lexer;
-
-                std::vector<Tensor> statements;
-                while(!lexer.TryAccept(SymbolId::RightBrace))
-                {
-                    statements.push_back(ParseExpressionOrAxiom(i_context));
-                    lexer.TryAccept(SymbolId::Comma);
-                }
-                return MakeNamespace(statements);
-            }
-
-            static Tensor ParseTypedIdentifier(Name i_scalar_type, ParsingContext & i_context)
+            static Tensor ParseIdentifier(Name i_name, ParsingContext & i_context)
             {
                 Lexer & lexer = i_context.m_lexer;
 
                 Tensor shape;
-                if(lexer.TryAccept(SymbolId::LeftBracket))
-                    shape = Stack(ParseExpressionList(i_context, SymbolId::RightBracket));
-
+                TensorType type;
                 Name name;
-                if(auto name_token = lexer.TryAccept(SymbolId::Name))
-                    name = name_token->m_source_chars;
 
+                if (i_context.m_namespace.IsScalarType(i_name))
+                {
+                    // parse shape                
+                    if (lexer.TryAccept(SymbolId::LeftBracket))
+                        shape = Stack(ParseExpressionList(i_context, SymbolId::RightBracket));
+
+                    // re-parse name
+                    if (std::optional<Token> name_token = lexer.TryAccept(SymbolId::Name))
+                        name = name_token->m_source_chars;
+
+                    // make type
+                    type = TensorType(i_name, std::move(shape));
+                }
+                else
+                {
+                    name = std::move(i_name);
+                }
+
+                ExpressionMetadata metadata;
+
+                // arguments or parameters
                 std::vector<Tensor> arguments;
-                if(lexer.TryAccept(SymbolId::LeftParenthesis))
+                if (lexer.TryAccept(SymbolId::LeftParenthesis))
                     arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
+                else
+                    metadata.m_is_identifier = true;
 
-                Tensor type = MakeTensorType(
-                    MakeExpression(std::move(i_scalar_type), {}), std::move(shape));
-                Tensor result = MakeIdentifier(type,
-                    MakeExpression(std::move(name), {}), arguments);
+                Tensor result = MakeExpression(type,
+                    std::move(name), arguments, std::move(metadata));
 
                 return result;
             }
@@ -136,15 +135,7 @@ namespace djup
                 if (std::optional<Token> name_token = lexer.TryAccept(SymbolId::Name))
                 {
                     Name name = name_token->m_source_chars;
-
-                    if(i_context.m_namespace.IsScalarType(name))
-                        return ParseTypedIdentifier(std::move(name), i_context);
-
-                    std::vector<Tensor> arguments;
-                    if (lexer.TryAccept(SymbolId::LeftParenthesis))
-                        arguments = ParseExpressionList(i_context, SymbolId::RightParenthesis);
-
-                    return MakeExpression(name_token->m_source_chars, arguments);
+                    return ParseIdentifier(std::move(name), i_context);
                 }
                 else if(std::optional<Token> token = lexer.TryAccept(SymbolId::NumericLiteral))
                 {
@@ -182,7 +173,7 @@ namespace djup
                 else if(lexer.TryAccept(SymbolId::LeftBrace))
                 {
                     // namespace operator {}
-                    return ParseNamespace(i_context);
+                    return ParseNamespace(i_context, SymbolId::RightBrace);
                 }
                 else if(lexer.TryAccept(SymbolId::If))
                 {
@@ -195,13 +186,12 @@ namespace djup
                         operands.push_back(ParseExpression(i_context));
                     } while(lexer.TryAccept(SymbolId::Elif));
 
-                    // else fallback
+                    // else fall-back
                     lexer.Accept(SymbolId::Else);
                     operands.push_back(ParseExpression(i_context));
 
                     return If(operands);
                 }
-
                 else if (lexer.GetCurrentToken().IsUnaryOperator())
                 {
                     const Symbol * symbol = lexer.GetCurrentToken().m_symbol;
@@ -220,7 +210,7 @@ namespace djup
                 else if (lexer.TryAccept(SymbolId::BinaryPlus))
                     return ParseExpression(i_context, FindSymbol(SymbolId::UnaryPlus).m_precedence);
 
-                return {};
+                Error("Expected expression");
             }
 
             static bool ShouldParseDeeper(const Token & i_look_ahead, const Token & i_operator)
@@ -274,56 +264,40 @@ namespace djup
             }
 
             // parse a complete expression
-            static Tensor TryParseExpression(ParsingContext & i_context, int32_t i_min_precedence = 0)
+            static Tensor ParseExpression(ParsingContext & i_context, int32_t i_min_precedence = 0)
             {
                 Tensor result = ParseLeftExpression(i_context);
-                if(!IsEmpty(result))
+
+                // try to combine with a binary operator
+                result = CombineWithOperator(i_context, result, i_min_precedence);
+
+                // repetition operators
+                Tensor (*repetition)(Span<Tensor const>) = nullptr;
+                if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsZeroToOne))
+                    repetition = &RepetitionsZeroToOne;
+                else if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsOneToMany))
+                    repetition = &RepetitionsOneToMany;
+                else if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsZeroToMany))
+                    repetition = &RepetitionsZeroToMany;
+                if(repetition != nullptr)
                 {
-                    // try to combine with a binary operator
-                    result = CombineWithOperator(i_context, result, i_min_precedence);
-
-                    // repetition operators
-                    Tensor (*repetition)(Span<Tensor const>) = nullptr;
-                    if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsZeroToOne))
-                        repetition = &RepetitionsZeroToOne;
-                    else if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsOneToMany))
-                        repetition = &RepetitionsOneToMany;
-                    else if(i_context.m_lexer.TryAcceptInline(SymbolId::RepetitionsZeroToMany))
-                        repetition = &RepetitionsZeroToMany;
-                    if(repetition != nullptr)
-                    {
-                        // a tuple as argument of a repetition decays to its arguments
-                        if(NameIs(result, builtin_names::Tuple))
-                            return (*repetition)(result.GetExpression()->GetArguments());
-                        else
-                            return (*repetition)({result});
-                    }
-
-                    // if the expression has no name, and a name follows, the expression is promoted to a type
-                    if(result.GetExpression()->GetName().IsEmpty())
-                    {
-                        if(std::optional<Token> name_token = i_context.m_lexer.TryAccept(SymbolId::Name))
-                        {
-                            result = MakeExpression(Name(name_token->m_source_chars), result.GetExpression()->GetArguments());
-                        }
-                    }
-
-                    return result;
+                    // a tuple as argument of a repetition decays to its arguments
+                    if(NameIs(result, builtin_names::Tuple))
+                        return (*repetition)(result.GetExpression()->GetArguments());
+                    else
+                        return (*repetition)({result});
                 }
-                else
-                    return {};
+
+                return result;
             }
 
-            static Tensor TryParseExpressionOrAxiom(ParsingContext & i_context)
+            static Tensor ParseStatement(ParsingContext & i_context)
             {
-                Tensor expression = TryParseExpression(i_context, 0);
-                if(IsEmpty(expression))
-                    return {};
+                Tensor expression = ParseExpression(i_context, 0);
 
                 /* if the expression has a name, and it's not followed by line break, it may 
                    be a substitution axiom */
-                if(!expression.GetExpression()->GetName().IsEmpty() /*&&
-                    !i_context.m_lexer.GetCurrentToken().m_follows_line_break*/)
+                if(!expression.GetExpression()->GetName().IsEmpty())
                 {
                     Tensor when;
                     if(i_context.m_lexer.TryAccept(SymbolId::When))
@@ -332,14 +306,14 @@ namespace djup
                     if(i_context.m_lexer.TryAccept(SymbolId::SubstitutionAxiom))
                     {
                         Tensor right_hand_side = ParseExpression(i_context);
-                        expression = MakeExpression(builtin_names::SubstitutionAxiom, 
-                            { expression, right_hand_side, when });
+                        expression = MakeExpression({}, builtin_names::SubstitutionAxiom,
+                            { expression, right_hand_side, when }, {});
                     }
                     else if (i_context.m_lexer.TryAccept(SymbolId::LeftBrace))
                     {
-                        Tensor right_hand_side = ParseNamespace(i_context);
-                        expression = MakeExpression(builtin_names::SubstitutionAxiom,
-                            { expression, right_hand_side, when });
+                        Tensor right_hand_side = ParseNamespace(i_context, SymbolId::RightBrace);
+                        expression = MakeExpression({}, builtin_names::SubstitutionAxiom,
+                            { expression, right_hand_side, when }, {});
                     }
                     else if(!IsEmpty(when))
                         Error("'when' clause without axiom");
@@ -348,22 +322,19 @@ namespace djup
                 return expression;
             }
 
-            static Tensor ParseExpression(ParsingContext & i_context, int32_t i_min_precedence = 0)
+            /** Parses a namespace, assuming that an opening brace has already
+                been parsed. A return statement is expected as last statement. */
+            static Tensor ParseNamespace(ParsingContext& i_context,
+                SymbolId i_terminal_symbol)
             {
-                Tensor expression = TryParseExpression(i_context, i_min_precedence);
-                if(IsEmpty(expression))
-                    Error("expected an expression");
+                Lexer& lexer = i_context.m_lexer;
 
-                return expression;
-            }
-
-            static Tensor ParseExpressionOrAxiom(ParsingContext & i_context)
-            {
-                Tensor expression = TryParseExpressionOrAxiom(i_context);
-                if(IsEmpty(expression))
-                    Error("expected an expression or an axiom");
-
-                return expression;
+                std::vector<Tensor> statements;
+                while (!lexer.TryAccept(i_terminal_symbol))
+                {
+                    statements.push_back(ParseStatement(i_context));
+                }
+                return MakeNamespace(statements);
             }
 
         }; // struct ParserImpl
@@ -380,7 +351,7 @@ namespace djup
         {
             Namespace temporary_namespace("", GetDefaultNamespace());
             ParsingContext context{lexer, temporary_namespace };
-            Tensor result = ParserImpl::ParseExpressionOrAxiom(context);
+            Tensor result = ParserImpl::ParseExpression(context);
 
             // all the source must be consumed
             if(!lexer.IsSourceOver())
@@ -398,6 +369,39 @@ namespace djup
             Error(lexer, i_exc.c_str());
         }
         catch(...)
+        {
+            Error(lexer, "unspecified error");
+        }
+    }
+
+    Tensor ParseNamespace(std::string_view i_source)
+    {
+        Lexer lexer(i_source);
+        if (lexer.IsSourceOver())
+            return {};
+
+        try
+        {
+            Namespace temporary_namespace("", GetDefaultNamespace());
+            ParsingContext context{ lexer, temporary_namespace };
+            Tensor result = ParserImpl::ParseNamespace(context, SymbolId::EndOfSource);
+
+            // all the source must be consumed
+            if (!lexer.IsSourceOver())
+                Error("expected end of source, ",
+                    GetSymbolChars(lexer.GetCurrentToken().m_symbol_id), " found");
+
+            return result;
+        }
+        catch (const std::exception& i_exc)
+        {
+            Error(lexer, i_exc.what());
+        }
+        catch (const StaticCStrException& i_exc)
+        {
+            Error(lexer, i_exc.c_str());
+        }
+        catch (...)
         {
             Error(lexer, "unspecified error");
         }

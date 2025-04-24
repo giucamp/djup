@@ -35,32 +35,9 @@ namespace djup
     {
         if (HasFlag(i_format_flags, FormatFlags::Tidy))
         {
-            if (i_source.GetName() == builtin_names::Identifier)
+            if (i_source.GetMetadata().m_is_literal)
             {
-                Span<const Tensor> arguments = i_source.GetArguments();
-                if (arguments.size() < 2)
-                    Error("An identifier must have at least two parameters");
-
-                const Expression& first_arg = *arguments[0].GetExpression();
-                const Expression& second_arg = *arguments[1].GetExpression();
-                DJUP_ASSERT(first_arg.GetName() == builtin_names::TensorType);
-
-                i_dest << first_arg.GetArgument(0).GetExpression()->GetName();
-                if (!second_arg.GetName().IsEmpty())
-                {
-                    i_dest << ' ';
-                    i_dest << second_arg.GetName();
-                }
-
-                if (arguments.size() > 2)
-                {
-                    TensorSpanToString(i_dest, arguments.subspan(2),
-                        i_format_flags, i_depth - 1);
-                }
-            }
-            else if (i_source.GetName() == builtin_names::Literal)
-            {
-                i_dest << i_source.GetArgument(0).GetExpression()->GetName().AsString();
+                i_dest << i_source.GetName().AsString();
             }
             else if (i_source.GetName() == builtin_names::RepetitionsZeroToMany)
             {
@@ -82,6 +59,12 @@ namespace djup
             }
             else
             {
+                if (i_source.GetType() != TensorType{})
+                {
+                    i_dest << i_source.GetType();
+                    if (!i_source.GetName().IsEmpty())
+                        i_dest << " ";
+                }
                 i_dest << i_source.GetName();
 
                 if (i_depth > 1)

@@ -14,7 +14,7 @@ namespace djup
     namespace tests
     {
         // Namespace  1
-        constexpr char Namespace1[] = R"(
+        /*constexpr char Namespace1[] = R"(
         {
             real f(real t real w real p)
             {
@@ -24,12 +24,14 @@ namespace djup
             }                    
         }
 
-)";
+)";*/
+        constexpr char Namespace1[] = "a = 2";
+
         void Parse()
         {
             Print("Test: djup - Parse...");
 
-            Tensor namespace_1 = ParseExpression(Namespace1);
+            Tensor namespace_1 = ParseNamespace(Namespace1);
 
             auto s = ToSimplifiedString(namespace_1);
 

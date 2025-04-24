@@ -23,7 +23,7 @@ namespace djup
 
                 for (size_t j = 0; j < arguments.size(); j++)
                 {
-                    if (!IsLiteral(arguments[j]) && !IsIdentifier(arguments[j]) && !IsRepetition(arguments[j]))
+                    if (!IsLiteral(arguments[j]) && !IsRepetition(arguments[j]))
                     {
                         result.push_back(Span(arguments[j].GetExpression()->GetArguments()));
                     }

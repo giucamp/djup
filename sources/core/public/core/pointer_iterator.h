@@ -37,30 +37,33 @@ namespace core
         constexpr PointerIterator operator -- (int) { PointerIterator copy = *this; copy.m_pointer--; return copy; }
 
         constexpr PointerIterator& operator += (ptrdiff_t i_delta) { m_pointer += i_delta; return *this; }
-        constexpr         PointerIterator& operator -= (ptrdiff_t i_delta) { m_pointer -= i_delta; return *this; }
+        constexpr PointerIterator& operator -= (ptrdiff_t i_delta) { m_pointer -= i_delta; return *this; }
 
         constexpr reference operator * () const { return *m_pointer; }
         constexpr pointer operator -> () const { return m_pointer; }
         constexpr reference operator[](size_type i_index) const { return m_pointer[i_index]; }
 
-        constexpr friend difference_type operator - (const PointerIterator& i_first, const PointerIterator& i_second)
+        constexpr friend difference_type operator - (
+            const PointerIterator & i_first, const PointerIterator & i_second)
         {
             return i_first.m_pointer - i_second.m_pointer;
         }
 
-        template <typename INTEGER, typename = std::enable_if_t<std::is_integral_v<INTEGER> && !std::is_same_v<INTEGER, bool>>>
-            constexpr friend PointerIterator operator + (const PointerIterator& i_it, INTEGER i_offset)
+        template <typename INTEGER, typename = std::enable_if_t<
+                std::is_integral_v<INTEGER> && !std::is_same_v<INTEGER, bool>>>
+            constexpr friend PointerIterator operator + (const PointerIterator & i_it, INTEGER i_offset)
         {
             return PointerIterator{ i_it.m_pointer + i_offset };
         }
 
-        template <typename INTEGER, typename = std::enable_if_t<std::is_integral_v<INTEGER> && !std::is_same_v<INTEGER, bool>>>
-            constexpr friend PointerIterator operator + (INTEGER i_offset, const PointerIterator& i_it)
+        template <typename INTEGER, typename = std::enable_if_t<
+                std::is_integral_v<INTEGER> && !std::is_same_v<INTEGER, bool>>>
+            constexpr friend PointerIterator operator + (INTEGER i_offset, const PointerIterator & i_it)
         {
             return PointerIterator{ i_it.m_pointer + i_offset };
         }
 
     private:
-        IT_TYPE* m_pointer{};
+        IT_TYPE * m_pointer{};
     };
 }

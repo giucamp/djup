@@ -20,7 +20,7 @@ namespace djup
             Tensor a("real a");
             Tensor b("real b");
             CORE_EXPECTS_EQ(ToSimplifiedString(a + b * 2), 
-                "Add(Mul(2, real b), real a)");
+                "Add(real a, Mul(2, real b))");
 
             auto s = ToSimplifiedString("0 * real");
             CORE_EXPECTS(s == "Mul(0, real)"); 

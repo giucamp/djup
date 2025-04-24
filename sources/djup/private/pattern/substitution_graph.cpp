@@ -8,6 +8,7 @@
 #include <private/pattern/substitution_graph.h>
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/pattern_info.h>
+#include <private/namespace.h>
 #include <private/builtin_names.h>
 #include <algorithm>
 
@@ -22,11 +23,13 @@ namespace djup
 
         SubstitutionGraph::~SubstitutionGraph() = default;
 
-        void SubstitutionGraph::FindMatches(const Tensor& i_target, std::function<void()> i_step_callback)
+        void SubstitutionGraph::FindMatches(
+            const Namespace & i_namespace, const Tensor& i_target, 
+            std::function<void()> i_step_callback)
         {
             m_reached_leaf_nodes.clear();
 
-            DescendContext context;
+            DescendContext context{i_namespace};
             context.m_step_callback = i_step_callback;
 
             // start by adding the discrimination root node as node to expand
@@ -44,7 +47,7 @@ namespace djup
                 {
                     const CandHandle cand_handle = m_candidate_edges_queue[0];
                     m_candidate_edges_queue.erase(m_candidate_edges_queue.begin());
-                    ProcessCandidateEdge(cand_handle);
+                    ProcessCandidateEdge(context, cand_handle);
                     m_candidate_edges.Delete(cand_handle);
                 }
                 else if (!m_discr_nodes_to_expand.empty())
@@ -87,7 +90,8 @@ namespace djup
             }
         }
 
-        void SubstitutionGraph::ProcessCandidateEdge(CandHandle i_candudate_edge_handle)
+        void SubstitutionGraph::ProcessCandidateEdge(
+            DescendContext & i_context, CandHandle i_candudate_edge_handle)
         {
             CandidateEdge * candidate = &m_candidate_edges.GetObject(i_candudate_edge_handle);
 
@@ -127,12 +131,14 @@ namespace djup
                                 return;
                             }
                         }
-                        else if (NameIs(label, builtin_names::Identifier))
+                        else if (IsIdentifier(label))
                         {
                             // check type
-                            if (Is(target, label))
+                            if ( i_context.m_namespace.TypeBelongsTo(
+                                target.GetExpression()->GetType(),
+                                label.GetExpression()->GetType()))
                             {
-                                candidate->m_substitutions.push_back({ GetIdentifierName(label), target });
+                                candidate->m_substitutions.push_back({ label.GetExpression()->GetName(), target });
                             }
                             else
                             {

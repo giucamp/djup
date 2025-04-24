@@ -276,7 +276,8 @@ namespace djup
         if(m_curr_token.m_symbol_id == i_symbol_id)
         {
             auto const result = m_curr_token;
-            NextToken();
+            if(m_curr_token.m_symbol_id != SymbolId::EndOfSource)
+                NextToken();
             return result;
         }
         else

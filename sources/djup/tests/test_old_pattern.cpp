@@ -22,6 +22,8 @@ namespace djup
     {
         void OldPattern()
         {
+            Print("Test: djup - Old pattern matching...");
+
             volatile bool skip = false;
             if (skip)
             {
@@ -29,12 +31,11 @@ namespace djup
                 return;
             }
 
-            Print("Test: djup - Old pattern matching...");
-
             {
                 auto target = "g(3 z(1) z(2) z(3) p(10) 6)";
                 auto pattern = "g(3 z(real r)... p(real) 6)";
                 size_t solutions = PatternMatchingCount(target, pattern);
+                CORE_EXPECTS(!IsConstant("p(real)"_t));
                 CORE_EXPECTS(solutions == 1);
             }
 

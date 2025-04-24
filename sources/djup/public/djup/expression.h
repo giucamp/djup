@@ -6,11 +6,12 @@
 
 #pragma once
 #include <vector>
-#include <optional>
 #include <core/graph_wiz.h>
 #include <core/hash.h>
+#include <core/immutable_vector.h>
 #include <djup/name.h>
 #include <djup/tensor.h>
+#include <private/tensor_type.h>
 
 namespace djup
 {
@@ -18,10 +19,11 @@ namespace djup
 
     struct ExpressionMetadata
     {
-        Tensor m_type;
-        const char* m_source_file{}; // to do: SharedImmutableVector needed here
-        uint32_t m_source_line{std::numeric_limits<uint32_t>::max()};
+        ImmutableVector<char> m_source_file;
+        uint64_t m_source_location{std::numeric_limits<uint32_t>::max()};
         bool m_is_constant = false;
+        bool m_is_literal = false;
+        bool m_is_identifier = false;
     };
 
     class Expression
@@ -30,7 +32,8 @@ namespace djup
 
         Expression();
 
-        Expression(Name i_name, Span<const Tensor> i_arguments, std::optional<ExpressionMetadata> i_metadata = {});
+        Expression(TensorType i_type, Name i_name, 
+            Span<const Tensor> i_arguments, ExpressionMetadata i_metadata);
 
         const Name & GetName() const { return m_name; }
 
@@ -40,17 +43,18 @@ namespace djup
 
         const std::vector<Tensor> & GetArguments() const { return m_arguments; }
 
-        const std::optional<ExpressionMetadata> & GetMetadata() const { return m_metadata; }
+        const ExpressionMetadata & GetMetadata() const { return m_metadata; }
 
-        bool IsConstant() const { return m_metadata.has_value() && m_metadata->m_is_constant; }
+        bool IsConstant() const { return m_metadata.m_is_constant; }
 
-        const Tensor & GetType() const { return m_metadata ? m_metadata->m_type : EmptyTensor(); }
+        const TensorType & GetType() const { return m_type; }
 
     private:
         Hash m_hash;
         Name m_name;
+        TensorType m_type;
         std::vector<Tensor> m_arguments;
-        std::optional<ExpressionMetadata> m_metadata;
+        ExpressionMetadata m_metadata;
         #if DJUP_DEBUG_STRING
             std::string m_debug_string;
         #endif
@@ -62,8 +66,6 @@ namespace djup
     }
 
     Hash & operator << (Hash & i_dest, const Tensor & i_src);
-
-    [[nodiscard]] const Name& GetIdentifierName(const Tensor& i_identifier);
 
     [[nodiscard]] bool AlwaysEqual(const Expression & i_first, const Expression & i_second);
 

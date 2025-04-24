@@ -19,7 +19,7 @@
 namespace djup
 {
     // defined in TensorToString.cpp
-    void ToSimplifiedString(StringBuilder& i_dest, const Expression& i_source,
+    void ToSimplifiedString(StringBuilder & i_dest, const Expression& i_source,
         FormatFlags i_format_flags, size_t i_depth);
 
     Expression::Expression()
@@ -28,20 +28,20 @@ namespace djup
         m_hash << m_arguments;
     }
 
-    Expression::Expression(Name i_name, Span<const Tensor> i_arguments, std::optional<ExpressionMetadata> i_metadata)
+    Expression::Expression(TensorType i_type, Name i_name,
+            Span<const Tensor> i_arguments, ExpressionMetadata i_metadata)
         : m_name(std::move(i_name)),
-          m_arguments(i_arguments.begin(), i_arguments.end()), 
+          m_arguments(i_arguments.begin(), i_arguments.end()),
+          m_type(std::move(i_type)),
           m_metadata(std::move(i_metadata))
     {
-        static const Name non_constants[] = {builtin_names::Identifier, builtin_names::RepetitionsZeroToMany, 
+        static const Name non_constants[] = {builtin_names::RepetitionsZeroToMany, 
             builtin_names::RepetitionsOneToMany, builtin_names::RepetitionsZeroToOne, builtin_names::AssociativeIdentifier};
 
-        if(!Contains(non_constants, m_name)
+        if(!Contains(non_constants, m_name) && !m_metadata.m_is_identifier
             && AllOf(m_arguments, djup::IsConstant))
         {
-            if(!m_metadata)
-                m_metadata = ExpressionMetadata{};
-            m_metadata->m_is_constant = true;
+            m_metadata.m_is_constant = true;
         }
 
         if(HasFlag(GetFunctionFlags(m_name), FunctionFlags::Commutative))

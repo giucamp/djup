@@ -36,14 +36,16 @@ namespace djup
 
         bool IsScalarType(const Name & i_name) const;
 
-        bool ScalarTypeBelongsTo(const Name & i_target_type, const Name & i_set) const;
+        bool ScalarTypeBelongsTo(const Name& i_target_type, const Name& i_set) const;
+
+        bool TypeBelongsTo(const TensorType & i_element, const TensorType & i_set) const;
 
         void AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when = {});
 
         void AddTypeInferenceAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when = {});
 
         /* Applies type inference and substitutions axioms to an expr until 
-           the result doest chanche anymore */
+           the result doesn't chance anymore */
         Tensor Canonicalize(const Tensor & i_source) const;
 
         std::string SubstitutionGraphToDotLanguage() const;
@@ -58,11 +60,11 @@ namespace djup
         };
         std::vector<ScalarType> m_scalar_types;
 
-        // substitution axioms: patterns and righ-hand-side expressions
+        // substitution axioms: patterns and right-hand-side expressions
         pattern::DiscriminationTree m_substitution_axioms_patterns;
         std::vector<Tensor> m_substitution_axioms_rhss;
 
-        // type-inference axioms: patterns and righ-hand-side expressions
+        // type-inference axioms: patterns and right-hand-side expressions
         pattern::DiscriminationTree m_type_inference_axioms_patterns;
         std::vector<Tensor> m_type_inference_axioms_rhss;
 
@@ -85,12 +87,10 @@ namespace djup
 
         Tensor ApplySubstitutionAxioms(const Tensor & i_source) const;
 
-        Tensor ApplyTypeInferenceAxioms(const Tensor & i_source) const;
+        // Tensor ApplyTypeInferenceAxioms(const Tensor & i_source) const;
     };
 
     std::shared_ptr<const Namespace> GetStandardNamespace();
 
     std::shared_ptr<Namespace> GetDefaultNamespace();
-
-    Tensor MakeNamespace(Span<Tensor const> i_arguments);
 }

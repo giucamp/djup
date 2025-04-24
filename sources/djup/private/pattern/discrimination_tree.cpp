@@ -40,7 +40,7 @@ namespace djup
                     for (; index < argument_count; index++)
                     {
                         const Tensor& argument = arguments[index];
-                        if (IsIdentifier(argument))
+                        if (!IsConstant(argument))
                         {
                             new_arguments = arguments;
                             some_substitution = true;
@@ -51,9 +51,11 @@ namespace djup
                     for (; index < argument_count; index++)
                     {
                         const Tensor& argument = arguments[index];
-                        if (IsIdentifier(argument))
+                        if (!IsConstant(argument))
                         {
-                            new_arguments[index] = MakeExpression(builtin_names::AssociativeIdentifier,
+                            new_arguments[index] = MakeExpression(
+                                argument.GetExpression()->GetType(),
+                                builtin_names::AssociativeIdentifier,
                                 { argument },
                                 argument.GetExpression()->GetMetadata());
                         }
@@ -61,7 +63,10 @@ namespace djup
                 }
 
                 if (some_substitution)
-                    return MakeExpression(i_candidate.GetExpression()->GetName(), new_arguments, i_candidate.GetExpression()->GetMetadata());
+                    return MakeExpression(
+                        i_candidate.GetExpression()->GetType(),
+                        i_candidate.GetExpression()->GetName(), 
+                        new_arguments, i_candidate.GetExpression()->GetMetadata());
                 else
                     return i_candidate;
                 });
@@ -119,15 +124,11 @@ namespace djup
             // process arguments
             for (size_t i = 0; i < i_patterns.size(); i++)
             {
-                // literals and identifiers are considered terminal nodes
-                if (!IsLiteral(i_patterns[i]) && !IsIdentifier(i_patterns[i]))
+                Span<const Tensor> arguments = i_patterns[i].GetExpression()->GetArguments();
+                if (!arguments.empty())
                 {
-                    Span<const Tensor> arguments = i_patterns[i].GetExpression()->GetArguments();
-                    if (!arguments.empty())
-                    {
-                        curr_edge = ProcessPattern(curr_edge->m_dest_node,
-                            arguments, BuildPatternInfo(i_patterns[i]));
-                    }
+                    curr_edge = ProcessPattern(curr_edge->m_dest_node,
+                        arguments, BuildPatternInfo(i_patterns[i]));
                 }
             }
 
@@ -200,16 +201,16 @@ namespace djup
                 DJUP_ASSERT(!IsEmpty(i_first_patterns[i]));
                 DJUP_ASSERT(!IsEmpty(i_second_patterns[i]));
 
-                if (IsLiteral(i_first_patterns[i]) || IsIdentifier(i_first_patterns[i]))
+                //if (IsLiteral(i_first_patterns[i]) || IsIdentifier(i_first_patterns[i]))
                 {
                     if (!AlwaysEqual(i_first_patterns[i], i_second_patterns[i]))
                         return false;
                 }
-                else
+                /*else
                 {
                     if (i_first_patterns[i].GetExpression()->GetName() != i_second_patterns[i].GetExpression()->GetName())
                         return false;
-                }
+                }*/
             }
             
             return true;

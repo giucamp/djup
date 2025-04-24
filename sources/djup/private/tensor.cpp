@@ -86,19 +86,7 @@ namespace djup
 
     std::shared_ptr<const Expression> Tensor::StealExpression()
     {
-        if(m_expression)
-            return std::move(m_expression);
-        else
-            Error("Trying to steal the expression from an empty tensor");
-    }
-
-    const Name & GetIdentifierName(const Tensor & i_identifier)
-    {
-        if(i_identifier.GetExpression()->GetName() != builtin_names::Identifier)
-            Error("GetIdentifierName - not a identifier");
-
-        const Tensor & name_arg = i_identifier.GetExpression()->GetArguments().at(1);
-        return name_arg.GetExpression()->GetName();
+        return std::move(m_expression);
     }
 
     Tensor operator + (const Tensor & i_operand)
@@ -198,37 +186,37 @@ namespace djup
 
     Tensor Add(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Add, i_arguments);
+        return MakeExpression({}, builtin_names::Add, i_arguments, {});
     }
 
     Tensor Mul(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Mul, i_arguments);
+        return MakeExpression({}, builtin_names::Mul, i_arguments, {});
     }
 
     Tensor Pow(Tensor const & i_base, Tensor const & i_exp)
     {
-        return MakeExpression(builtin_names::Pow, {i_base, i_exp});
+        return MakeExpression({}, builtin_names::Pow, { i_base, i_exp }, {});
     }
 
     Tensor And(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::And, i_arguments);
+        return MakeExpression({}, builtin_names::And, i_arguments, {});
     }
 
     Tensor Or(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Or, i_arguments);
+        return MakeExpression({}, builtin_names::Or, i_arguments, {});
     }
 
     Tensor Not(const Tensor & i_argument)
     {
-        return MakeExpression(builtin_names::Not, {i_argument});
+        return MakeExpression({}, builtin_names::Not, { i_argument }, {});
     }
 
     Tensor Equal(const Tensor & i_first, const Tensor & i_second)
     {
-        return MakeExpression(builtin_names::Equal, {i_first, i_second});
+        return MakeExpression({}, builtin_names::Equal, { i_first, i_second }, {});
     }
 
     Tensor NotEqual(const Tensor& i_first, const Tensor& i_second)
@@ -238,27 +226,22 @@ namespace djup
 
     Tensor Less(const Tensor & i_first, const Tensor & i_second)
     {
-        return MakeExpression(builtin_names::Less, {i_first, i_second});
+        return MakeExpression({}, builtin_names::Less, { i_first, i_second }, {});
     }
 
     Tensor Stack(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Stack, i_arguments);
+        return MakeExpression({}, builtin_names::Stack, i_arguments, {});
     }
 
     Tensor Tuple(Span<Tensor const> i_arguments)
     {
-        return MakeExpression(builtin_names::Tuple, i_arguments);
+        return MakeExpression({}, builtin_names::Tuple, i_arguments, {});
     }
 
     Tensor If(Span<Tensor const> i_operands)
     {
-        return MakeExpression(builtin_names::If, i_operands);
-    }
-
-    Tensor MakeNamespace(Span<Tensor const> i_arguments)
-    {
-        return MakeExpression(builtin_names::Namespace, i_arguments);
+        return MakeExpression({}, builtin_names::If, i_operands, {});
     }
 
     bool AlwaysEqual(const Tensor & i_first, const Tensor & i_second)
@@ -268,37 +251,32 @@ namespace djup
 
     bool IsConstant(const Tensor & i_tensor)
     {
-        return i_tensor.GetExpression()->IsConstant();
-    }
-
-    bool IsIdentifier(const Tensor & i_tensor)
-    {
-        return NameIs(i_tensor, builtin_names::Identifier);
+        return i_tensor.GetExpression()->GetMetadata().m_is_constant;
     }
 
     bool IsLiteral(const Tensor& i_tensor)
     {
-        return NameIs(i_tensor, builtin_names::Literal);
+        return i_tensor.GetExpression()->GetMetadata().m_is_literal;
     }
 
-    bool IsTensorType(const Tensor & i_tensor)
+    bool IsIdentifier(const Tensor& i_tensor)
     {
-        return NameIs(i_tensor, builtin_names::TensorType);
+        return i_tensor.GetExpression()->GetMetadata().m_is_identifier;
     }
 
     Tensor RepetitionsZeroToMany(Span<Tensor const> i_tensors)
     {
-        return MakeExpression(builtin_names::RepetitionsZeroToMany, i_tensors);
+        return MakeExpression({}, builtin_names::RepetitionsZeroToMany, i_tensors, {});
     }
 
     Tensor RepetitionsOneToMany(Span<Tensor const> i_tensors)
     {
-        return MakeExpression(builtin_names::RepetitionsOneToMany, i_tensors);
+        return MakeExpression({}, builtin_names::RepetitionsOneToMany, i_tensors, {});
     }
 
     Tensor RepetitionsZeroToOne(Span<Tensor const> i_tensors)
     {
-        return MakeExpression(builtin_names::RepetitionsZeroToOne, i_tensors);
+        return MakeExpression({}, builtin_names::RepetitionsZeroToOne, i_tensors, {});
     }
 
     std::string ToSimplifiedString(const Tensor & i_source, FormatFlags i_format_flags, size_t i_depth)

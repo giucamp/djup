@@ -39,7 +39,8 @@ namespace djup
 
             ~SubstitutionGraph();
 
-            void FindMatches(const Tensor& i_target, std::function<void()> i_step_callback = {});
+            void FindMatches(const Namespace& i_namespace, 
+                const Tensor& i_target, std::function<void()> i_step_callback = {});
             
             struct Substitution
             {
@@ -62,6 +63,7 @@ namespace djup
 
             struct DescendContext
             {
+                const Namespace & m_namespace;
                 std::function<void()> m_step_callback;
             };
 
@@ -113,7 +115,7 @@ namespace djup
 
             void ExpandDiscriminationmNode(const DiscrNodeToExpand& i_node_to_expand);
 
-            void ProcessCandidateEdge(CandHandle i_candudate_edge_handle);
+            void ProcessCandidateEdge(DescendContext& i_context, CandHandle i_candudate_edge_handle);
 
             void ProcessSolutions();
 

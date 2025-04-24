@@ -65,6 +65,18 @@ namespace core
             }
         }
 
+        ImmutableVector(std::initializer_list<char> i_initializer)
+        {
+            Allocate(i_initializer.size());
+
+            ELEMENT* dest = m_elements;
+            for (const char * curr = i_initializer.begin();
+                curr != i_initializer.end(); ++curr, ++dest)
+            {
+                new (dest) ELEMENT(*curr);
+            }
+        }
+
         ImmutableVector& operator = (ImmutableVector i_source) noexcept
         {
             swap(*this, i_source);

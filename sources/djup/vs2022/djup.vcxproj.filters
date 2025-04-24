@@ -42,9 +42,6 @@
     <ClInclude Include="..\private\constant_shape.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\tensor_map.h">
-      <Filter>private</Filter>
-    </ClInclude>
     <ClInclude Include="..\private\old_pattern_match.h">
       <Filter>private</Filter>
     </ClInclude>
@@ -76,6 +73,9 @@
       <Filter>tests</Filter>
     </ClInclude>
     <ClInclude Include="..\private\make_expr.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\tensor_type.h">
       <Filter>private</Filter>
     </ClInclude>
   </ItemGroup>
@@ -166,6 +166,12 @@
     </ClCompile>
     <ClCompile Include="..\private\make_expr.cpp">
       <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\tensor_type.cpp">
+      <Filter>private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_tensor_type.cpp">
+      <Filter>tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

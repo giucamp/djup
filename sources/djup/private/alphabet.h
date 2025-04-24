@@ -45,7 +45,7 @@ namespace djup
         If, Then, Elif, Else,
 
         // misc
-        Comma, Of, Is,
+        Comma, Of, Is, Return, Type,
 
         // dynamic symbols
         Name, NumericLiteral, BoolLiteral,
@@ -148,6 +148,8 @@ namespace djup
         { ",",          SymbolId::Comma                                                 },
         { "of ",        SymbolId::Of                                                    },
         { "is",         SymbolId::Is,                BinaryApplier{},               400 },
+        { "return",     SymbolId::Return,            {},                            50  },
+        { "type",       SymbolId::Type,              {},                            50  },
     };
 
     #ifdef __GNUC__
