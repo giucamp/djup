@@ -178,13 +178,4 @@ namespace djup
     {
         return m_substitution_axioms_patterns.ToGraphWiz("Substitutions").ToDotLanguage();
     }
-
-    namespace
-    {
-        std::shared_ptr<Namespace> MakeDefaultNamespace()
-        {
-            std::shared_ptr<Namespace> default_namespace = std::make_shared<Namespace>("Default", GetStandardNamespace());
-            return default_namespace;
-        }
-    }
 }
