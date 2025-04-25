@@ -93,9 +93,6 @@ namespace djup
             pattern_info.m_labels_info[0].m_cardinality = { 1, 1 };
             pattern_info.m_labels_info[0].m_remaining = { 0, 0 };
             pattern_info.m_flags = {};
-            #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
-                #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
-            #endif
             #if DJUP_DEBUG_PATTERN_INFO
                 pattern_info.m_dbg_pattern = i_pattern;
             #endif
@@ -108,9 +105,6 @@ namespace djup
             DJUP_ASSERT(m_leaf_pattern_id.back() == -1);
             m_leaf_pattern_id.back() = i_pattern_id;
 
-            #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
-                #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
-            #endif
             #if DJUP_DEBUG_DISCRIMINATION_TREE
                 m_dbg_full_patterns[i_pattern_id] = ToSimplifiedString(i_pattern);
             #endif
@@ -224,17 +218,6 @@ namespace djup
 
         GraphWizGraph DiscriminationTree::ToGraphWiz(std::string_view i_graph_name) const
         {
-            /*DJUP_DEBUG_DISCRTREE_PRINTLN("---------------------------");
-            for (const auto& edge : m_edges)
-            {
-                std::string dest = std::to_string(edge.second.m_dest_node);
-                if (IsLeafNode(edge.first))
-                    dest += "(Leaf)";
-                DJUP_DEBUG_DISCRTREE_PRINTLN(edge.first, "->", dest, ": ", 
-                    TensorSpanToString(Span(edge.second.m_labels), 1));
-            }
-            DJUP_DEBUG_DISCRTREE_PRINTLN("---------------------------");*/
-
             GraphWizGraph graph(i_graph_name);
 
             for (int32_t i = 0; i < m_node_count; i++)
@@ -248,9 +231,6 @@ namespace djup
                 else if (IsLeafNode(i))
                 {
                     std::string text = ToString("Pattern ", m_leaf_pattern_id[i], " - node ",  i);
-                    #if !defined(DJUP_DEBUG_DISCRIMINATION_TREE)
-                        #error DJUP_DEBUG_DISCRIMINATION_TREE must be defined
-                    #endif
                     #if DJUP_DEBUG_DISCRIMINATION_TREE
                         const auto full_pattern_it = m_dbg_full_patterns.find(m_leaf_pattern_id[i]);
                         DJUP_ASSERT(full_pattern_it != m_dbg_full_patterns.end());

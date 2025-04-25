@@ -396,6 +396,8 @@ namespace djup
                 Error("expected end of source, ",
                     GetSymbolChars(lexer.GetCurrentToken().m_symbol_id), " found");
 
+            new_namespace->SetDescribingExpression(describing_expression);
+
             return new_namespace;
         }
         catch (const std::exception& i_exc)

@@ -285,10 +285,12 @@ namespace core
     template <> struct CharWriter<long double>
         { void operator() (CharBufferView & i_dest, long double i_source) noexcept; };
 
-    // CharWriter for containers
+    // CharWriter for containers - containers of chars are excluded
     template <typename CONTAINER> struct CharWriter<CONTAINER, VoidT<
         ContainerElementTypeT<CONTAINER>,
-        std::enable_if_t<!std::is_constructible_v<std::string_view, CONTAINER> >
+        std::enable_if_t<
+            !std::is_same_v<ContainerElementTypeT<CONTAINER>, char> &&
+            !std::is_constructible_v<std::string_view, CONTAINER> >
         >>
     {
         constexpr void operator() (CharBufferView & i_dest, const CONTAINER & i_source) noexcept

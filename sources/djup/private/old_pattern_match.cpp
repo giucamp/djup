@@ -92,7 +92,7 @@ namespace djup
 
         struct Substitution
         {
-            Name m_variable_name;
+            Name m_identifier_name;
             Tensor m_value;
         };
 
@@ -259,7 +259,7 @@ namespace djup
                     std::string label;
                     for(const auto & substitution : edge.second.m_substitutions)
                     {
-                        label += ToString(substitution.m_variable_name, " = ", ToSimplifiedString(substitution.m_value), escaped_newline);
+                        label += ToString(substitution.m_identifier_name, " = ", ToSimplifiedString(substitution.m_value), escaped_newline);
                     }
                     i_dest << 'v' << edge.second.m_source_index << " -> v" << edge.first
                         << "[label=\"" << label << "\"" << labels << "]"  << ';';
@@ -866,7 +866,7 @@ namespace djup
 
                     for(const Substitution & substitution : edge_it->second.m_substitutions)
                     {
-                        if(!AddSubstitution(solution, substitution.m_variable_name, substitution.m_value))
+                        if(!AddSubstitution(solution, substitution.m_identifier_name, substitution.m_value))
                         {
                             incompatible = true;
                             break;
@@ -877,7 +877,7 @@ namespace djup
                 {
                     for(const Substitution & substitution : edge_it->second.m_substitutions)
                     {
-                        VariadicAddValue(solution.m_variadic_substitutions[substitution.m_variable_name], solution.m_depth, substitution.m_value);
+                        VariadicAddValue(solution.m_variadic_substitutions[substitution.m_identifier_name], solution.m_depth, substitution.m_value);
                     }
 
                     if(edge_it->second.m_open)

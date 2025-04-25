@@ -36,9 +36,6 @@ namespace djup
             CORE_EXPECTS_EQ(info_1.m_labels_info[1].m_remaining, (Range{ 0, infinity }));
             CORE_EXPECTS_EQ(info_1.m_labels_info[2].m_remaining, (Range{ 0, 0 }));
 
-            #if !defined(DJUP_DEBUG_PATTERN_INFO)
-            #error DJUP_DEBUG_PATTERN_INFO must be defined
-            #endif
             #if DJUP_DEBUG_PATTERN_INFO           
             
                 CORE_EXPECTS_EQ(info_1.m_dbg_str_pattern, "g(1, 2, x...)");

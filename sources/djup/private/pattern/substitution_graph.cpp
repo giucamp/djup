@@ -9,6 +9,7 @@
 #include <private/pattern/discrimination_tree.h>
 #include <private/pattern/pattern_info.h>
 #include <private/namespace.h>
+#include <private/substitute_by_predicate.h>
 #include <private/builtin_names.h>
 #include <algorithm>
 
@@ -385,7 +386,7 @@ namespace djup
             {                
                 for (size_t j = 0; j < i; ++j)
                 {
-                    if (i != j && i_dest_substitutions[i].m_variable_name == i_dest_substitutions[j].m_variable_name)
+                    if (i != j && i_dest_substitutions[i].m_identifier_name == i_dest_substitutions[j].m_identifier_name)
                     {
                         if (!AlwaysEqual(i_dest_substitutions[i].m_value, i_dest_substitutions[j].m_value))
                         {
@@ -402,6 +403,27 @@ namespace djup
         uint32_t SubstitutionGraph::NewVirtualNode()
         {
             return m_solution_node_count++;
+        }
+
+        Tensor ApplySubstitutions(const Tensor& i_where,
+            Span<const SubstitutionGraph::Substitution> i_substitutions)
+        {
+            return SubstituteByPredicate(i_where, [i_substitutions](const Tensor i_tensor) {
+                for (const SubstitutionGraph::Substitution& subst : i_substitutions)
+                {
+                    /*if (!i_tensor.GetExpression()->GetType().IsSupercaseOf(
+                        subst.m_value.GetExpression()->GetType(), )
+                    {
+                        Error();
+                    } */
+
+                    if (i_tensor.GetExpression()->GetName() == subst.m_identifier_name)
+                    {
+                        return subst.m_value;
+                    }
+                }
+                return i_tensor;
+            });
         }
 
     } // namespace pattern

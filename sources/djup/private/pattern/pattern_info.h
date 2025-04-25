@@ -90,9 +90,6 @@ namespace djup
             immutable class */
         struct PatternInfo
         {
-            #if !defined(DJUP_DEBUG_PATTERN_INFO)
-                #error DJUP_DEBUG_PATTERN_INFO must be defined
-            #endif
             #if DJUP_DEBUG_PATTERN_INFO
                 std::string m_dbg_str_pattern;
                 std::string m_dbg_labels;
@@ -140,9 +137,6 @@ namespace core
         }
     };
 
-    #if !defined(DJUP_DEBUG_PATTERN_INFO)
-        #error DJUP_DEBUG_PATTERN_INFO must be defined
-    #endif
     #if DJUP_DEBUG_PATTERN_INFO
     template <> struct CharWriter<djup::pattern::PatternInfo>
     {

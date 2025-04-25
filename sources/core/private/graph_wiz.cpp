@@ -236,7 +236,7 @@ namespace core
         // write file content
         std::ofstream dot_file(dot_file_path);
         if (dot_file.fail())
-            Error("Could not write file ", dot_file_path);
+            Error("Could not write file ", dot_file_path.string());
         dot_file << dot;
         dot_file.close();
 
@@ -244,7 +244,7 @@ namespace core
         if (cmd.find(' ') != std::string::npos)
             cmd = "\"" + s_dot_exe.string() + "\"";
         
-        cmd += " -T png -O ";
+        cmd += " -Tsvg -O ";
         
         std::string dot_file_path_str = dot_file_path.string();
         cmd += dot_file_path_str;

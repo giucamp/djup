@@ -62,9 +62,10 @@ namespace djup
 
     /** Tries to apply a substitution to an expression and all subexpressions.
         The predicate must take a single tensor argument and must return tensor.
-        For every subexpression the predicate is invoked. The predicate can return the
-        its argument to signal that the substituion was not done, or it can return a 
-        tensor bound to a different expression (in this case a substitution was performed). */
+        For every subexpression the predicate is invoked. The predicate can return
+        the its input tensor to signal that the substitution was not done, or it
+        can return a tensor bound to a different expression (in this case a 
+        substitution was performed). */
     template <typename PREDICATE>
         [[nodiscard]] Tensor SubstituteByPredicate(
             const Tensor & i_where,

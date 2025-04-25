@@ -22,14 +22,14 @@ namespace djup
             The substitution graph uses the same node indices as the discrimination tree,
             but it may have more nodes (virtual nodes), added to handle variadic arguments.
             The substitution graph can be walked backward with the respect of the discrimination
-            graph (from the pattern nodes, that is the leaves), upward. SO the concept of
-            source and destination node in the edge of the substitution tree is swapped.
-            First discrimination nodes are added to a queue of nodes to be expanded. The
-            algorithm is booted by adding the root of the discrimination tree.
-            While expanding a discrimination node a candidate solution edge is created
-            for every outgoing edge. During the main loop candidate edges are processed
-            to check if they match the associated part of the target. If they match a 
-            solution edge is added. In any case after processing the candidate edge is deleted. */
+            graph (from the pattern nodes, that is the leaves), upward. So the concept of
+            source and destination node in the edge of the substitution tree is reversed.
+            When searching for matches, first discrimination nodes are added to a queue of nodes
+            to be expanded. The algorithm is booted by adding the root of the discrimination tree.
+            While expanding a discrimination node a candidate solution edge is created for every 
+            outgoing edge. During the main loop candidate edges are processed to check if they 
+            match the associated part of the target. If they match a solution edge is added. 
+            In any case after processing the candidate edge is deleted. */
         class SubstitutionGraph
         {
 
@@ -44,7 +44,7 @@ namespace djup
             
             struct Substitution
             {
-                Name m_variable_name;
+                Name m_identifier_name;
                 Tensor m_value;
             };
 
@@ -143,6 +143,9 @@ namespace djup
             std::unordered_map<uint32_t, SolutionEdge> m_solution_graph;
             std::vector<Solution> m_solutions;
         };
+
+        Tensor ApplySubstitutions(const Tensor & i_where,
+            Span<const SubstitutionGraph::Substitution> i_substitutions);
     
     } // namespace pattern
 
