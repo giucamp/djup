@@ -339,7 +339,7 @@ namespace core
     public:
 
         using iterator_category = std::forward_iterator_tag;
-        //using difference_type = std::make_signed_t<UINT>;
+        using difference_type = std::make_signed_t<UINT>;
         using value_type = ELEMENT;
         using pointer = ELEMENT*;
         using reference = ELEMENT&;
@@ -428,7 +428,7 @@ namespace core
     public:
 
         using iterator_category = std::forward_iterator_tag;
-        //using difference_type = std::make_signed_t<UINT>;
+        using difference_type = std::make_signed_t<UINT>;
         using value_type = const ELEMENT;
         using pointer = const ELEMENT*;
         using reference = const ELEMENT&;

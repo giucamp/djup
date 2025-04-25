@@ -195,16 +195,16 @@ namespace djup
                 DJUP_ASSERT(!IsEmpty(i_first_patterns[i]));
                 DJUP_ASSERT(!IsEmpty(i_second_patterns[i]));
 
-                //if (IsLiteral(i_first_patterns[i]) || IsIdentifier(i_first_patterns[i]))
+                if (IsLiteral(i_first_patterns[i]) || IsIdentifier(i_first_patterns[i]))
                 {
                     if (!AlwaysEqual(i_first_patterns[i], i_second_patterns[i]))
                         return false;
                 }
-                /*else
+                else
                 {
                     if (i_first_patterns[i].GetExpression()->GetName() != i_second_patterns[i].GetExpression()->GetName())
                         return false;
-                }*/
+                }
             }
             
             return true;
@@ -220,6 +220,7 @@ namespace djup
         {
             GraphWizGraph graph(i_graph_name);
 
+            // nodes
             for (int32_t i = 0; i < m_node_count; i++)
             {
                 if (i == s_root_node_index)
@@ -253,11 +254,11 @@ namespace djup
             for (const auto & edge : m_edges)
             {
                 std::string text = TensorSpanToString(edge.second.m_labels, FormatFlags::Tidy, 1);
-                {
-                    std::string non_tidy_text = TensorSpanToString(edge.second.m_labels, {}, 1);
-                    if(non_tidy_text != text)
-                        text += "\n" + non_tidy_text;
-                }
+
+                std::string non_tidy_text = TensorSpanToString(edge.second.m_labels, {}, 1);
+                if(non_tidy_text != text)
+                    text += "\n" + non_tidy_text;
+
                 if (!edge.second.m_pattern_info.m_labels_range.HasSingleValue())
                 {
                     text += "\n{" + edge.second.m_pattern_info.m_labels_range.ToString() + "}";

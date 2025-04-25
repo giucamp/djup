@@ -14,10 +14,74 @@ namespace djup
 {
     namespace pattern
     {
+        namespace
+        {
+            static std::string TensorListToString(Span<const Tensor> i_tensors)
+            {
+                std::string result;
+                for (size_t i = 0; i < i_tensors.size(); i++)
+                {
+                    if (i)
+                        result += ", ";
+                    result += ToSimplifiedString(i_tensors[i]);
+                }
+                return result;
+            }
+        }
 
         GraphWizGraph SubstitutionGraph::ToDotGraphWiz(std::string_view i_graph_name) const
         {
-            GraphWizGraph graph;
+            GraphWizGraph graph(i_graph_name);
+
+            for (uint32_t node_index = 0; node_index < m_solution_node_count; node_index++)
+            {
+                graph.AddNode(ToString(node_index));
+
+                bool is_node_to_expand = AnyOf(m_discr_nodes_to_expand, 
+                    [node_index](auto& node_to_exand) 
+                    { return node_to_exand.m_node == node_index; });
+                if (is_node_to_expand)
+                    graph.SetFillColor(255, 255, 100);
+                else
+                    graph.SetFillColor(255, 255, 255);
+            }
+
+            // discrimination edges
+            for (const auto& pair : m_discrimination_tree.GetEdgeMap())
+            {
+                const uint32_t source_node = pair.first;
+                const DiscriminationTree::Edge & edge = pair.second;
+
+                std::string text = TensorSpanToString(edge.m_labels, FormatFlags::Tidy, 1);
+               
+                std::string non_tidy_text = TensorSpanToString(edge.m_labels, {}, 1);
+                if (non_tidy_text != text)
+                    text += "\n" + non_tidy_text;
+                
+                if (!edge.m_pattern_info.m_labels_range.HasSingleValue())
+                {
+                    text += "\n{" + edge.m_pattern_info.m_labels_range.ToString() + "}";
+                }
+
+                graph.AddEdge(source_node, edge.m_dest_node, text);
+            }
+
+            // solution edges
+            for (const auto & pair : m_solution_graph)
+            {
+                const uint32_t source_node = pair.first;
+                const SolutionEdge & edge = pair.second;
+
+                graph.AddEdge(source_node, edge.m_dest);
+            }
+
+            // candidates
+            for (const auto& candidate : m_candidate_edges)
+            {
+                graph.SetEdgeStyle(GraphWizGraph::EdgeStyle::Dotted);
+                std::string text = TensorListToString(candidate.m_targets);
+                graph.AddEdge(candidate.m_source_node, candidate.m_dest_node, text);
+            }
 
             /*using Handle = Pool<CandidateEdge>::Handle;
             

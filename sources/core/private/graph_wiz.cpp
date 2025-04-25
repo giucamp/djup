@@ -244,7 +244,7 @@ namespace core
         if (cmd.find(' ') != std::string::npos)
             cmd = "\"" + s_dot_exe.string() + "\"";
         
-        cmd += " -Tsvg -O ";
+        cmd += " -Tpng -O ";
         
         std::string dot_file_path_str = dot_file_path.string();
         cmd += dot_file_path_str;

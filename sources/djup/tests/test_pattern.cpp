@@ -37,10 +37,16 @@ namespace djup
 
             CORE_EXPECTS_EQ(ToSimplifiedString("4"_t), "4");
 
+#if 1
             // pattern 1
             {
                 pattern::DiscriminationTree discrimination_net;
                 discrimination_net.AddPattern(2, "g(1 2 3 any a any b any c)");
+                static bool save_it = true;
+                if (save_it)
+                {
+                    discrimination_net.ToGraphWiz("discrimination").SaveAsImage(artifact_path / "discr");
+                }
 
                 pattern::SubstitutionGraph substs_graph(discrimination_net);
                 substs_graph.FindMatches(*GetStandardNamespace(), "g(1 2 3 4 5 6)"_t);
@@ -84,8 +90,6 @@ namespace djup
 
                 Tensor after_sub = pattern::ApplySubstitutions(pattern, solution.m_substitutions);
 
-                auto s = ToSimplifiedString(after_sub);
-
                 CORE_EXPECTS(AlwaysEqual(after_sub, target));
 
                 CORE_EXPECTS(solution.m_substitutions.size() == 3);
@@ -104,11 +108,7 @@ namespace djup
                 discrimination_net.AddPattern(6, "f(1, 2, real x..., 6, 7, 8, real y..., 12, 13, 14, 15)");
                 //discrimination_net.AddPattern(100, "g( w(x(y))? )");
                 //discrimination_net.AddPattern(101, "g( w(x(y))... )");
-                #ifdef _WIN32
-                    static bool save_it = true;
-                #else
-                    static bool save_it = false;
-                #endif
+                static bool save_it = false;
                 if (save_it)
                 {
                     discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr");
@@ -127,6 +127,67 @@ namespace djup
                 };
 
                 substitution_graph.FindMatches(*GetStandardNamespace(), target.c_str(), callback);
+            }
+
+            // tree 2
+            {
+                pattern::DiscriminationTree discrimination_net;
+                discrimination_net.AddPattern(2, "g(1 2 3 any a any b any c)");
+                static bool save_it = false;
+                if (save_it)
+                {
+                    discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr");
+                }
+
+                // substitutions
+                pattern::SubstitutionGraph substitution_graph(discrimination_net);
+                int step = 0;
+                std::string target = "g(1 2 3 4 5 6)";
+
+                auto callback = [&] {
+                    std::string name = step == 0 ? "Initial" : ToString("Step_", step);
+                    substitution_graph.ToDotGraphWiz(name).SaveAsImage(
+                        artifact_path / name);
+                    step++;
+                };
+            }
+
+#endif
+
+            // tree 3
+            if(false)
+            {
+                Tensor pattern = "f(1 2 real x... 7 8 9)";
+                Tensor pattern2 = "f(1 2 g(real y)... 7 8 9)";
+                Tensor target = "f(1 2 3 4 5 6 7 8 9)";
+
+                pattern::DiscriminationTree discrimination_net;
+                discrimination_net.AddPattern(1, pattern);
+                discrimination_net.AddPattern(2, pattern2);
+                static bool save_it = true;
+                if (save_it)
+                {
+                    discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr");
+                }
+
+                // substitutions
+                pattern::SubstitutionGraph substitution_graph(discrimination_net);
+                int step = 0;                
+
+                auto callback = [&] {
+                    std::string name = step == 0 ? "Initial" : ToString("Step_", step);
+                    substitution_graph.ToDotGraphWiz(name).SaveAsImage(artifact_path / name);
+                    step++;
+                };
+
+                substitution_graph.FindMatches(*GetStandardNamespace(), target, callback);
+
+                CORE_EXPECTS(substitution_graph.GetSolutions().size() == 1);
+                const auto& solution = substitution_graph.GetSolutions()[0];
+
+                Tensor after_sub = pattern::ApplySubstitutions(pattern, solution.m_substitutions);
+
+                CORE_EXPECTS(AlwaysEqual(after_sub, Tensor(target)));
             }
 
             PrintLn("successful");

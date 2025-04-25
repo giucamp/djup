@@ -68,6 +68,8 @@ namespace djup
                 return EdgeSetIterator(*this, i_from_node);
             }
 
+            const std::unordered_multimap<uint32_t, Edge>& GetEdgeMap() const { return m_edges; }
+
             int32_t GetNodeCount() const { return NumericCast<int32_t>(m_edges.size()); }
 
             bool IsGraphEmpty() const { return m_leaf_pattern_id.empty(); }

@@ -13,20 +13,25 @@
 namespace core
 {
     /** Grow-able fixed-size pool of objects. Object allocation and 
-        deallocation is very fast, as a free-list is stored inside non-allocated
-        slots. References to object can be stored by handles and converted to 
-        a direct pointer by the pool. The pool can be queried whether an
-        handler is dangling.
-        A version number is stored in both the handle and the object, so that
-        if the object is destroyed and the memory space is reused for another 
-        object, the pool can detect that the handle is no more valid.
+        deallocation is very fast (with constant time), as a free-list is 
+        stored inside non-allocated slots. Anyway with a random allocation/
+        deallocation sequence the storage of the pool becomes fragmented.
+        References to object can be stored by handles and converted to 
+        a direct pointer by the pool. Direct pointers and references to 
+        objects are invalidated by allocation and deletion, while handles and
+        iterators are not. The pool can be queried whether an handler is dangling,
+        that is its object has been deallocated, because a version number is 
+        stored in both the handle and the object, so that if the object is 
+        destroyed and the memory space is reused for another object, the pool 
+        can detect that the handle is no more valid.
         The UINT parameter is the type used for the version number. Since it
         is incremented when the object is destroyed and it can wrap to zero,
         there is an extremely low probability that an handle may refer to a
         more recent object, while the original object has been destroyed a 
-        long time ago. The default of UINT is size_t. It's not recommended to
-        use less than 32 bits for UINT.
-        UINT must be an unsigned integer type.
+        long time ago.
+        The template argument UINT is used for indices, sizes, and version 
+        number The default is size_t. It's not recommended to use less than 
+        32 bits. UINT must be an unsigned integer type.
 
     Item layout with 64-bit UINT:
     ----------------------------------------- - - - - --
@@ -43,7 +48,8 @@ namespace core
     public:
 
         static_assert(std::is_integral_v<UINT> && std::is_unsigned_v<UINT> &&
-            std::numeric_limits<UINT>::radix == 2, "UINT must be an unsigned base-2 integer");
+            std::numeric_limits<UINT>::radix == 2, 
+            "UINT must be an unsigned base-2 integer");
 
         using Element = ELEMENT;
         using UInt = UINT;
@@ -71,14 +77,18 @@ namespace core
         ~Pool();
 
         /** Creates a new object. The returned handle can be accessed with 
-            GetObject or TryGetObject. */
+            GetObject or TryGetObject. Any pointer/reference to an element is 
+            invalidated, and must be refreshed by GetObject/TryGetObject. 
+            Iterators are not invalidated. */
         template <typename... ARGS>
             Handle New(ARGS &&... i_args);
 
         /** Destroys an object. The handle become dangling, and calling 
             IsValid on it will return false. If the object has already 
             been deleted or the handle is null the behavior is 
-            undefined. */
+            undefined. Any pointer/reference to an element is 
+            invalidated, and must be refreshed by GetObject/TryGetObject. 
+            Iterators are not invalidated. */
         void Delete(Handle i_handle);
 
         /** Returns whether an object is still allocated in the pool,

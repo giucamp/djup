@@ -42,6 +42,9 @@ namespace djup
             // main loop
             for(;;)
             {
+                if (i_step_callback)
+                    i_step_callback();
+
                 /* candidates have priority over node to expand to keep the
                    number of candidate low and access less memory. */
                 if (!m_candidate_edges_queue.empty())
@@ -149,7 +152,8 @@ namespace djup
                         else
                         {
                             // function call
-                            if (label.GetExpression()->GetName() == target.GetExpression()->GetName())
+                            if (label.GetExpression()->GetName() == target.GetExpression()->GetName() &&
+                                !IsIdentifier(target))
                             {
                                 DiscrNodeToExpand node_to_process;
                                 node_to_process.m_targets = target.GetExpression()->GetArguments();
@@ -201,28 +205,51 @@ namespace djup
                         for (size_t used = usable.m_min; used <= usable.m_max;
                             used += sub_pattern_count, rep++)
                         {
-                            // repetition candidate
-                            /*CandHandle rep_cand_handle = m_candidate_edges.New();
-                            CandidateEdge & rep_candidate = m_candidate_edges.GetObject(rep_cand_handle);
-                            rep_candidate.m_targets = targets.subspan(target_index, used);
-                            rep_candidate.m_edge = &edge;
-                            rep_candidate.m_label_offset = label_index;
-                            rep_candidate.m_parent_candidate = parent_candidate_handle;
-                            rep_candidate.m_source_discr_node = source_discr_node;
-                            rep_candidate.m_repetitions = rep;
-                            m_pending_candidates.push_back(rep_cand_handle);
+                            // expand the discrimination node
+                            for (auto& edge_it : m_discrimination_tree.EdgesFrom(candidate->m_dest_node))
+                            {
+                                const DiscriminationTree::Edge& next_edge = edge_it.second;
 
-                            // continuation candidate
-                            CandHandle cont_cand_handle = m_candidate_edges.New();
-                            CandidateEdge & cont_candidate = m_candidate_edges.GetObject(cont_cand_handle);
-                            cont_candidate.m_targets = targets.subspan(target_index + used);
-                            cont_candidate.m_edge = &edge;
-                            cont_candidate.m_label_offset = label_index + used;
-                            cont_candidate.m_parent_candidate = rep_cand_handle;
-                            m_pending_candidates.push_back(cont_cand_handle);
+                                auto targets = candidate->m_targets;
+                                auto curr_edge = candidate->m_discr_edge;
+                                auto open = candidate->m_open;
+                                auto close = candidate->m_close;
+                                auto source_node = candidate->m_source_node;
+                                auto dest_node = candidate->m_dest_node;
 
-                            candidate = &m_candidate_edges.GetObject(i_candidate_handle);*/
+                                uint32_t middle_node = NewVirtualNode();
+
+                                // repetition candidate
+                                CandHandle rep_cand_handle = m_candidate_edges.New();
+                                CandidateEdge& rep_candidate = m_candidate_edges.GetObject(rep_cand_handle);
+                                rep_candidate.m_source_node = source_node;
+                                rep_candidate.m_dest_node = middle_node;
+                                rep_candidate.m_targets = targets.subspan(target_index, used);
+                                rep_candidate.m_pattern_offset = 0;
+                                rep_candidate.m_repetitions = rep;
+                                rep_candidate.m_open = open + 1;
+                                rep_candidate.m_close = close + 1;
+                                rep_candidate.m_discr_edge = &next_edge;
+                                m_candidate_edges_queue.push_back(rep_cand_handle);
+
+                                // continuation candidate
+                                CandHandle cont_cand_handle = m_candidate_edges.New();
+                                CandidateEdge& cont_candidate = m_candidate_edges.GetObject(cont_cand_handle);
+
+                                cont_candidate.m_source_node = middle_node;
+                                cont_candidate.m_dest_node = dest_node;
+                                cont_candidate.m_targets = targets.subspan(target_index + used);
+                                cont_candidate.m_pattern_offset = label_index + 1;
+                                cont_candidate.m_repetitions = 1;
+                                cont_candidate.m_open = open;
+                                cont_candidate.m_close = close;
+                                cont_candidate.m_discr_edge = curr_edge;
+                                m_candidate_edges_queue.push_back(cont_cand_handle);
+
+                                candidate = &m_candidate_edges.GetObject(i_candudate_edge_handle);
+                            }
                         }
+                        return;
                     }
 
                 } // for each label

@@ -497,17 +497,22 @@ namespace djup
                             LinearPath path(i_context, i_candidate);
 
                             // pre-pattern
-                            path.AddEdge(i_candidate.m_target_arguments.subspan(target_index, used),
-                                PatternSegment{ pattern_info.m_flags,
-                                    pattern.GetExpression()->GetArguments(),
-                                    pattern_info.m_labels_info},
-                                    true, rep );
+                            PatternSegment pre_segment;
+                            pre_segment.m_flags = pattern_info.m_flags;
+                            pre_segment.m_pattern = pattern.GetExpression()->GetArguments();
+                            pre_segment.m_labels = pattern_info.m_labels_info;
+                            path.AddEdge(
+                                i_candidate.m_target_arguments.subspan(target_index, used),
+                                pre_segment, true, rep );
 
                             // post-pattern
-                            path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + used),
-                                PatternSegment{ pattern_info.m_flags,
-                                i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                                i_candidate.m_pattern.m_labels.subspan(pattern_index + 1) } );
+                            PatternSegment post_segment;
+                            post_segment.m_flags = pattern_info.m_flags;
+                            post_segment.m_pattern = i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1);
+                            post_segment.m_labels = i_candidate.m_pattern.m_labels.subspan(pattern_index + 1);
+                            path.AddEdge(
+                                i_candidate.m_target_arguments.subspan(target_index + used),
+                                post_segment );
                         }
                         return false;
                     }
