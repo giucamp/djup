@@ -225,9 +225,9 @@ namespace djup
             {
                 if (i == s_root_node_index)
                 {
-                    graph.SetNodeShape(core::GraphWizGraph::Box);
-                    graph.SetFillColor(235, 200, 255);
-                    graph.AddNode("Root");
+                    graph.AddNode("Root")
+                        .SetShape(GraphWizGraph::NodeShape::Box)
+                        .SetFillColor({ 235, 200, 255 });
                 }
                 else if (IsLeafNode(i))
                 {
@@ -238,15 +238,15 @@ namespace djup
                         text += "\n" + full_pattern_it->second;
                     #endif
 
-                    graph.SetNodeShape(core::GraphWizGraph::Box);
-                    graph.SetFillColor(235, 200, 255);
-                    graph.AddNode(text);
+                    graph.AddNode(text)
+                        .SetFillColor({ 235, 200, 255 })
+                        .SetShape(GraphWizGraph::NodeShape::Box);
                 }
                 else
                 {
-                    graph.SetNodeShape(core::GraphWizGraph::Ellipse);
-                    graph.SetFillColor(200, 230, 255);
-                    graph.AddNode(ToString(i));
+                    graph.AddNode(ToString(i))
+                        .SetShape(GraphWizGraph::NodeShape::Ellipse)
+                        .SetFillColor({ 200, 230, 255 } );
                 }
             }
 

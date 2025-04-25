@@ -23,15 +23,15 @@ namespace djup
             // SaveGraph(test_dir + "\\expr.txt", "expr", dot);
             std::string expected = R"(digraph unnamed_graph
 {
-	v0[shape = ellipse label = "Add" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
-	v1[shape = ellipse label = "3" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
-	v2[shape = ellipse label = "Mul" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
-	v3[shape = ellipse label = "2" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
-	v4[shape = ellipse label = "5" color = "#000000" fontcolor = "#000000" style = "filled" fillcolor = "#FFFFFF"]
-	v0 -> v1[label = "" style = "solid"]
-	v2 -> v3[label = "" style = "solid"]
-	v2 -> v4[label = "" style = "solid"]
-	v0 -> v2[label = "" style = "solid"]
+	v0[shape = ellipse label = "Add" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
+	v1[shape = ellipse label = "3" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
+	v2[shape = ellipse label = "Mul" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
+	v3[shape = ellipse label = "2" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
+	v4[shape = ellipse label = "5" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
+	v0 -> v1[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
+	v2 -> v3[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
+	v2 -> v4[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
+	v0 -> v2[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
 }
 )";
             CORE_EXPECTS_EQ(dot, expected);

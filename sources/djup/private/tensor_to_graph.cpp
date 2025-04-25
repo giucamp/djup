@@ -21,17 +21,18 @@ namespace djup
             int32_t m_node_count{};
         };
 
-        int32_t TensorToGraph(ExpressionToGraphContext & i_context,
+        size_t TensorToGraph(ExpressionToGraphContext & i_context,
             const Expression& i_source, FormatFlags i_format_flags, size_t i_depth)
         {
             (void)i_format_flags;
 
-            uint32_t vertex_index;
+            size_t vertex_index;
             
             if (i_source.GetMetadata().m_is_literal)
             {
                 const std::string literal = i_source.GetName().AsString();
-                vertex_index = i_context.m_graph.AddNode(std::move(literal));
+                vertex_index = i_context.m_graph.GetNodeCount();
+                i_context.m_graph.AddNode(std::move(literal));
             }
             else
             {
@@ -39,13 +40,14 @@ namespace djup
                 if (!i_source.GetType().IsEmpty())
                     name = ToString(i_source.GetType()) + " " + name;
 
-                vertex_index = i_context.m_graph.AddNode(std::move(name));
+                vertex_index = i_context.m_graph.GetNodeCount();
+                i_context.m_graph.AddNode(std::move(name));
 
                 if (i_depth > 0)
                 {
                     for (const Tensor& argument : i_source.GetArguments())
                     {
-                        uint32_t arg_vertex = TensorToGraph(
+                        size_t arg_vertex = TensorToGraph(
                             i_context, *argument.GetExpression(),
                             i_format_flags, i_depth - 1);
                         i_context.m_graph.AddEdge(vertex_index, arg_vertex);

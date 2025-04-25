@@ -35,15 +35,15 @@ namespace djup
 
             for (uint32_t node_index = 0; node_index < m_solution_node_count; node_index++)
             {
-                graph.AddNode(ToString(node_index));
+                auto & node = graph.AddNode(ToString(node_index));
 
                 bool is_node_to_expand = AnyOf(m_discr_nodes_to_expand, 
                     [node_index](auto& node_to_exand) 
                     { return node_to_exand.m_node == node_index; });
                 if (is_node_to_expand)
-                    graph.SetFillColor(255, 255, 100);
+                    node.SetFillColor({ 255, 255, 100 });
                 else
-                    graph.SetFillColor(255, 255, 255);
+                    node.SetFillColor({ 255, 255, 255 });
             }
 
             // discrimination edges
@@ -78,9 +78,9 @@ namespace djup
             // candidates
             for (const auto& candidate : m_candidate_edges)
             {
-                graph.SetEdgeStyle(GraphWizGraph::EdgeStyle::Dotted);
                 std::string text = TensorListToString(candidate.m_targets);
-                graph.AddEdge(candidate.m_source_node, candidate.m_dest_node, text);
+                graph.AddEdge(candidate.m_source_node, candidate.m_dest_node, text)
+                    .SetStyle(GraphWizGraph::EdgeStyle::Dotted);
             }
 
             /*using Handle = Pool<CandidateEdge>::Handle;

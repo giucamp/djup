@@ -48,38 +48,24 @@ namespace core
         }
     }
 
-    std::string RgbaToHex(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha)
+    std::string RgbaToHex(GraphWizGraph::Color i_color)
     {
         char digits[] = "0123456789ABCDEF";
 
         std::string chars;
         chars.resize(9);
         chars[0] = '#';
-        chars[1] = digits[(i_red >> 4) & 15];
-        chars[2] = digits[i_red & 15];
-        chars[3] = digits[(i_green >> 4) & 15];
-        chars[4] = digits[i_green & 15];
-        chars[5] = digits[(i_blue >> 4) & 15];
-        chars[6] = digits[i_blue & 15];
-        chars[7] = digits[(i_alpha >> 4) & 15];
-        chars[8] = digits[i_alpha & 15];
+        chars[1] = digits[(i_color.m_red >> 4) & 15];
+        chars[2] = digits[i_color.m_red & 15];
+        chars[3] = digits[(i_color.m_green >> 4) & 15];
+        chars[4] = digits[i_color.m_green & 15];
+        chars[5] = digits[(i_color.m_blue >> 4) & 15];
+        chars[6] = digits[i_color.m_blue & 15];
+        chars[7] = digits[(i_color.m_alpha >> 4) & 15];
+        chars[8] = digits[i_color.m_alpha & 15];
         chars[9] = 0;
         return chars;
     }
-
-    struct GraphWizGraph::Node
-    {
-        std::string m_label;
-        Attributes m_attributes;
-    };
-
-    struct GraphWizGraph::Edge
-    {
-        uint32_t m_from;
-        uint32_t m_to;
-        std::string m_label;
-        Attributes m_attributes;
-    };
 
     #ifdef _WIN32
         std::filesystem::path GraphWizGraph::s_dot_exe = "C:\\Program Files\\Graphviz\\bin\\dot.exe";
@@ -110,56 +96,30 @@ namespace core
 
     GraphWizGraph::~GraphWizGraph() = default;
 
-    void GraphWizGraph::SetNodeShape(GraphWizGraph::NodeShape i_shape)
+    GraphWizGraph::Node & GraphWizGraph::AddNode(std::string i_label)
     {
-        m_current_attributes.m_node_shape = i_shape;
-    }
-
-    void GraphWizGraph::SetEdgeStyle(EdgeStyle i_style)
-    {
-        m_current_attributes.m_edge_style = i_style;
-    }
-
-    void GraphWizGraph::SetDrawingColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha)
-    {
-        m_current_attributes.m_drawing_color = RgbaToHex(i_red, i_green, i_blue, i_alpha);
-    }
-
-    void GraphWizGraph::SetFontColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha)
-    {
-        m_current_attributes.m_font_color = RgbaToHex(i_red, i_green, i_blue, i_alpha);
-    }
-
-    void GraphWizGraph::SetFillColor(uint8_t i_red, uint8_t i_green, uint8_t i_blue, uint8_t i_alpha)
-    {
-        m_current_attributes.m_fill_color = RgbaToHex(i_red, i_green, i_blue, i_alpha);
-    }
-
-    uint32_t GraphWizGraph::AddNode(std::string i_label)
-    {
-        Node new_node;
+        Node & new_node = m_nodes.emplace_back();
         new_node.m_label = std::move(i_label);
-        new_node.m_attributes = m_current_attributes;
-        uint32_t index = NumericCast<uint32_t>(m_nodes.size());
-        m_nodes.push_back(std::move(new_node));
-        return index;
+        return new_node;
     }
 
-    void GraphWizGraph::AddEdge(uint32_t i_from, uint32_t i_to, std::string i_label)
+    GraphWizGraph::Edge & GraphWizGraph::AddEdge(size_t i_from, size_t i_to, std::string i_label)
     {
-        m_edges.push_back({i_from, i_to, i_label, m_current_attributes});
+        Edge & new_edge = m_edges.emplace_back();
+        new_edge.m_from = i_from;
+        new_edge.m_to = i_to;
+        new_edge.m_label = std::move(i_label);
+        return new_edge;
     }
 
-    /** Returns the number of nodes added so far */
-    uint32_t GraphWizGraph::GetNodeCount() const
+    size_t GraphWizGraph::GetNodeCount() const
     { 
-        return static_cast<uint32_t>(m_nodes.size());
+        return m_nodes.size();
     }
 
-    /** Returns the number of edges added so far */
-    uint32_t GraphWizGraph::GetEdgeCount() const
+    size_t GraphWizGraph::GetEdgeCount() const
     {
-        return static_cast<uint32_t>(m_edges.size());
+        return size_t(m_edges.size());
     }
 
     std::string GraphWizGraph::ToDotLanguage() const
@@ -177,7 +137,7 @@ namespace core
             const Node& node = m_nodes[node_index];
             builder << "v" << node_index << "[";
 
-            switch (node.m_attributes.m_node_shape)
+            switch (node.m_shape)
             {
             case NodeShape::Ellipse:
                 builder << "shape = ellipse";
@@ -193,9 +153,9 @@ namespace core
             }
 
             builder << " label = \"" << GetEscaped(node.m_label) << "\"";
-            builder << " color = \"" << node.m_attributes.m_drawing_color << "\"";
-            builder << " fontcolor = \"" << node.m_attributes.m_font_color << "\"";
-            builder << " style = \"filled\" fillcolor = \"" << node.m_attributes.m_fill_color << "\"";
+            builder << " color = \"" << RgbaToHex(node.m_drawing_color) << "\"";
+            builder << " fontcolor = \"" << RgbaToHex(node.m_font_color) << "\"";
+            builder << " style = \"filled\" fillcolor = \"" << RgbaToHex(node.m_fill_color) << "\"";
             builder << "]";
             builder.NewLine();
         }
@@ -203,10 +163,14 @@ namespace core
         for (const Edge & edge : m_edges)
         {
             const char* edge_styles[] = {"solid", "dashed", "dotted", "bold"};
+            static_assert(std::size(edge_styles) == static_cast<size_t>(EdgeStyle::SyleCount) );
+
             builder << "v" << edge.m_from << " -> v" << edge.m_to;
             builder << "[";
             builder << "label = \"" << GetEscaped(edge.m_label) << "\"";
-            builder << " style = \"" << edge_styles[static_cast<int>(edge.m_attributes.m_edge_style)] << "\"";
+            builder << " color = \"" << RgbaToHex(edge.m_drawing_color) << "\"";
+            builder << " fontcolor = \"" << RgbaToHex(edge.m_font_color) << "\"";
+            builder << " style = \"" << edge_styles[static_cast<int>(edge.m_style)] << "\"";
             builder << "]";
             builder.NewLine();
         }
