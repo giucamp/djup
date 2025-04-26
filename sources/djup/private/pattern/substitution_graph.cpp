@@ -123,7 +123,7 @@ namespace djup
                         const Tensor& label = labels[label_index];
                         const Tensor& target = candidate->m_targets[target_index];
 
-                        if (target_index >= labels.size())
+                        if (target_index >= candidate->m_targets.size())
                         {
                             return;
                         }
@@ -205,17 +205,19 @@ namespace djup
                         for (size_t used = usable.m_min; used <= usable.m_max;
                             used += sub_pattern_count, rep++)
                         {
+                            auto targets = candidate->m_targets;
+                            auto curr_edge = candidate->m_discr_edge;
+                            auto open = candidate->m_open;
+                            auto close = candidate->m_close;
+                            
+                            auto dest_node = candidate->m_dest_node;
+
                             // expand the discrimination node
-                            for (auto& edge_it : m_discrimination_tree.EdgesFrom(candidate->m_dest_node))
+                            for (auto& edge_it : m_discrimination_tree.EdgesFrom(candidate->m_source_node))
                             {
                                 const DiscriminationTree::Edge& next_edge = edge_it.second;
 
-                                auto targets = candidate->m_targets;
-                                auto curr_edge = candidate->m_discr_edge;
-                                auto open = candidate->m_open;
-                                auto close = candidate->m_close;
-                                auto source_node = candidate->m_source_node;
-                                auto dest_node = candidate->m_dest_node;
+                                auto source_node = next_edge.m_dest_node;
 
                                 uint32_t middle_node = NewVirtualNode();
 
@@ -323,9 +325,12 @@ namespace djup
                     {
                         any_processed = true;
 
-                        const size_t increment = ProcessSingleSolution(solution_index); // this may alter the vector
-                        DJUP_ASSERT(sizeof(size_t) <= 4 || increment < std::numeric_limits<size_t>::max() / 2); /* if 
-                            this fails probably an underflow has occurred */
+                        /* note: ProcessSingleSolution may cause the vector m_solutions 
+                           to be relocated */
+                        const size_t increment = ProcessSingleSolution(solution_index);
+                        DJUP_ASSERT(sizeof(size_t) <= 4 || 
+                            increment < std::numeric_limits<size_t>::max() / 2); /* if this 
+                            fails probably an underflow has occurred */
                         solution_index += increment; 
                     }
                     else

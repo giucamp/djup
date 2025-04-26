@@ -50,7 +50,7 @@ namespace djup
                     node.SetShape(GraphWizGraph::NodeShape::Box);
 
                 if(is_node_to_expand)
-                    node.SetFillColor({ 255, 255, 100 });;
+                    node.SetFillColor({ 255, 255, 100 });
 
                 std::string label;
                 if (is_leaf_node)
@@ -98,7 +98,18 @@ namespace djup
                 const uint32_t source_node = pair.first;
                 const SolutionEdge & edge = pair.second;
 
-                graph.AddEdge(source_node, edge.m_dest)
+                std::string text;
+                for (size_t i = 0; i < edge.m_substitutions.size(); ++i)
+                {
+                    if (i != 0)
+                        text += "\n";
+                    text += 
+                        edge.m_substitutions[i].m_identifier_name.AsString() + 
+                        " = " +
+                        ToSimplifiedString(edge.m_substitutions[i].m_value);
+                }
+
+                graph.AddEdge(source_node, edge.m_dest, text)
                     .SetDrawingColor({0, 0, 255});
             }
 
@@ -106,48 +117,17 @@ namespace djup
             for (const auto& candidate : m_candidate_edges)
             {
                 std::string text = TensorListToString(candidate.m_targets);
+                text += "\nis\n";
+                text += TensorListToString(Span(candidate.m_discr_edge->m_labels).
+                    subspan(candidate.m_pattern_offset));
+                if (candidate.m_repetitions != 1)
+                    text += " (" + ToString(candidate.m_repetitions) + " times)";
+                if (candidate.m_pattern_offset != 0)
+                    text += ToString("\n targ-off: ", candidate.m_pattern_offset);
+
                 graph.AddEdge(candidate.m_source_node, candidate.m_dest_node, text)
                     .SetStyle(GraphWizGraph::EdgeStyle::Dotted);
             }
-
-            /*using Handle = Pool<CandidateEdge>::Handle;
-            
-            struct HandleHash
-            {
-                std::size_t operator()(const Handle& i_source) const noexcept
-                {
-                    return i_source.m_index ^ i_source.m_version; // or use boost::hash_combine
-                }
-            };
-            
-            std::unordered_map<Handle, uint32_t, HandleHash> handles;
-
-            uint32_t index = 0;
-            for (const Candidate& candidate : m_candidates)
-            {
-                auto label = ToString(
-                    candidate.m_source_discr_node, " -> ", candidate.m_edge->m_dest_node
-                );
-                graph.AddNode(label);
-                handles.insert(std::make_pair(m_candidates.HandleOf(candidate), index));
-
-                ++index;
-            }
-
-            index = 0;
-            for (const auto & handle_it : handles)
-            {
-                const Candidate& candidate = m_candidates.GetObject(handle_it.first);
-
-                auto from_it = handles.find(candidate.m_parent_candidate);
-                auto to_it = handles.find(handle_it.first);
-
-                if (from_it != handles.end() && to_it != handles.end())
-                {
-                    graph.AddEdge(from_it->second, to_it->second);
-                }
-                ++index;
-            }*/
 
             return graph;
         }
