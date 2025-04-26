@@ -75,6 +75,9 @@
     <ClInclude Include="..\private\tensor_type.h">
       <Filter>private</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\pattern\substitutions_builder.h">
+      <Filter>private\pattern</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
@@ -166,6 +169,9 @@
     </ClCompile>
     <ClCompile Include="..\tests\test_tensor_type.cpp">
       <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\pattern\substitutions_builder.cpp">
+      <Filter>private\pattern</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

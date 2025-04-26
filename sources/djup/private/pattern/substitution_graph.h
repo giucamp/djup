@@ -7,12 +7,12 @@
 #pragma once
 #include <private/common.h>
 #include <private/pattern/discrimination_tree.h>
+#include <private/pattern/substitutions_builder.h>
 #include <core/pool.h>
 #include <core/graph_wiz.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <functional>
 
 namespace djup
 {
@@ -35,27 +35,32 @@ namespace djup
 
         public:
 
-            SubstitutionGraph(const DiscriminationTree & i_discrimination_net);
+            enum class SolutionType
+            {
+                All,
+                Any
+            };
+
+            SubstitutionGraph(const DiscriminationTree & i_discrimination_net, 
+                SolutionType i_solution_type = SolutionType::All);
 
             ~SubstitutionGraph();
 
             void FindMatches(const Namespace& i_namespace, 
                 const Tensor& i_target, std::function<void()> i_step_callback = {});
             
-            struct Substitution
-            {
-                Name m_identifier_name;
-                Tensor m_value;
-            };
-
             struct Solution
             {
                 uint32_t m_curr_node{ std::numeric_limits<uint32_t>::max() };
                 int32_t m_pattern_id = -1;
-                std::vector<Substitution> m_substitutions;
+                SubstitutionsBuilder m_substitutions;
             };
 
             const std::vector<Solution> & GetSolutions() const { return m_solutions; }
+
+            size_t GetSolutionCount() const { return m_solutions.size(); }
+
+            const Solution & GetSolutionAt(size_t i_index) const { return m_solutions[i_index]; }
 
             GraphWizGraph ToDotGraphWiz(std::string_view i_graph_name) const;
 
@@ -64,7 +69,6 @@ namespace djup
             struct DescendContext
             {
                 const Namespace & m_namespace;
-                std::function<void()> m_step_callback;
             };
 
             /** Discrimination node to be expanded to candidates */
@@ -117,7 +121,7 @@ namespace djup
 
             void ProcessCandidateEdge(DescendContext& i_context, CandHandle i_candudate_edge_handle);
 
-            void ProcessSolutions();
+            void FlushSolutions();
 
             size_t ProcessSingleSolution(size_t i_solution_index);
 
@@ -129,6 +133,7 @@ namespace djup
         private:
 
             const DiscriminationTree & m_discrimination_tree;
+            const SolutionType m_solution_type;
 
             // discrimination nodes to expand
             std::vector<DiscrNodeToExpand> m_discr_nodes_to_expand;
@@ -145,7 +150,7 @@ namespace djup
         };
 
         Tensor ApplySubstitutions(const Tensor & i_where,
-            Span<const SubstitutionGraph::Substitution> i_substitutions);
+            Span<const Substitution> i_substitutions);
     
     } // namespace pattern
 

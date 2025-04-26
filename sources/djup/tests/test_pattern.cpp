@@ -52,17 +52,17 @@ namespace djup
                 substs_graph.FindMatches(*GetStandardNamespace(), "g(1 2 3 4 5 6)"_t);
                 CORE_EXPECTS(substs_graph.GetSolutions().size() == 1);
                 const auto& solution = substs_graph.GetSolutions()[0];
-
-                CORE_EXPECTS(solution.m_substitutions.size() == 3);
+                const auto& substitutions = solution.m_substitutions.GetSubstitutions();
+                CORE_EXPECTS(substitutions.size() == 3);
                 
-                CORE_EXPECTS_EQ(solution.m_substitutions[0].m_identifier_name, "a");
-                CORE_EXPECTS(AlwaysEqual(solution.m_substitutions[0].m_value, "4"_t));
+                CORE_EXPECTS_EQ(substitutions[0].m_identifier_name, "a");
+                CORE_EXPECTS(AlwaysEqual(substitutions[0].m_value, "4"_t));
 
-                CORE_EXPECTS_EQ(solution.m_substitutions[1].m_identifier_name, "b");
-                CORE_EXPECTS(AlwaysEqual(solution.m_substitutions[1].m_value, "5"_t));
+                CORE_EXPECTS_EQ(substitutions[1].m_identifier_name, "b");
+                CORE_EXPECTS(AlwaysEqual(substitutions[1].m_value, "5"_t));
 
-                CORE_EXPECTS_EQ(solution.m_substitutions[2].m_identifier_name, "c");
-                CORE_EXPECTS(AlwaysEqual(solution.m_substitutions[2].m_value, "6"_t));
+                CORE_EXPECTS_EQ(substitutions[2].m_identifier_name, "c");
+                CORE_EXPECTS(AlwaysEqual(substitutions[2].m_value, "6"_t));
             }
 
             // pattern 2
@@ -87,12 +87,13 @@ namespace djup
                 substs_graph.FindMatches(*GetStandardNamespace(), "g(1 2 3 f(4 h(5)) 6)"_t);
                 CORE_EXPECTS(substs_graph.GetSolutions().size() == 1);
                 const auto& solution = substs_graph.GetSolutions()[0];
+                const auto& substitutions = solution.m_substitutions.GetSubstitutions();
 
-                Tensor after_sub = pattern::ApplySubstitutions(pattern, solution.m_substitutions);
+                Tensor after_sub = pattern::ApplySubstitutions(pattern, substitutions);
 
                 CORE_EXPECTS(AlwaysEqual(after_sub, target));
 
-                CORE_EXPECTS(solution.m_substitutions.size() == 3);
+                CORE_EXPECTS(substitutions.size() == 3);
             }
             
             // tree 1
@@ -122,7 +123,7 @@ namespace djup
                 auto callback = [&] {
                     std::string name = step == 0 ? "Initial" : ToString("Step_", step);
                     substitution_graph.ToDotGraphWiz(name).SaveAsImage(
-                        artifact_path / name + ".png");
+                        artifact_path / (name + ".png") );
                     step++;
                 };
 
@@ -147,7 +148,7 @@ namespace djup
                 auto callback = [&] {
                     std::string name = step == 0 ? "Initial" : ToString("Step_", step);
                     substitution_graph.ToDotGraphWiz(name).SaveAsImage(
-                        artifact_path / name + ".png");
+                        artifact_path / (name + ".png") );
                     step++;
                 };
             }
@@ -182,9 +183,10 @@ namespace djup
                 substitution_graph.FindMatches(*GetStandardNamespace(), target, callback);
 
                 CORE_EXPECTS(substitution_graph.GetSolutions().size() == 1);
-                const auto& solution = substitution_graph.GetSolutions()[0];
+                const auto& solution = substitution_graph.GetSolutionAt(0);
+                const auto& substitutions = solution.m_substitutions.GetSubstitutions();
 
-                Tensor after_sub = pattern::ApplySubstitutions(pattern, solution.m_substitutions);
+                Tensor after_sub = pattern::ApplySubstitutions(pattern, substitutions);
 
                 CORE_EXPECTS(AlwaysEqual(after_sub, Tensor(target)));
             }

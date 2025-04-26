@@ -16,7 +16,7 @@ namespace djup
     {
         namespace
         {
-            static std::string TensorListToString(Span<const Tensor> i_tensors)
+            std::string TensorListToString(Span<const Tensor> i_tensors)
             {
                 std::string result;
                 for (size_t i = 0; i < i_tensors.size(); i++)
@@ -109,6 +109,13 @@ namespace djup
                         ToSimplifiedString(edge.m_substitutions[i].m_value);
                 }
 
+                if (edge.m_open != 0 || edge.m_close != 0)
+                    text += "\n";
+                if (edge.m_open != 0)
+                    text += std::string(edge.m_open, '+');
+                if (edge.m_close != 0)
+                    text += std::string(edge.m_close, '-');
+
                 graph.AddEdge(source_node, edge.m_dest, text)
                     .SetDrawingColor({0, 0, 255});
             }
@@ -124,6 +131,13 @@ namespace djup
                     text += " (" + ToString(candidate.m_repetitions) + " times)";
                 if (candidate.m_pattern_offset != 0)
                     text += ToString("\n targ-off: ", candidate.m_pattern_offset);
+
+                if (candidate.m_open != 0 || candidate.m_close != 0)
+                    text += "\n";
+                if (candidate.m_open != 0)
+                    text += std::string(candidate.m_open, '+');
+                if (candidate.m_close != 0)
+                    text += std::string(candidate.m_close, '-');
 
                 graph.AddEdge(candidate.m_source_node, candidate.m_dest_node, text)
                     .SetStyle(GraphWizGraph::EdgeStyle::Dotted);

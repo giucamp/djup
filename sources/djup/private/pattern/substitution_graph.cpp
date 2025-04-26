@@ -17,8 +17,11 @@ namespace djup
 {
     namespace pattern
     {
-        SubstitutionGraph::SubstitutionGraph(const DiscriminationTree& i_discrimination_net)
-            : m_discrimination_tree(i_discrimination_net), m_solution_node_count(i_discrimination_net.GetNodeCount())
+        SubstitutionGraph::SubstitutionGraph(const DiscriminationTree& i_discrimination_net,
+                SolutionType i_solution_type)
+            : m_discrimination_tree(i_discrimination_net),
+              m_solution_type(i_solution_type),
+              m_solution_node_count(i_discrimination_net.GetNodeCount())
         {
         }
 
@@ -31,7 +34,6 @@ namespace djup
             m_reached_leaf_nodes.clear();
 
             DescendContext context{i_namespace};
-            context.m_step_callback = i_step_callback;
 
             // start by adding the discrimination root node as node to expand
             DiscrNodeToExpand root_node_to_expand;
@@ -64,7 +66,7 @@ namespace djup
                     break; // main loop is over
             }
 
-            ProcessSolutions();
+            FlushSolutions();
         }
 
         void SubstitutionGraph::ExpandDiscriminationmNode(
@@ -292,7 +294,7 @@ namespace djup
 
         /* Use m_solution_graph and m_reached_leaf_nodes to fill m_solutions 
            with actual solutions without contradictory substitutions. */
-        void SubstitutionGraph::ProcessSolutions()
+        void SubstitutionGraph::FlushSolutions()
         {
             /* Create a solution for every reached leaf (=pattern) node.
                In this stage every solution is the beginning of zero, one 
@@ -380,7 +382,8 @@ namespace djup
                         [this, it, i_solution_index, &solution_loop_increment](Solution& i_solution) {
 
                         // to do: handle m_open and m_close
-                        if (!AddSubstitutionsToSolution(i_solution.m_substitutions, it->second.m_substitutions))
+                        //if (!AddSubstitutionsToSolution(i_solution.m_substitutions, it->second.m_substitutions))
+                        if(!i_solution.m_substitutions.AddSubstitutions(it->second.m_substitutions, it->second.m_open, it->second.m_close))
                         {
                             m_solutions.erase(m_solutions.begin() + i_solution_index);
 
@@ -399,50 +402,16 @@ namespace djup
             return solution_loop_increment;
         }
 
-        /* Add the source substitutions to the dest vector. If there is
-           a contradiction returns false, otherwise true. */
-        bool SubstitutionGraph::AddSubstitutionsToSolution(
-            std::vector<Substitution> & i_dest_substitutions,
-            const std::vector<Substitution> & i_source_substitutions)
-        {
-            const size_t prev_substitution_count = i_dest_substitutions.size();
-
-            // first add all the substitutions
-            i_dest_substitutions.insert(i_dest_substitutions.end(),
-                i_source_substitutions.begin(), i_source_substitutions.end());
-
-            const size_t new_substitution_count = i_dest_substitutions.size();
-
-            // quadratic search should be fine with a few substitutions
-            // for every newly added substitution...
-            for (size_t i = prev_substitution_count; i < new_substitution_count; ++i)
-            {                
-                for (size_t j = 0; j < i; ++j)
-                {
-                    if (i != j && i_dest_substitutions[i].m_identifier_name == i_dest_substitutions[j].m_identifier_name)
-                    {
-                        if (!AlwaysEqual(i_dest_substitutions[i].m_value, i_dest_substitutions[j].m_value))
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            // no contradictions
-            return true;
-        }
-
         uint32_t SubstitutionGraph::NewVirtualNode()
         {
             return m_solution_node_count++;
         }
 
         Tensor ApplySubstitutions(const Tensor& i_where,
-            Span<const SubstitutionGraph::Substitution> i_substitutions)
+            Span<const Substitution> i_substitutions)
         {
             return SubstituteByPredicate(i_where, [i_substitutions](const Tensor i_tensor) {
-                for (const SubstitutionGraph::Substitution& subst : i_substitutions)
+                for (const Substitution & subst : i_substitutions)
                 {
                     /*if (!i_tensor.GetExpression()->GetType().IsSupercaseOf(
                         subst.m_value.GetExpression()->GetType(), )

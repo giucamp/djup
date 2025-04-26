@@ -28,6 +28,7 @@ add_library(djup STATIC
     private/pattern/discrimination_tree.h
     private/pattern/pattern_info.h
     private/pattern/substitution_graph.h
+    private/pattern/substitutions_builder.h
     private/standard_scope.h
     private/substitute_by_predicate.h
     private/tensor_type.h
@@ -52,6 +53,7 @@ add_library(djup STATIC
     private/pattern/substitution_graph.cpp
     private/pattern/substitution_graph_to_dot_language.cpp
     private/pattern/substitution_match.cpp
+    private/pattern/substitutions_builder.cpp
     private/standard_namespace.cpp
     private/tensor.cpp
     private/tensor_to_graph.cpp

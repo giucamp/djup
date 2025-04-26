@@ -31,6 +31,7 @@
     <ClInclude Include="..\private\pattern\candidate.h" />
     <ClInclude Include="..\private\pattern\discrimination_tree.h" />
     <ClInclude Include="..\private\pattern\pattern_info.h" />
+    <ClInclude Include="..\private\pattern\substitutions_builder.h" />
     <ClInclude Include="..\private\pattern\substitution_graph.h" />
     <ClInclude Include="..\private\old_pattern_match.h" />
     <ClInclude Include="..\private\pattern\debug_utils.h" />
@@ -42,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\make_expr.cpp" />
+    <ClCompile Include="..\private\pattern\substitutions_builder.cpp" />
     <ClCompile Include="..\private\tensor_to_graph.cpp" />
     <ClCompile Include="..\private\is.cpp" />
     <ClCompile Include="..\private\expression.cpp" />
