@@ -35,8 +35,8 @@ namespace djup
 
             auto s = ToSimplifiedString(namespace_1->GetDescribingExpression());
 
-            TensorToGraph(namespace_1->GetDescribingExpression(), {}).SaveAsImage(
-                GetArtifactPath("test_parse") / "namespace_1");
+            /*TensorToGraph(namespace_1->GetDescribingExpression(), {}).SaveAsImage(
+                GetArtifactPath("test_parse") / "namespace_1.png");*/
 
             Tensor v("2 + 3");
             

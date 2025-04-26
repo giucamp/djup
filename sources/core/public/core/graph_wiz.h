@@ -35,7 +35,7 @@ namespace core
         /** Renders the graph to dot language */
         std::string ToDotLanguage() const;
 
-        /** Save the graph as a .png image */
+        /** Save the graph as an image */
         void SaveAsImage(std::filesystem::path i_path) const;
 
         /** Sets the path of the dot executable, necessary to build the
@@ -45,6 +45,18 @@ namespace core
             cause a race condition. */
         static void SetDotExe(const std::filesystem::path& i_dot_exe);
 
+
+                /** graph */
+
+        /** Sets the output image format. The default is png.
+            Supported format at https://graphviz.org/docs/outputs/ */
+        GraphWizGraph & SetOutputFormat(std::string i_ouput_format)
+            { m_output_format = std::move(i_ouput_format); return *this; }
+
+        /** Sets the layout engine. The default is dot.
+            Supported engine at https://graphviz.org/docs/layouts/ */
+        GraphWizGraph & SetLayoutEngine(std::string i_layout_engine)
+            { m_layout_engine = std::move(i_layout_engine); return *this; }
 
                 /* nodes */
 
@@ -142,6 +154,8 @@ namespace core
 
     private: // data members
         std::string m_graph_name;
+        std::string m_output_format = "png";
+        std::string m_layout_engine = "dot";
         std::vector<Node> m_nodes;
         std::vector<Edge> m_edges;
         static std::filesystem::path s_dot_exe;

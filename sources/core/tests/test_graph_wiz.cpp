@@ -97,7 +97,7 @@ namespace core
 }
 )";
             CORE_EXPECTS_EQ(dot, expected);
-            //graph.SaveAsImage("C:\\repos\\djup\\tests\\graph");
+            //graph.SaveAsImage("C:\\repos\\djup\\tests\\graph.png");
 
             PrintLn("successful");
         }

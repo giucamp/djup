@@ -193,9 +193,7 @@ namespace core
 
         // path of the source file
         path dot_file_path = i_path;
-        #ifdef _WIN32
-            dot_file_path += ".txt";
-        #endif
+        dot_file_path += ".txt";
 
         // write file content
         std::ofstream dot_file(dot_file_path);
@@ -208,10 +206,12 @@ namespace core
         if (cmd.find(' ') != std::string::npos)
             cmd = "\"" + s_dot_exe.string() + "\"";
         
-        cmd += " -Tpng -O ";
+        cmd += " -o" + i_path.string();
+        cmd += " -T" + m_output_format;
+        cmd += " -K" + m_layout_engine;
         
         std::string dot_file_path_str = dot_file_path.string();
-        cmd += dot_file_path_str;
+        cmd += " " + dot_file_path_str;
         #ifdef _WIN32
             cmd = "\"" + cmd + "\"";
         #endif  
