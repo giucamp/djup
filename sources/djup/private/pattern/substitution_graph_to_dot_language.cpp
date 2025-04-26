@@ -32,7 +32,7 @@ namespace djup
         GraphWizGraph SubstitutionGraph::ToDotGraphWiz(std::string_view i_graph_name) const
         {
             GraphWizGraph graph(i_graph_name);
-
+            
             for (uint32_t node_index = 0; node_index < m_solution_node_count; node_index++)
             {
                 auto & node = graph.AddNode(ToString(node_index));
@@ -44,6 +44,26 @@ namespace djup
                     node.SetFillColor({ 255, 255, 100 });
                 else
                     node.SetFillColor({ 255, 255, 255 });
+
+                if (node_index == m_discrimination_tree.GetRootNodeIndex())
+                {
+                    node.SetShape(GraphWizGraph::NodeShape::Box);
+                    node.SetFillColor({ 235, 200, 255 });;
+                }
+                else if (node_index < static_cast<uint32_t>(m_discrimination_tree.GetNodeCount()) &&
+                    m_discrimination_tree.IsLeafNode(node_index))
+                {
+                    // leaf node, draw as square
+                    node.SetShape(GraphWizGraph::NodeShape::Box);
+
+                    // leaf nodes have a different label
+                    std::string text = ToString("Pattern ", 
+                        m_discrimination_tree.GetPatternId(node_index), " - node ",  node_index);
+                    #if DJUP_DEBUG_DISCRIMINATION_TREE
+                        text += "\n" + m_discrimination_tree.DbgGetFullPattern(node_index);
+                    #endif
+                    node.SetLabel(text);
+                }
             }
 
             // discrimination edges
@@ -72,7 +92,8 @@ namespace djup
                 const uint32_t source_node = pair.first;
                 const SolutionEdge & edge = pair.second;
 
-                graph.AddEdge(source_node, edge.m_dest);
+                graph.AddEdge(source_node, edge.m_dest)
+                    .SetDrawingColor({0, 0, 255});
             }
 
             // candidates

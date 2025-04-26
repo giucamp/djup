@@ -280,7 +280,8 @@ namespace djup
                     solution_edge.m_next_node = parent_candidate.m_source_discr_node;
                 }*/
 
-                if (m_discrimination_tree.IsLeafNode(candidate->m_source_node))
+                if (candidate->m_source_node < static_cast<uint32_t>(m_discrimination_tree.GetNodeCount()) &&
+                    m_discrimination_tree.IsLeafNode(candidate->m_source_node))
                 {
                     m_reached_leaf_nodes.insert(candidate->m_source_node);
                 }

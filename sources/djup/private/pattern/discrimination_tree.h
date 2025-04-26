@@ -14,7 +14,7 @@
 #include <unordered_map>
 #include <limits>
 
-#define DJUP_DEBUG_DISCRIMINATION_TREE false
+#define DJUP_DEBUG_DISCRIMINATION_TREE true
 
 namespace djup
 {
@@ -70,7 +70,7 @@ namespace djup
 
             const std::unordered_multimap<uint32_t, Edge>& GetEdgeMap() const { return m_edges; }
 
-            int32_t GetNodeCount() const { return NumericCast<int32_t>(m_edges.size()); }
+            int32_t GetNodeCount() const { return m_node_count; }
 
             bool IsGraphEmpty() const { return m_leaf_pattern_id.empty(); }
 
@@ -80,6 +80,15 @@ namespace djup
 
             /** Converts the discrimination net to a string processable with GraphWiz */
             GraphWizGraph ToGraphWiz(std::string_view i_graph_name) const;
+
+            #if DJUP_DEBUG_DISCRIMINATION_TREE
+                const auto & DbgGetFullPattern(int32_t i_node) const
+                {
+                    const auto full_pattern_it = m_dbg_full_patterns.find(m_leaf_pattern_id[i_node]);
+                    DJUP_ASSERT(full_pattern_it != m_dbg_full_patterns.end());
+                    return full_pattern_it->second;
+                }
+            #endif
 
         private:
 

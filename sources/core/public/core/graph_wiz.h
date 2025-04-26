@@ -78,6 +78,8 @@ namespace core
         {
         public:
 
+            Node & SetLabel(std::string i_label) { m_label = std::move(i_label); return *this; }
+
             Node & SetShape(NodeShape i_shape) { m_shape = i_shape; return *this; }
 
             Node & SetDrawingColor(Color i_color) { m_drawing_color = i_color; return *this; }
@@ -123,6 +125,8 @@ namespace core
         struct Edge
         {
         public:
+
+            Edge & SetLabel(std::string i_label) { m_label = std::move(i_label); return *this; }
 
             Edge & SetStyle(EdgeStyle i_style) { m_style = i_style; return *this; }
 

@@ -5,12 +5,12 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
-#include <private/common.h>
-#include <djup/expression.h>
-#include <private/pattern/pattern_info.h>
-#include <private/pattern/discrimination_tree.h>
-#include <private/pattern/substitution_graph.h>
-#include <private/pattern/debug_utils.h>
+//#include <private/common.h>
+//#include <djup/expression.h>
+//#include <private/pattern/pattern_info.h>
+//#include <private/pattern/discrimination_tree.h>
+//#include <private/pattern/substitution_graph.h>
+//#include <private/pattern/debug_utils.h>
 
 namespace djup
 {

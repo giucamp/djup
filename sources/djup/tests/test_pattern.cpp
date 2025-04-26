@@ -37,7 +37,7 @@ namespace djup
 
             CORE_EXPECTS_EQ(ToSimplifiedString("4"_t), "4");
 
-#if 1
+#if 0
             // pattern 1
             {
                 pattern::DiscriminationTree discrimination_net;
@@ -45,7 +45,7 @@ namespace djup
                 static bool save_it = true;
                 if (save_it)
                 {
-                    discrimination_net.ToGraphWiz("discrimination").SaveAsImage(artifact_path / "discr");
+                    discrimination_net.ToGraphWiz("discrimination").SaveAsImage(artifact_path / "discr.png");
                 }
 
                 pattern::SubstitutionGraph substs_graph(discrimination_net);
@@ -111,7 +111,7 @@ namespace djup
                 static bool save_it = false;
                 if (save_it)
                 {
-                    discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr");
+                    discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr.png");
                 }
 
                 // substitutions
@@ -122,7 +122,7 @@ namespace djup
                 auto callback = [&] {
                     std::string name = step == 0 ? "Initial" : ToString("Step_", step);
                     substitution_graph.ToDotGraphWiz(name).SaveAsImage(
-                        artifact_path / name);
+                        artifact_path / name + ".png");
                     step++;
                 };
 
@@ -136,7 +136,7 @@ namespace djup
                 static bool save_it = false;
                 if (save_it)
                 {
-                    discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr");
+                    discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr.png");
                 }
 
                 // substitutions
@@ -147,7 +147,7 @@ namespace djup
                 auto callback = [&] {
                     std::string name = step == 0 ? "Initial" : ToString("Step_", step);
                     substitution_graph.ToDotGraphWiz(name).SaveAsImage(
-                        artifact_path / name);
+                        artifact_path / name + ".png");
                     step++;
                 };
             }
@@ -155,7 +155,6 @@ namespace djup
 #endif
 
             // tree 3
-            if(false)
             {
                 Tensor pattern = "f(1 2 real x... 7 8 9)";
                 Tensor pattern2 = "f(1 2 g(real y)... 7 8 9)";
@@ -167,7 +166,7 @@ namespace djup
                 static bool save_it = true;
                 if (save_it)
                 {
-                    discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr");
+                    discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr.png");
                 }
 
                 // substitutions
@@ -176,7 +175,7 @@ namespace djup
 
                 auto callback = [&] {
                     std::string name = step == 0 ? "Initial" : ToString("Step_", step);
-                    substitution_graph.ToDotGraphWiz(name).SaveAsImage(artifact_path / name);
+                    substitution_graph.ToDotGraphWiz(name).SaveAsImage(artifact_path / (name + ".png"));
                     step++;
                 };
 
