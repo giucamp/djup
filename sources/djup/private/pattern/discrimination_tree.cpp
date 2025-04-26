@@ -111,7 +111,7 @@ namespace djup
         }
 
         DiscriminationTree::Edge* DiscriminationTree::ProcessPattern(
-            int32_t i_source_node, Span<const Tensor> i_patterns, const PatternInfo& i_pattern_info)
+            uint32_t i_source_node, Span<const Tensor> i_patterns, const PatternInfo& i_pattern_info)
         {
             Edge* curr_edge = AddEdge(i_source_node, i_patterns, i_pattern_info);
 
@@ -175,7 +175,7 @@ namespace djup
             return &res->second;
         }
 
-        int32_t DiscriminationTree::NewNode()
+        uint32_t DiscriminationTree::NewNode()
         {
             uint32_t new_node = m_node_count++;
             m_leaf_pattern_id.push_back(-1);
@@ -210,7 +210,7 @@ namespace djup
             return true;
         }
 
-        int32_t DiscriminationTree::GetPatternId(int32_t i_node_index) const
+        int32_t DiscriminationTree::GetPatternId(uint32_t i_node_index) const
         {
             DJUP_ASSERT(IsLeafNode(i_node_index));
             return m_leaf_pattern_id[i_node_index];
@@ -221,7 +221,7 @@ namespace djup
             GraphWizGraph graph(i_graph_name);
 
             // nodes
-            for (int32_t i = 0; i < m_node_count; i++)
+            for (uint32_t i = 0; i < m_node_count; i++)
             {
                 if (i == s_root_node_index)
                 {

@@ -70,19 +70,19 @@ namespace djup
 
             const std::unordered_multimap<uint32_t, Edge>& GetEdgeMap() const { return m_edges; }
 
-            int32_t GetNodeCount() const { return m_node_count; }
+            uint32_t GetNodeCount() const { return m_node_count; }
 
             bool IsGraphEmpty() const { return m_leaf_pattern_id.empty(); }
 
-            bool IsLeafNode(int32_t i_node_index) const { return m_leaf_pattern_id[i_node_index] != -1; }
+            bool IsLeafNode(uint32_t i_node_index) const { return m_leaf_pattern_id[i_node_index] != -1; }
 
-            int32_t GetPatternId(int32_t i_node_index) const;
+            int32_t GetPatternId(uint32_t i_node_index) const;
 
             /** Converts the discrimination net to a string processable with GraphWiz */
             GraphWizGraph ToGraphWiz(std::string_view i_graph_name) const;
 
             #if DJUP_DEBUG_DISCRIMINATION_TREE
-                const auto & DbgGetFullPattern(int32_t i_node) const
+                const auto & DbgGetFullPattern(uint32_t i_node) const
                 {
                     const auto full_pattern_it = m_dbg_full_patterns.find(m_leaf_pattern_id[i_node]);
                     DJUP_ASSERT(full_pattern_it != m_dbg_full_patterns.end());
@@ -97,13 +97,13 @@ namespace djup
             static bool SameRootPatterns(Span<const Tensor> i_first_patterns, Span<const Tensor> i_second_patterns);
 
             DiscriminationTree::Edge* ProcessPattern(
-                int32_t i_source_node, Span<const Tensor> i_patterns, const PatternInfo& i_pattern_info);
+                uint32_t i_source_node, Span<const Tensor> i_patterns, const PatternInfo& i_pattern_info);
 
             DiscriminationTree::Edge* AddEdge(
                 uint32_t i_source_node, Span<const Tensor> i_patterns,
                 const PatternInfo& i_source_pattern_info);
 
-            int32_t NewNode();
+            uint32_t NewNode();
 
             /** Keys are the source node indices */
             std::unordered_multimap<uint32_t, Edge> m_edges; 
@@ -113,10 +113,10 @@ namespace djup
 
             #if DJUP_DEBUG_DISCRIMINATION_TREE
                 // the key is the pattern id
-                std::unordered_map<int32_t, std::string> m_dbg_full_patterns;
+                std::unordered_map<uint32_t, std::string> m_dbg_full_patterns;
             #endif
             
-            int32_t m_node_count = 0;
+            uint32_t m_node_count = 0;
         };
 
     } // namespace pattern

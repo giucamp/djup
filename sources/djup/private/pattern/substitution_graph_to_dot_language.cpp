@@ -35,34 +35,40 @@ namespace djup
             
             for (uint32_t node_index = 0; node_index < m_solution_node_count; node_index++)
             {
-                auto & node = graph.AddNode(ToString(node_index));
-
-                bool is_node_to_expand = AnyOf(m_discr_nodes_to_expand, 
-                    [node_index](auto& node_to_exand) 
+                const bool is_node_to_expand = AnyOf(m_discr_nodes_to_expand,
+                    [node_index](auto& node_to_exand)
                     { return node_to_exand.m_node == node_index; });
-                if (is_node_to_expand)
-                    node.SetFillColor({ 255, 255, 100 });
-                else
-                    node.SetFillColor({ 255, 255, 255 });
 
-                if (node_index == m_discrimination_tree.GetRootNodeIndex())
-                {
-                    node.SetShape(GraphWizGraph::NodeShape::Box);
-                    node.SetFillColor({ 235, 200, 255 });;
-                }
-                else if (node_index < static_cast<uint32_t>(m_discrimination_tree.GetNodeCount()) &&
-                    m_discrimination_tree.IsLeafNode(node_index))
-                {
-                    // leaf node, draw as square
+                const bool is_root = node_index == m_discrimination_tree.GetRootNodeIndex();
+
+                const bool is_leaf_node = node_index < m_discrimination_tree.GetNodeCount() &&
+                    m_discrimination_tree.IsLeafNode(node_index);
+
+                GraphWizGraph::Node& node = graph.AddNode({});
+
+                if (is_root || is_leaf_node)
                     node.SetShape(GraphWizGraph::NodeShape::Box);
 
-                    // leaf nodes have a different label
+                if(is_node_to_expand)
+                    node.SetFillColor({ 255, 255, 100 });;
+
+                std::string label;
+                if (is_leaf_node)
+                {
                     std::string text = ToString("Pattern ", 
                         m_discrimination_tree.GetPatternId(node_index), " - node ",  node_index);
                     #if DJUP_DEBUG_DISCRIMINATION_TREE
                         text += "\n" + m_discrimination_tree.DbgGetFullPattern(node_index);
                     #endif
-                    node.SetLabel(text);
+                    node.SetLabel(std::move(text));
+                }
+                else if (is_root)
+                {
+                    node.SetLabel("Root");
+                }
+                else
+                {
+                    node.SetLabel(ToString(node_index));
                 }
             }
 
