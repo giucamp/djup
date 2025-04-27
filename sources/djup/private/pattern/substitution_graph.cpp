@@ -383,7 +383,7 @@ namespace djup
 
                         // to do: handle m_open and m_close
                         //if (!AddSubstitutionsToSolution(i_solution.m_substitutions, it->second.m_substitutions))
-                        if(!i_solution.m_substitutions.AddSubstitutions(it->second.m_substitutions, it->second.m_open, it->second.m_close))
+                        if(!i_solution.m_substitutions.Add(it->second.m_substitutions, it->second.m_open, it->second.m_close))
                         {
                             m_solutions.erase(m_solutions.begin() + i_solution_index);
 

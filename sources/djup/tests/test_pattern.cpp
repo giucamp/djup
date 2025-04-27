@@ -37,12 +37,12 @@ namespace djup
 
             CORE_EXPECTS_EQ(ToSimplifiedString("4"_t), "4");
 
-#if 0
+#if 1
             // pattern 1
             {
                 pattern::DiscriminationTree discrimination_net;
                 discrimination_net.AddPattern(2, "g(1 2 3 any a any b any c)");
-                static bool save_it = true;
+                static bool save_it = false;
                 if (save_it)
                 {
                     discrimination_net.ToGraphWiz("discrimination").SaveAsImage(artifact_path / "discr.png");

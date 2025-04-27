@@ -22,16 +22,11 @@ namespace djup
             Tensor m_value;
         };
 
-        struct VariadicValue
-        {
-            std::vector<std::vector<Tensor>> m_stack;
-        };
-
         class SubstitutionsBuilder
         {
         public:
 
-            bool AddSubstitutions(
+            bool Add(
                 const std::vector<Substitution>& i_substitutions,
                 uint32_t i_open, uint32_t i_close);
 
@@ -39,6 +34,29 @@ namespace djup
             {
                 return m_substitutions;
             }
+
+        private:
+
+            struct VariadicValue
+            {
+                std::vector<std::vector<Tensor>> m_stack;
+            };
+
+        private:
+
+            bool AddToBottomLayer(const Substitution & i_solution);
+
+            bool AddToBottomLayer(
+                const std::vector<Substitution>& i_source_substitutions);
+
+            void AddToVariadic(
+                const std::vector<Substitution>& i_source_substitutions);
+
+            static Tensor VariadicClear(VariadicValue& i_dest);
+
+            static void VariadicReduceDepth(VariadicValue& i_dest);
+
+            static Tensor ReverseToTuple(const std::vector<Tensor>& i_source);
 
         private:
             uint32_t m_curr_depth{};

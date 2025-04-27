@@ -11,45 +11,117 @@ namespace djup
 {
     namespace pattern
     {
-        /* Add the source substitutions to the dest vector. If there is
-            a contradiction returns false, otherwise true. */
-        bool AddSubstitutionsToSolution(
-            std::vector<Substitution>& i_dest_substitutions,
-            const std::vector<Substitution>& i_source_substitutions)
+        bool SubstitutionsBuilder::AddToBottomLayer(const Substitution & i_substitution)
         {
-            const size_t prev_substitution_count = i_dest_substitutions.size();
-
-            // first add all the substitutions
-            i_dest_substitutions.insert(i_dest_substitutions.end(),
-                i_source_substitutions.begin(), i_source_substitutions.end());
-
-            const size_t new_substitution_count = i_dest_substitutions.size();
-
-            // quadratic search should be fine with a few substitutions
-            // for every newly added substitution...
-            for (size_t i = prev_substitution_count; i < new_substitution_count; ++i)
+            for(const Substitution & exiting_substitution : m_substitutions)
             {
-                for (size_t j = 0; j < i; ++j)
+                if (exiting_substitution.m_identifier_name == i_substitution.m_identifier_name)
                 {
-                    if (i != j && i_dest_substitutions[i].m_identifier_name == i_dest_substitutions[j].m_identifier_name)
+                    if (!AlwaysEqual(exiting_substitution.m_value, i_substitution.m_value))
                     {
-                        if (!AlwaysEqual(i_dest_substitutions[i].m_value, i_dest_substitutions[j].m_value))
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
             }
+            m_substitutions.push_back(i_substitution);
+            return true;
+        }
 
+        /* Add the source substitutions to the dest vector. If there is
+            a contradiction returns false, otherwise true. */
+        bool SubstitutionsBuilder::AddToBottomLayer(
+            const std::vector<Substitution> & i_source_substitutions)
+        {
+            for (const Substitution & substitution : i_source_substitutions)
+            {
+                if (!AddToBottomLayer(substitution))
+                    return false;
+            }
             // no contradictions
             return true;
         }
 
-        bool SubstitutionsBuilder::AddSubstitutions(
+        void SubstitutionsBuilder::AddToVariadic(
+            const std::vector<Substitution>& i_source_substitutions)
+        {
+            for (const Substitution& subst : i_source_substitutions)
+            {
+                VariadicValue& variadic_value = m_variadic_substitutions[subst.m_identifier_name];
+                if (variadic_value.m_stack.size() < m_curr_depth)
+                    variadic_value.m_stack.resize(m_curr_depth);
+                variadic_value.m_stack.back().push_back(subst.m_value);
+            }
+        }
+
+        Tensor SubstitutionsBuilder::VariadicClear(VariadicValue& i_dest)
+        {
+            DJUP_ASSERT(i_dest.m_stack.size() >= 1);
+
+            while (i_dest.m_stack.size() > 1)
+                VariadicReduceDepth(i_dest);
+
+            Tensor result = ReverseToTuple(i_dest.m_stack.front());
+            i_dest.m_stack.clear();
+            return result;
+        }
+
+        void SubstitutionsBuilder::VariadicReduceDepth(VariadicValue& i_dest)
+        {
+            DJUP_ASSERT(i_dest.m_stack.size() >= 2);
+
+            const size_t size = i_dest.m_stack.size();
+            i_dest.m_stack[size - 2].push_back(Tuple(i_dest.m_stack[size - 1]));
+            i_dest.m_stack.pop_back();
+        }
+
+        Tensor SubstitutionsBuilder::ReverseToTuple(const std::vector<Tensor>& i_source)
+        {
+            std::vector<Tensor> arguments;
+            arguments.reserve(i_source.size());
+            for (auto it = i_source.rbegin(); it != i_source.rend(); ++it)
+                arguments.push_back(*it);
+            return Tuple(arguments);
+        }
+
+        bool SubstitutionsBuilder::Add(
             const std::vector<Substitution>& i_substitutions,
             uint32_t i_open, uint32_t i_close)
         {
-            return AddSubstitutionsToSolution(m_substitutions, i_substitutions);
+            m_curr_depth += i_close;
+
+            if (m_curr_depth == 0)
+            {
+                return AddToBottomLayer(i_substitutions);
+            }
+            else
+            {                
+                AddToVariadic(i_substitutions);
+
+                m_curr_depth -= i_open;
+                //DJUP_ASSERT(m_curr_depth <= i_open); // detects underflow
+
+                if (m_curr_depth == 0)
+                {
+                    for (auto & var_subst : m_variadic_substitutions)
+                    {
+                        Tensor value = VariadicClear(var_subst.second);
+                        if (!AddToBottomLayer({ var_subst.first, value }))
+                        {
+                            return false;
+                        }
+                    }
+                    m_variadic_substitutions.clear();
+                }
+                else
+                {
+                    for (auto & var_subst : m_variadic_substitutions)
+                    {
+                        while (var_subst.second.m_stack.size() > m_curr_depth)
+                            VariadicReduceDepth(var_subst.second);
+                    }
+                }
+                return true;
+            }
         }
 
     } // namespace pattern
