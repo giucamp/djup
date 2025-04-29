@@ -56,7 +56,7 @@ namespace djup
 
             static void VariadicReduceDepth(VariadicValue& i_dest);
 
-            static Tensor ReverseToTuple(const std::vector<Tensor>& i_source);
+            static Tensor ToTuple(const std::vector<Tensor>& i_source);
 
         private:
             uint32_t m_curr_depth{};

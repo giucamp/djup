@@ -62,7 +62,6 @@ namespace djup
 
         struct Visitor
         {
-            const TensorType & m_this;
             const TensorType & m_other;
 
             bool operator () (std::monostate) const
@@ -73,17 +72,19 @@ namespace djup
             bool operator () (const ConstantShape& i_shape) const
             {
                 if (m_other.HasConstantShape())
-                    return m_this.GetConstantShape() == m_other.GetConstantShape();
+                    return m_other.GetConstantShape() == i_shape;
                 return false;
             }
 
             bool operator () (const Tensor& i_shape) const
             {
-                return AlwaysEqual(m_this.GetVariableShape(), m_other.GetVariableShape());
+                if(m_other.HasVariableShape())
+                    return AlwaysEqual(m_other.GetVariableShape(), i_shape);
+                return false;
             }
         };
 
-        return std::visit(Visitor{ *this, i_other }, m_shape);
+        return std::visit(Visitor{ i_other }, m_shape);
     }
 
     bool ShapeEqual(const TensorType::ShapeVector& i_first,

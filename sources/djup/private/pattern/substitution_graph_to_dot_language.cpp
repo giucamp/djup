@@ -117,7 +117,8 @@ namespace djup
                     text += std::string(edge.m_close, '-');
 
                 graph.AddEdge(source_node, edge.m_dest, text)
-                    .SetDrawingColor({0, 0, 255});
+                    .SetDrawingColor({0, 0, 210 })
+                    .SetFontColor({ 0, 0, 210 });
             }
 
             // candidates
@@ -125,12 +126,9 @@ namespace djup
             {
                 std::string text = TensorListToString(candidate.m_targets);
                 text += "\nis\n";
-                text += TensorListToString(Span(candidate.m_discr_edge->m_labels).
-                    subspan(candidate.m_pattern_offset));
+                text += TensorListToString(candidate.m_patterns);
                 if (candidate.m_repetitions != 1)
                     text += " (" + ToString(candidate.m_repetitions) + " times)";
-                if (candidate.m_pattern_offset != 0)
-                    text += ToString("\n targ-off: ", candidate.m_pattern_offset);
 
                 if (candidate.m_open != 0 || candidate.m_close != 0)
                     text += "\n";

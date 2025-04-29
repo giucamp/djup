@@ -177,6 +177,16 @@ namespace djup
                 auto pattern = "Sin(f(real x..., real y...)..., f(real z..., real w...)..., f(real u..., real p...)...)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
                 CORE_EXPECTS(solutions == 3600);
+                g_enable_graphviz = false;
+            }
+
+            {
+                g_enable_graphviz = false;
+                auto target = "f(1 2 3 4)"_t;
+                auto pattern = "f(real x... real y...)"_t;
+                size_t solutions = PatternMatchingCount(target, pattern);
+                CORE_EXPECTS(solutions == 5);
+                g_enable_graphviz = false;
             }
 
             {

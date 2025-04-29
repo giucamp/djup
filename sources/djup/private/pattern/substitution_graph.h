@@ -90,16 +90,16 @@ namespace djup
                 uint32_t m_dest_node = std::numeric_limits<uint32_t>::max();
                 //Pool<CandidateEdge>::Handle m_dest_candidate;
 
+                Span<const Tensor> m_patterns;
+                Span<const LabelInfo> m_patterns_info;
                 Span<const Tensor> m_targets;
-
-                uint32_t m_pattern_offset{ 0 };
 
                 uint32_t m_repetitions{ 1 };
 
                 uint32_t m_open{ 0 };
                 uint32_t m_close{ 0 };
 
-                const DiscriminationTree::Edge* m_discr_edge{nullptr};
+                //const DiscriminationTree::Edge* m_discr_edge{nullptr};
 
                 std::vector<Substitution> m_substitutions;
             };
@@ -117,7 +117,7 @@ namespace djup
 
         private:
 
-            void ExpandDiscriminationmNode(const DiscrNodeToExpand& i_node_to_expand);
+            void ExpandDiscriminationNode(const DiscrNodeToExpand& i_node_to_expand);
 
             void ProcessCandidateEdge(DescendContext& i_context, CandHandle i_candudate_edge_handle);
 

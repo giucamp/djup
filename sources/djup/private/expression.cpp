@@ -22,6 +22,16 @@ namespace djup
     void ToSimplifiedString(StringBuilder & i_dest, const Expression& i_source,
         FormatFlags i_format_flags, size_t i_depth);
 
+    FunctionFlags GetFunctionFlags(const Name& i_function_name)
+    {
+        FunctionFlags flags = {};
+        if (i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "Equals")
+            flags = CombineFlags(flags, FunctionFlags::Commutative);
+        if (i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "MatMul")
+            flags = CombineFlags(flags, FunctionFlags::Associative);
+        return flags;
+    }
+
     Expression::Expression()
     {
         m_hash << m_name;

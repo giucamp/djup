@@ -17,7 +17,7 @@ namespace djup
     {
         struct ExpressionToGraphContext
         {
-            GraphWizGraph m_graph;
+            GraphWizGraph & m_graph;
             int32_t m_node_count{};
         };
 
@@ -61,9 +61,11 @@ namespace djup
         }
 
         GraphWizGraph TensorToGraph(const Expression& i_source,
+            const std::string & i_label,
             FormatFlags i_format_flags, size_t i_depth)
         {
-            ExpressionToGraphContext context;
+            GraphWizGraph graph(i_label);
+            ExpressionToGraphContext context{ graph, 0 };
             TensorToGraph(context, i_source, i_format_flags, i_depth);
             return context.m_graph;
         }
@@ -73,6 +75,7 @@ namespace djup
     GraphWizGraph TensorToGraph(const Tensor& i_source,
         FormatFlags i_format_flags, size_t i_depth)
     {
-        return TensorToGraph(*i_source.GetExpression(), i_format_flags, i_depth);
+        return TensorToGraph(*i_source.GetExpression(),
+            ToSimplifiedString(i_source), i_format_flags, i_depth);
     }
 }

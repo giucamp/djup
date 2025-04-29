@@ -60,7 +60,7 @@ namespace djup
                 {
                     const DiscrNodeToExpand node_to_expand = m_discr_nodes_to_expand.back();
                     m_discr_nodes_to_expand.pop_back();
-                    ExpandDiscriminationmNode(node_to_expand);
+                    ExpandDiscriminationNode(node_to_expand);
                 }
                 else
                     break; // main loop is over
@@ -69,13 +69,20 @@ namespace djup
             FlushSolutions();
         }
 
-        void SubstitutionGraph::ExpandDiscriminationmNode(
+        void SubstitutionGraph::ExpandDiscriminationNode(
             const DiscrNodeToExpand & i_node_to_expand)
         {
+            DJUP_DEBUG_SUBSTGRAPH_PRINTLN("Exanding node ", i_node_to_expand.m_node, 
+                " for ", TensorSpanToString(i_node_to_expand.m_targets));
+
             // expand the discrimination node
             for (auto& edge_it : m_discrimination_tree.EdgesFrom(i_node_to_expand.m_node))
             {
                 const DiscriminationTree::Edge& edge = edge_it.second;
+
+                DJUP_DEBUG_SUBSTGRAPH_PRINTLN("\t", TensorSpanToString(edge.m_labels),
+                    ". If ", i_node_to_expand.m_targets.size(), " belongs to ",
+                    edge.m_pattern_info.m_labels_range);
 
                 /* early reject if the number of parameters (targets) is incompatible
                     with the number of labels in the pattern */
@@ -88,23 +95,22 @@ namespace djup
                     cand_edge.m_source_node = edge.m_dest_node;
                     cand_edge.m_dest_node = edge_it.first;
 
-                    cand_edge.m_discr_edge = &edge;
+                    //cand_edge.m_discr_edge = &edge;
                     cand_edge.m_targets = i_node_to_expand.m_targets;
-
+                    cand_edge.m_patterns = edge.m_labels;
+                    cand_edge.m_patterns_info = edge.m_pattern_info.m_labels_info;
                     m_candidate_edges_queue.push_back(handle);
                 }
             }
         }
 
         void SubstitutionGraph::ProcessCandidateEdge(
-            DescendContext & i_context, CandHandle i_candudate_edge_handle)
+            DescendContext & i_context, CandHandle i_candidate_edge_handle)
         {
-            CandidateEdge * candidate = &m_candidate_edges.GetObject(i_candudate_edge_handle);
+            CandidateEdge * candidate = &m_candidate_edges.GetObject(i_candidate_edge_handle);
 
-            const Span<const Tensor> labels =
-                Span(candidate->m_discr_edge->m_labels).subspan(candidate->m_pattern_offset);
-            const Span<const LabelInfo> label_infos =
-                Span(candidate->m_discr_edge->m_pattern_info.m_labels_info).subspan(candidate->m_pattern_offset);
+            const Span<const Tensor> labels = candidate->m_patterns;
+            const Span<const LabelInfo> label_infos = candidate->m_patterns_info;
 
             DJUP_DEBUG_SUBSTGRAPH_PRINTLN("Process Candidate. Discr: ",
                 candidate->m_source_node, " -> ", candidate->m_dest_node,
@@ -159,7 +165,7 @@ namespace djup
                             {
                                 DiscrNodeToExpand node_to_process;
                                 node_to_process.m_targets = target.GetExpression()->GetArguments();
-                                node_to_process.m_node = candidate->m_discr_edge->m_dest_node;
+                                node_to_process.m_node = candidate->m_source_node;
                                 m_discr_nodes_to_expand.push_back(node_to_process);
                             }
                             else
@@ -208,7 +214,7 @@ namespace djup
                             used += sub_pattern_count, rep++)
                         {
                             auto targets = candidate->m_targets;
-                            auto curr_edge = candidate->m_discr_edge;
+                            // auto curr_edge = candidate->m_discr_edge;
                             auto open = candidate->m_open;
                             auto close = candidate->m_close;
                             
@@ -229,11 +235,12 @@ namespace djup
                                 rep_candidate.m_source_node = source_node;
                                 rep_candidate.m_dest_node = middle_node;
                                 rep_candidate.m_targets = targets.subspan(target_index, used);
-                                rep_candidate.m_pattern_offset = 0;
+                                rep_candidate.m_patterns = next_edge.m_labels;
+                                rep_candidate.m_patterns_info = next_edge.m_pattern_info.m_labels_info;
                                 rep_candidate.m_repetitions = rep;
                                 rep_candidate.m_open = open + 1;
                                 rep_candidate.m_close = close + 1;
-                                rep_candidate.m_discr_edge = &next_edge;
+                                //rep_candidate.m_discr_edge = &next_edge;
                                 m_candidate_edges_queue.push_back(rep_cand_handle);
 
                                 // continuation candidate
@@ -243,14 +250,15 @@ namespace djup
                                 cont_candidate.m_source_node = middle_node;
                                 cont_candidate.m_dest_node = dest_node;
                                 cont_candidate.m_targets = targets.subspan(target_index + used);
-                                cont_candidate.m_pattern_offset = label_index + 1;
+                                cont_candidate.m_patterns = labels.subspan(label_index + 1);
+                                cont_candidate.m_patterns_info = label_infos.subspan(label_index + 1);
                                 cont_candidate.m_repetitions = 1;
                                 cont_candidate.m_open = open;
                                 cont_candidate.m_close = close;
-                                cont_candidate.m_discr_edge = curr_edge;
+                                // cont_candidate.m_discr_edge = curr_edge;
                                 m_candidate_edges_queue.push_back(cont_cand_handle);
 
-                                candidate = &m_candidate_edges.GetObject(i_candudate_edge_handle);
+                                candidate = &m_candidate_edges.GetObject(i_candidate_edge_handle);
                             }
                         }
                         return;
@@ -419,7 +427,8 @@ namespace djup
                         Error();
                     } */
 
-                    if (i_tensor.GetExpression()->GetName() == subst.m_identifier_name)
+                    if (//IsIdentifier(i_tensor) &&
+                        i_tensor.GetExpression()->GetName() == subst.m_identifier_name)
                     {
                         return subst.m_value;
                     }

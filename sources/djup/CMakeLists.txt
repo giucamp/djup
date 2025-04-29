@@ -11,7 +11,6 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 add_library(djup STATIC
-
     #headers
     private/alphabet.h
     private/builtin_names.h
@@ -59,6 +58,7 @@ add_library(djup STATIC
     private/tensor_to_graph.cpp
     private/tensor_to_string.cpp
     private/tensor_type.cpp
+    tests/test_discrimination_tree.cpp
     tests/test_djup.cpp
     tests/test_lexer.cpp
     tests/test_old_pattern.cpp

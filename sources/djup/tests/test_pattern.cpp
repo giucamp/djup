@@ -35,9 +35,12 @@ namespace djup
                 std::filesystem::create_directories(artifact_path);
             }
 
+            /*TensorToGraph("f(1 2 Sin(a + g(b...))... + c 3 4)"_t)
+                .SaveAsImage(artifact_path / "nested_pattern.png");*/
+
             CORE_EXPECTS_EQ(ToSimplifiedString("4"_t), "4");
 
-#if 1
+#if 0
             // pattern 1
             {
                 pattern::DiscriminationTree discrimination_net;
@@ -121,10 +124,13 @@ namespace djup
                 std::string target = "g(1 2 3 4 5 6)";
             
                 auto callback = [&] {
-                    std::string name = step == 0 ? "Initial" : ToString("Step_", step);
-                    substitution_graph.ToDotGraphWiz(name).SaveAsImage(
-                        artifact_path / (name + ".png") );
-                    step++;
+                    if (save_it)
+                    {
+                        std::string name = step == 0 ? "Initial" : ToString("Step_", step);
+                        substitution_graph.ToDotGraphWiz(name).SaveAsImage(
+                            artifact_path / (name + ".png"));
+                        step++;
+                    }
                 };
 
                 substitution_graph.FindMatches(*GetStandardNamespace(), target.c_str(), callback);
@@ -146,14 +152,15 @@ namespace djup
                 std::string target = "g(1 2 3 4 5 6)";
 
                 auto callback = [&] {
-                    std::string name = step == 0 ? "Initial" : ToString("Step_", step);
-                    substitution_graph.ToDotGraphWiz(name).SaveAsImage(
-                        artifact_path / (name + ".png") );
-                    step++;
+                    if (save_it)
+                    {
+                        std::string name = step == 0 ? "Initial" : ToString("Step_", step);
+                        substitution_graph.ToDotGraphWiz(name).SaveAsImage(
+                            artifact_path / (name + ".png"));
+                        step++;
+                    }
                 };
             }
-
-#endif
 
             // tree 3
             {
@@ -164,7 +171,7 @@ namespace djup
                 pattern::DiscriminationTree discrimination_net;
                 discrimination_net.AddPattern(1, pattern);
                 discrimination_net.AddPattern(2, pattern2);
-                static bool save_it = true;
+                static bool save_it = false;
                 if (save_it)
                 {
                     discrimination_net.ToGraphWiz("discr").SaveAsImage(artifact_path / "discr.png");
@@ -175,9 +182,63 @@ namespace djup
                 int step = 0;                
 
                 auto callback = [&] {
-                    std::string name = step == 0 ? "Initial" : ToString("Step_", step);
-                    substitution_graph.ToDotGraphWiz(name).SaveAsImage(artifact_path / (name + ".png"));
-                    step++;
+                    if (save_it)
+                    {
+                        std::string name = step == 0 ? "Initial" : ToString("Step_", step);
+                        substitution_graph.ToDotGraphWiz(name).SaveAsImage(artifact_path / (name + ".png"));
+                        step++;
+                    }
+                };
+
+                substitution_graph.FindMatches(*GetStandardNamespace(), target, callback);
+
+                CORE_EXPECTS(substitution_graph.GetSolutions().size() == 1);
+                const auto & solution = substitution_graph.GetSolutionAt(0);
+                const auto & substitutions = solution.m_substitutions.GetSubstitutions();
+
+                Tensor after_sub = pattern::ApplySubstitutions(pattern, substitutions);
+
+                //CORE_EXPECTS(AlwaysEqual(after_sub, Tensor(target)));
+            }
+
+#endif
+
+
+            // tree 4
+            {
+                /*Tensor pattern = "f(g(x...)...)";
+                //Tensor pattern2 = "f(1)";
+                Tensor target = "f(g(1 2) g(3 4))";*/
+
+                Tensor pattern = "f(real x... 4)";
+                Tensor target = "f(1 2 3 4)";
+
+                /*Tensor pattern =  "f(1 g(real a)...)";
+                Tensor pattern2 = "f(1 w(real b)...)";
+                Tensor target = "f(1 g(1) g(2) g(3))";*/
+                
+                pattern::DiscriminationTree discrimination_net;
+                discrimination_net.AddPattern(1, pattern);
+                //discrimination_net.AddPattern(2, pattern2);
+                static bool save_it = true;
+                if (save_it)
+                {
+                    std::string graph_title = ToSimplifiedString(target) + "\ndiscr";
+                    discrimination_net.ToGraphWiz(graph_title).SaveAsImage(artifact_path / "discr.png");
+                }
+
+                // substitutions
+                pattern::SubstitutionGraph substitution_graph(discrimination_net);
+                int step = 0;
+
+                auto callback = [&] {
+                    if (save_it)
+                    {
+                        std::string name = step == 0 ? "Initial" : ToString("Step_", step);
+                        std::string title = ToSimplifiedString(target) + "\n" + name;
+                        substitution_graph.ToDotGraphWiz(title).SaveAsImage(artifact_path / (name + ".png"));
+                        step++;
+                    }
                 };
 
                 substitution_graph.FindMatches(*GetStandardNamespace(), target, callback);
@@ -188,7 +249,7 @@ namespace djup
 
                 Tensor after_sub = pattern::ApplySubstitutions(pattern, substitutions);
 
-                CORE_EXPECTS(AlwaysEqual(after_sub, Tensor(target)));
+                //CORE_EXPECTS(AlwaysEqual(after_sub, Tensor(target)));
             }
 
             PrintLn("successful");

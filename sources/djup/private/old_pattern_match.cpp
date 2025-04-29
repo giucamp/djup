@@ -690,12 +690,12 @@ namespace djup
             segment.m_labels = {&arg_info, 1};
             AddCandidate(context, 1, 0, {&target, 1}, segment, {}, {});
 
-            /*#if DBG_CREATE_GRAPHVIZ_SVG
+            #if DBG_CREATE_GRAPHVIZ_SVG
             if(g_enable_graphviz)
             {
                 DumpGraphviz(context, "InitialState");
             }
-            #endif*/
+            #endif
 
             int dbg_step = 0;
             do {
@@ -834,16 +834,6 @@ namespace djup
         }
 
     } // namespace
-
-    FunctionFlags GetFunctionFlags(const Name & i_function_name)
-    {
-        FunctionFlags flags = {};
-        if(i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "Equals")
-            flags = CombineFlags(flags, FunctionFlags::Commutative);
-        if(i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "MatMul")
-            flags = CombineFlags(flags, FunctionFlags::Associative);
-        return flags;
-    }
 
     PatternMatch Match(const Tensor & i_target, const Tensor & i_pattern)
     {

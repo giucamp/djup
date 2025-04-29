@@ -173,6 +173,9 @@
     <ClCompile Include="..\private\pattern\substitutions_builder.cpp">
       <Filter>private\pattern</Filter>
     </ClCompile>
+    <ClCompile Include="..\tests\test_discrimination_tree.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis">

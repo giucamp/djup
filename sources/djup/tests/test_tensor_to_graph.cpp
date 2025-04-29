@@ -21,8 +21,10 @@ namespace djup
             
             std::string dot = TensorToGraph("3 + 2 * 5"_t).ToDotLanguage();
             // SaveGraph(test_dir + "\\expr.txt", "expr", dot);
-            std::string expected = R"(digraph unnamed_graph
+            std::string expected = R"tensor_to_graph(digraph
 {
+	label = "Add(3, Mul(2, 5))"
+	dpi = 384
 	v0[shape = ellipse label = "Add" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v1[shape = ellipse label = "3" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v2[shape = ellipse label = "Mul" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
@@ -33,7 +35,7 @@ namespace djup
 	v2 -> v4[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
 	v0 -> v2[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
 }
-)";
+)tensor_to_graph";
             CORE_EXPECTS_EQ(dot, expected);
 
             PrintLn("successful");

@@ -60,7 +60,7 @@ namespace djup
             while (i_dest.m_stack.size() > 1)
                 VariadicReduceDepth(i_dest);
 
-            Tensor result = ReverseToTuple(i_dest.m_stack.front());
+            Tensor result = ToTuple(i_dest.m_stack.front());
             i_dest.m_stack.clear();
             return result;
         }
@@ -74,11 +74,11 @@ namespace djup
             i_dest.m_stack.pop_back();
         }
 
-        Tensor SubstitutionsBuilder::ReverseToTuple(const std::vector<Tensor>& i_source)
+        Tensor SubstitutionsBuilder::ToTuple(const std::vector<Tensor>& i_source)
         {
             std::vector<Tensor> arguments;
             arguments.reserve(i_source.size());
-            for (auto it = i_source.rbegin(); it != i_source.rend(); ++it)
+            for (auto it = i_source.begin(); it != i_source.end(); ++it)
                 arguments.push_back(*it);
             return Tuple(arguments);
         }

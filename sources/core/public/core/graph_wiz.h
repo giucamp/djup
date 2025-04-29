@@ -60,7 +60,7 @@ namespace core
 
         /* Sets the resolution of the image. The default is 384. */
         GraphWizGraph & SetDPI(uint32_t i_dpi)
-            { m_dpi = i_dpi; }
+            { m_dpi = i_dpi; return *this; }
 
                 /* nodes */
 
