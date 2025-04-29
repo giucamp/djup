@@ -58,6 +58,10 @@ namespace core
         GraphWizGraph & SetLayoutEngine(std::string i_layout_engine)
             { m_layout_engine = std::move(i_layout_engine); return *this; }
 
+        /* Sets the resolution of the image. The default is 384. */
+        GraphWizGraph & SetDPI(uint32_t i_dpi)
+            { m_dpi = i_dpi; }
+
                 /* nodes */
 
         enum class NodeShape
@@ -160,6 +164,7 @@ namespace core
         std::string m_graph_name;
         std::string m_output_format = "png";
         std::string m_layout_engine = "dot";
+        uint32_t m_dpi = 384;
         std::vector<Node> m_nodes;
         std::vector<Edge> m_edges;
         static std::filesystem::path s_dot_exe;

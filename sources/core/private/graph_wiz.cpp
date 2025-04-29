@@ -126,15 +126,18 @@ namespace core
     {
         StringBuilder builder;
 
-        builder << "digraph " << m_graph_name;
+        builder << "digraph";
         builder.NewLine();
         builder << "{";
         builder.NewLine();
         builder.Tab();
 
+        builder << "label = \"" << m_graph_name << "\""; builder.NewLine();
+        builder << "dpi = " << m_dpi; builder.NewLine();
+
         for (size_t node_index = 0; node_index < m_nodes.size(); ++node_index)
         {
-            const Node& node = m_nodes[node_index];
+            const Node & node = m_nodes[node_index];
             builder << "v" << node_index << "[";
 
             switch (node.m_shape)
