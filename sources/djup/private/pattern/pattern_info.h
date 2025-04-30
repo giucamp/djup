@@ -74,7 +74,7 @@ namespace djup
         };
 
         /** Describes a single parameter of a pattern, for example b in f(a, b, c) */
-        struct LabelInfo
+        struct ArgumentInfo
         {
             /** How many times this label can be repeated: [1,1] for plain parameters,
                 [0,Inf] for variadic parameters, etc. */
@@ -100,10 +100,10 @@ namespace djup
 
             /** Minimum and maximum number of parameters that may match this pattern.
                 Used to early reject target spans. */
-            Range m_labels_range;
+            Range m_arguments_range;
 
             /** Describes every single label of the pattern. */
-            std::vector<LabelInfo> m_labels_info;
+            std::vector<ArgumentInfo> m_arguments_info;
         };
 
         /** Returns true if the (root) expression is a repetition (?, .. or ...) */
@@ -143,11 +143,11 @@ namespace core
         void operator() (CharBufferView& i_dest, const djup::pattern::PatternInfo & i_source)
         {
             i_dest << "Pattern: " << i_source.m_dbg_str_pattern << "\n";
-            i_dest << "Arguments: " << i_source.m_labels_range.ToString() << "\n";
-            for (size_t i = 0; i < i_source.m_labels_info.size(); ++i)
+            i_dest << "Arguments: " << i_source.m_arguments_range.ToString() << "\n";
+            for (size_t i = 0; i < i_source.m_arguments_info.size(); ++i)
             {
-                i_dest << "Label[" << i << "]: " << i_source.m_labels_info[i].m_cardinality.ToString();
-                i_dest << " Remaining: " << i_source.m_labels_info[i].m_remaining.ToString() << "\n";
+                i_dest << "Label[" << i << "]: " << i_source.m_arguments_info[i].m_cardinality.ToString();
+                i_dest << " Remaining: " << i_source.m_arguments_info[i].m_remaining.ToString() << "\n";
             }
         }
     };

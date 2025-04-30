@@ -25,16 +25,16 @@ namespace djup
             auto infinity = std::numeric_limits<int32_t>::max();
 
             CORE_EXPECTS(info_1.m_flags == FunctionFlags{});
-            CORE_EXPECTS_EQ(info_1.m_labels_range, (Range{2, infinity }) );
+            CORE_EXPECTS_EQ(info_1.m_arguments_range, (Range{2, infinity }) );
 
-            CORE_EXPECTS_EQ(NumericCast<int32_t>(info_1.m_labels_info.size()), 3);
+            CORE_EXPECTS_EQ(NumericCast<int32_t>(info_1.m_arguments_info.size()), 3);
 
-            CORE_EXPECTS_EQ(info_1.m_labels_info[0].m_cardinality, (Range{ 1, 1 }) );
-            CORE_EXPECTS_EQ(info_1.m_labels_info[1].m_cardinality, (Range{ 1, 1 }) );
-            CORE_EXPECTS_EQ(info_1.m_labels_info[2].m_cardinality, (Range{ 0, infinity }) );
-            CORE_EXPECTS_EQ(info_1.m_labels_info[0].m_remaining, (Range{ 1, infinity }));
-            CORE_EXPECTS_EQ(info_1.m_labels_info[1].m_remaining, (Range{ 0, infinity }));
-            CORE_EXPECTS_EQ(info_1.m_labels_info[2].m_remaining, (Range{ 0, 0 }));
+            CORE_EXPECTS_EQ(info_1.m_arguments_info[0].m_cardinality, (Range{ 1, 1 }) );
+            CORE_EXPECTS_EQ(info_1.m_arguments_info[1].m_cardinality, (Range{ 1, 1 }) );
+            CORE_EXPECTS_EQ(info_1.m_arguments_info[2].m_cardinality, (Range{ 0, infinity }) );
+            CORE_EXPECTS_EQ(info_1.m_arguments_info[0].m_remaining, (Range{ 1, infinity }));
+            CORE_EXPECTS_EQ(info_1.m_arguments_info[1].m_remaining, (Range{ 0, infinity }));
+            CORE_EXPECTS_EQ(info_1.m_arguments_info[2].m_remaining, (Range{ 0, 0 }));
 
             #if DJUP_DEBUG_PATTERN_INFO           
             
@@ -54,34 +54,34 @@ Arg[2]: 0, Inf Remaining: 0, 0)";
             const pattern::PatternInfo info_2 = pattern::BuildPatternInfo(
                 "g(1 a... 10 11 b...)");
 
-            CORE_EXPECTS_EQ(info_2.m_labels_info[0].m_cardinality, (Range{ 1, 1 }));
-            CORE_EXPECTS_EQ(info_2.m_labels_info[1].m_cardinality, (Range{ 0, infinity }));
-            CORE_EXPECTS_EQ(info_2.m_labels_info[2].m_cardinality, (Range{ 1, 1 }));
-            CORE_EXPECTS_EQ(info_2.m_labels_info[3].m_cardinality, (Range{ 1, 1 }));
-            CORE_EXPECTS_EQ(info_2.m_labels_info[4].m_cardinality, (Range{ 0, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[0].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[1].m_cardinality, (Range{ 0, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[2].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[3].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[4].m_cardinality, (Range{ 0, infinity }));
 
-            CORE_EXPECTS_EQ(info_2.m_labels_info[0].m_remaining, (Range{ 2, infinity }));
-            CORE_EXPECTS_EQ(info_2.m_labels_info[1].m_remaining, (Range{ 2, infinity }));
-            CORE_EXPECTS_EQ(info_2.m_labels_info[2].m_remaining, (Range{ 1, infinity }));
-            CORE_EXPECTS_EQ(info_2.m_labels_info[3].m_remaining, (Range{ 0, infinity }));
-            CORE_EXPECTS_EQ(info_2.m_labels_info[4].m_remaining, (Range{ 0, 0 }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[0].m_remaining, (Range{ 2, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[1].m_remaining, (Range{ 2, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[2].m_remaining, (Range{ 1, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[3].m_remaining, (Range{ 0, infinity }));
+            CORE_EXPECTS_EQ(info_2.m_arguments_info[4].m_remaining, (Range{ 0, 0 }));
 
             /////////////////////////////////////////////////
 
             const pattern::PatternInfo info_3 = pattern::BuildPatternInfo(
                 "g(1 a.. 10 11 b...)");
 
-            CORE_EXPECTS_EQ(info_3.m_labels_info[0].m_cardinality, (Range{ 1, 1 }));
-            CORE_EXPECTS_EQ(info_3.m_labels_info[1].m_cardinality, (Range{ 1, infinity }));
-            CORE_EXPECTS_EQ(info_3.m_labels_info[2].m_cardinality, (Range{ 1, 1 }));
-            CORE_EXPECTS_EQ(info_3.m_labels_info[3].m_cardinality, (Range{ 1, 1 }));
-            CORE_EXPECTS_EQ(info_3.m_labels_info[4].m_cardinality, (Range{ 0, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[0].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[1].m_cardinality, (Range{ 1, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[2].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[3].m_cardinality, (Range{ 1, 1 }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[4].m_cardinality, (Range{ 0, infinity }));
 
-            CORE_EXPECTS_EQ(info_3.m_labels_info[0].m_remaining, (Range{ 3, infinity }));
-            CORE_EXPECTS_EQ(info_3.m_labels_info[1].m_remaining, (Range{ 2, infinity }));
-            CORE_EXPECTS_EQ(info_3.m_labels_info[2].m_remaining, (Range{ 1, infinity }));
-            CORE_EXPECTS_EQ(info_3.m_labels_info[3].m_remaining, (Range{ 0, infinity }));
-            CORE_EXPECTS_EQ(info_3.m_labels_info[4].m_remaining, (Range{ 0, 0 }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[0].m_remaining, (Range{ 3, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[1].m_remaining, (Range{ 2, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[2].m_remaining, (Range{ 1, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[3].m_remaining, (Range{ 0, infinity }));
+            CORE_EXPECTS_EQ(info_3.m_arguments_info[4].m_remaining, (Range{ 0, 0 }));
 
             PrintLn("successful");
         }

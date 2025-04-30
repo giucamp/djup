@@ -81,11 +81,11 @@ namespace djup
 
                 DJUP_DEBUG_SUBSTGRAPH_PRINTLN("\t", TensorSpanToString(edge.m_labels),
                     ". If ", i_node_to_expand.m_targets.size(), " belongs to ",
-                    edge.m_pattern_info.m_labels_range);
+                    edge.m_pattern_info.m_arguments_range);
 
                 /* early reject if the number of parameters (targets) is incompatible
                     with the number of patterns in the pattern */
-                if (edge.m_pattern_info.m_labels_range.IsValaueWithin(
+                if (edge.m_pattern_info.m_arguments_range.IsValaueWithin(
                     NumericCast<int32_t>(i_node_to_expand.m_targets.size())))
                 {
                     CandHandle handle = m_candidate_edges.New();
@@ -95,7 +95,8 @@ namespace djup
                     cand_edge.m_dest_node = edge.m_dest_node;
                     cand_edge.m_targets = i_node_to_expand.m_targets;
                     cand_edge.m_patterns = edge.m_labels;
-                    cand_edge.m_patterns_info = edge.m_pattern_info.m_labels_info;
+                    cand_edge.m_patterns_info = edge.m_pattern_info.m_arguments_info;
+                    cand_edge.m_discrimination_node = i_node_to_expand.m_node;
                     m_candidate_edges_queue.push_back(handle);
                 }
             }
@@ -107,7 +108,7 @@ namespace djup
             CandidateEdge * candidate = &m_candidate_edges.GetObject(i_candidate_edge_handle);
 
             const Span<const Tensor> patterns = candidate->m_patterns;
-            const Span<const LabelInfo> patterns_infos = candidate->m_patterns_info;
+            const Span<const ArgumentInfo> patterns_infos = candidate->m_patterns_info;
 
             DJUP_DEBUG_SUBSTGRAPH_PRINTLN("Process Candidate. Discr: ",
                 candidate->m_source_node, " -> ", candidate->m_dest_node,
@@ -120,7 +121,7 @@ namespace djup
             {
                 for (uint32_t patterns_index = 0; patterns_index < patterns.size(); ++patterns_index, ++target_index)
                 {
-                    const LabelInfo& pattern_info = patterns_infos[patterns_index];
+                    const ArgumentInfo& pattern_info = patterns_infos[patterns_index];
                     if (pattern_info.m_cardinality.m_min == pattern_info.m_cardinality.m_max)
                     {
                         /* non-variadic argument */
@@ -211,17 +212,12 @@ namespace djup
                             used += sub_pattern_count, rep++)
                         {
                             auto targets = candidate->m_targets;
-                            // auto curr_edge = candidate->m_discr_edge;
                             auto open = candidate->m_open;
                             auto close = candidate->m_close;
                            
-
                             const uint32_t continuation_source = candidate->m_source_node;
-                            
-
                             const uint32_t repetition_source = candidate->m_dest_node;
                             
-
                             // expand the discrimination node
                             for (auto& edge_it : m_discrimination_tree.EdgesFrom(candidate->m_dest_node))
                             {
@@ -237,7 +233,7 @@ namespace djup
                                 rep_candidate.m_dest_node = repetition_dest;
                                 rep_candidate.m_targets = targets.subspan(target_index, used);
                                 rep_candidate.m_patterns = next_edge.m_labels;
-                                rep_candidate.m_patterns_info = next_edge.m_pattern_info.m_labels_info;
+                                rep_candidate.m_patterns_info = next_edge.m_pattern_info.m_arguments_info;
                                 rep_candidate.m_repetitions = rep;
                                 rep_candidate.m_open = open + 1;
                                 rep_candidate.m_close = close + 1;

@@ -79,11 +79,11 @@ namespace djup
         {
             FunctionFlags m_flags = FunctionFlags::None;
             Span<const Tensor> m_pattern;
-            Span<const LabelInfo> m_labels;
+            Span<const ArgumentInfo> m_labels;
             
             PatternSegment() = default;
 
-            PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern, Span<const LabelInfo> i_arguments)
+            PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern, Span<const ArgumentInfo> i_arguments)
                 : m_flags(i_flags), m_pattern(i_pattern), m_labels(i_arguments)
             {
                 DJUP_ASSERT(m_labels.size() == m_pattern.size());
@@ -500,7 +500,7 @@ namespace djup
                             PatternSegment pre_segment;
                             pre_segment.m_flags = pattern_info.m_flags;
                             pre_segment.m_pattern = pattern.GetExpression()->GetArguments();
-                            pre_segment.m_labels = pattern_info.m_labels_info;
+                            pre_segment.m_labels = pattern_info.m_arguments_info;
                             path.AddEdge(
                                 i_candidate.m_target_arguments.subspan(target_index, used),
                                 pre_segment, true, rep );
@@ -547,8 +547,8 @@ namespace djup
 
                         // if the target does not have enough arguments, early reject
                         size_t target_arguments = target.GetExpression()->GetArguments().size();
-                        if(target_arguments >= pattern_info.m_labels_range.m_min &&
-                            target_arguments <= pattern_info.m_labels_range.m_max )
+                        if(target_arguments >= pattern_info.m_arguments_range.m_min &&
+                            target_arguments <= pattern_info.m_arguments_range.m_max )
                         {
                             LinearPath path(i_context, i_candidate);
 
@@ -556,7 +556,7 @@ namespace djup
                             path.AddEdge(target.GetExpression()->GetArguments(), 
                                 PatternSegment{ pattern_info.m_flags,
                                     pattern.GetExpression()->GetArguments(),
-                                    pattern_info.m_labels_info });
+                                    pattern_info.m_arguments_info });
 
                             // rest of this repetition
                             const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
@@ -686,7 +686,7 @@ namespace djup
             PatternSegment segment;
             segment.m_flags = FunctionFlags::None;
             segment.m_pattern = {&pattern, 1};
-            LabelInfo arg_info{single_range, single_remaining};
+            ArgumentInfo arg_info{single_range, single_remaining};
             segment.m_labels = {&arg_info, 1};
             AddCandidate(context, 1, 0, {&target, 1}, segment, {}, {});
 

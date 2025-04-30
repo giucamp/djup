@@ -142,21 +142,21 @@ namespace djup
             PatternInfo result;
             result.m_flags = GetFunctionFlags(i_pattern.GetExpression()->GetName());
 
-            result.m_labels_info.resize(pattern_args.size());
+            result.m_arguments_info.resize(pattern_args.size());
 
             for(size_t i = 0; i < pattern_args.size(); i++)
             {
-                result.m_labels_info[i].m_cardinality = GetCardinality(pattern_args[i]);
-                result.m_labels_range += result.m_labels_info[i].m_cardinality;
+                result.m_arguments_info[i].m_cardinality = GetCardinality(pattern_args[i]);
+                result.m_arguments_range += result.m_arguments_info[i].m_cardinality;
             }
 
             for(size_t i = 0; i < pattern_args.size(); i++)
             {
                 Range remaining{0, 0};
                 for(size_t j = i + 1; j < pattern_args.size(); j++)
-                    remaining += result.m_labels_info[j].m_cardinality;
+                    remaining += result.m_arguments_info[j].m_cardinality;
             
-                result.m_labels_info[i].m_remaining = remaining;
+                result.m_arguments_info[i].m_remaining = remaining;
             }
 
             #if DJUP_DEBUG_PATTERN_INFO
@@ -164,13 +164,13 @@ namespace djup
 
                 result.m_dbg_str_pattern = ToSimplifiedString(result.m_dbg_pattern);
 
-                result.m_dbg_labels = "Arguments: " + result.m_labels_range.ToString();
-                for (size_t i = 0; i < result.m_labels_info.size(); ++i)
+                result.m_dbg_labels = "Arguments: " + result.m_arguments_range.ToString();
+                for (size_t i = 0; i < result.m_arguments_info.size(); ++i)
                 {
                     result.m_dbg_labels += "\nArg[" + std::to_string(i) + "]: " +
-                        result.m_labels_info[i].m_cardinality.ToString();
+                        result.m_arguments_info[i].m_cardinality.ToString();
                     result.m_dbg_labels += " Remaining: " +
-                        result.m_labels_info[i].m_remaining.ToString();
+                        result.m_arguments_info[i].m_remaining.ToString();
                 }
             #endif
 

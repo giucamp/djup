@@ -88,10 +88,10 @@ namespace djup
 
             // pattern info for the first level node (the one that starts from the root)
             PatternInfo pattern_info;
-            pattern_info.m_labels_range = { 1, 1 };
-            pattern_info.m_labels_info.resize(1);
-            pattern_info.m_labels_info[0].m_cardinality = { 1, 1 };
-            pattern_info.m_labels_info[0].m_remaining = { 0, 0 };
+            pattern_info.m_arguments_range = { 1, 1 };
+            pattern_info.m_arguments_info.resize(1);
+            pattern_info.m_arguments_info[0].m_cardinality = { 1, 1 };
+            pattern_info.m_arguments_info[0].m_remaining = { 0, 0 };
             pattern_info.m_flags = {};
             #if DJUP_DEBUG_PATTERN_INFO
                 pattern_info.m_dbg_pattern = i_pattern;
@@ -149,14 +149,14 @@ namespace djup
                 {
                     // merge the cardinalities in the exiting edge
                     existing_edge.m_pattern_info.m_flags = i_source_pattern_info.m_flags;
-                    existing_edge.m_pattern_info.m_labels_range|= i_source_pattern_info.m_labels_range;
-                    existing_edge.m_pattern_info.m_labels_info.resize(existing_edge.m_pattern_info.m_labels_info.size());
+                    existing_edge.m_pattern_info.m_arguments_range|= i_source_pattern_info.m_arguments_range;
+                    existing_edge.m_pattern_info.m_arguments_info.resize(existing_edge.m_pattern_info.m_arguments_info.size());
                     for (size_t i = 0; i < existing_edge.m_labels.size(); i++)
                     {
-                        existing_edge.m_pattern_info.m_labels_info[i].m_cardinality |=
-                            i_source_pattern_info.m_labels_info[i].m_cardinality;
-                        existing_edge.m_pattern_info.m_labels_info[i].m_remaining |=
-                            i_source_pattern_info.m_labels_info[i].m_remaining;
+                        existing_edge.m_pattern_info.m_arguments_info[i].m_cardinality |=
+                            i_source_pattern_info.m_arguments_info[i].m_cardinality;
+                        existing_edge.m_pattern_info.m_arguments_info[i].m_remaining |=
+                            i_source_pattern_info.m_arguments_info[i].m_remaining;
                     }
 
                     return &existing_edge;
@@ -259,9 +259,9 @@ namespace djup
                 if(non_tidy_text != text)
                     text += "\n" + non_tidy_text;
 
-                if (!edge.second.m_pattern_info.m_labels_range.HasSingleValue())
+                if (!edge.second.m_pattern_info.m_arguments_range.HasSingleValue())
                 {
-                    text += "\n{" + edge.second.m_pattern_info.m_labels_range.ToString() + "}";
+                    text += "\n{" + edge.second.m_pattern_info.m_arguments_range.ToString() + "}";
                 }
                 graph.AddEdge(edge.first, edge.second.m_dest_node, text);
             }

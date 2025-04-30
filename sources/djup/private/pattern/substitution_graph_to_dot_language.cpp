@@ -84,9 +84,9 @@ namespace djup
                 if (non_tidy_text != text)
                     text += "\n" + non_tidy_text;
                 
-                if (!edge.m_pattern_info.m_labels_range.HasSingleValue())
+                if (!edge.m_pattern_info.m_arguments_range.HasSingleValue())
                 {
-                    text += "\n{" + edge.m_pattern_info.m_labels_range.ToString() + "}";
+                    text += "\n{" + edge.m_pattern_info.m_arguments_range.ToString() + "}";
                 }
 
                 graph.AddEdge(source_node, edge.m_dest_node, text);

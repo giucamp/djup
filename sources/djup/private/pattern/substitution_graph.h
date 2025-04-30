@@ -84,8 +84,10 @@ namespace djup
                 uint32_t m_source_node = std::numeric_limits<uint32_t>::max();
                 uint32_t m_dest_node = std::numeric_limits<uint32_t>::max();
 
+                uint32_t m_discrimination_node = std::numeric_limits<uint32_t>::max();
+
                 Span<const Tensor> m_patterns;
-                Span<const LabelInfo> m_patterns_info;
+                Span<const ArgumentInfo> m_patterns_info;
                 Span<const Tensor> m_targets;
 
                 uint32_t m_repetitions{ 1 };
