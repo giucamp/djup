@@ -81,14 +81,8 @@ namespace djup
             /** Edge that must be evaluated to be promoted to solution edge, or deleted */
             struct CandidateEdge
             {
-                /* If m_source_candidate is a null handle, this candidate
-                   is connected directly to a discrimination node. Otherwise
-                   is connected to a candidate, which may be already been deleted */
                 uint32_t m_source_node = std::numeric_limits<uint32_t>::max();
-                //Pool<CandidateEdge>::Handle m_source_candidate;
-
                 uint32_t m_dest_node = std::numeric_limits<uint32_t>::max();
-                //Pool<CandidateEdge>::Handle m_dest_candidate;
 
                 Span<const Tensor> m_patterns;
                 Span<const LabelInfo> m_patterns_info;
@@ -98,8 +92,6 @@ namespace djup
 
                 uint32_t m_open{ 0 };
                 uint32_t m_close{ 0 };
-
-                //const DiscriminationTree::Edge* m_discr_edge{nullptr};
 
                 std::vector<Substitution> m_substitutions;
             };

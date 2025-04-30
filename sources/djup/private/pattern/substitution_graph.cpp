@@ -1,4 +1,3 @@
-
 //   Copyright Giuseppe Campana (giu.campana@gmail.com) 2021-2025.
 // Distributed under the Boost Software License, Version 1.0.
 //        (See accompanying file LICENSE or copy at
@@ -85,17 +84,15 @@ namespace djup
                     edge.m_pattern_info.m_labels_range);
 
                 /* early reject if the number of parameters (targets) is incompatible
-                    with the number of labels in the pattern */
+                    with the number of patterns in the pattern */
                 if (edge.m_pattern_info.m_labels_range.IsValaueWithin(
                     NumericCast<int32_t>(i_node_to_expand.m_targets.size())))
                 {
                     CandHandle handle = m_candidate_edges.New();
                     CandidateEdge& cand_edge = m_candidate_edges.GetObject(handle);
 
-                    cand_edge.m_source_node = edge.m_dest_node;
-                    cand_edge.m_dest_node = edge_it.first;
-
-                    //cand_edge.m_discr_edge = &edge;
+                    cand_edge.m_source_node = edge_it.first;
+                    cand_edge.m_dest_node = edge.m_dest_node;
                     cand_edge.m_targets = i_node_to_expand.m_targets;
                     cand_edge.m_patterns = edge.m_labels;
                     cand_edge.m_patterns_info = edge.m_pattern_info.m_labels_info;
@@ -109,26 +106,26 @@ namespace djup
         {
             CandidateEdge * candidate = &m_candidate_edges.GetObject(i_candidate_edge_handle);
 
-            const Span<const Tensor> labels = candidate->m_patterns;
-            const Span<const LabelInfo> label_infos = candidate->m_patterns_info;
+            const Span<const Tensor> patterns = candidate->m_patterns;
+            const Span<const LabelInfo> patterns_infos = candidate->m_patterns_info;
 
             DJUP_DEBUG_SUBSTGRAPH_PRINTLN("Process Candidate. Discr: ",
                 candidate->m_source_node, " -> ", candidate->m_dest_node,
                 ", rep: ", candidate->m_repetitions,
                 "\n\ttargets: ", TensorSpanToString(candidate->m_targets),
-                "\n\tlabels: ", TensorSpanToString(labels));
+                "\n\tpatterns: ", TensorSpanToString(patterns));
 
             uint32_t target_index = 0;
             for (uint32_t repetition = 0; repetition < candidate->m_repetitions; ++repetition)
             {
-                for (uint32_t label_index = 0; label_index < labels.size(); ++label_index, ++target_index)
+                for (uint32_t patterns_index = 0; patterns_index < patterns.size(); ++patterns_index, ++target_index)
                 {
-                    const LabelInfo& pattern_info = label_infos[label_index];
+                    const LabelInfo& pattern_info = patterns_infos[patterns_index];
                     if (pattern_info.m_cardinality.m_min == pattern_info.m_cardinality.m_max)
                     {
                         /* non-variadic argument */
 
-                        const Tensor& label = labels[label_index];
+                        const Tensor& pattern = patterns[patterns_index];
                         const Tensor& target = candidate->m_targets[target_index];
 
                         if (target_index >= candidate->m_targets.size())
@@ -136,21 +133,21 @@ namespace djup
                             return;
                         }
 
-                        if (IsConstant(label))
+                        if (IsConstant(pattern))
                         {
-                            if (!AlwaysEqual(label, target))
+                            if (!AlwaysEqual(pattern, target))
                             {
                                 return;
                             }
                         }
-                        else if (IsIdentifier(label))
+                        else if (IsIdentifier(pattern))
                         {
                             // check type
                             if ( i_context.m_namespace.TypeBelongsTo(
                                 target.GetExpression()->GetType(),
-                                label.GetExpression()->GetType()))
+                                pattern.GetExpression()->GetType()))
                             {
-                                candidate->m_substitutions.push_back({ label.GetExpression()->GetName(), target });
+                                candidate->m_substitutions.push_back({ pattern.GetExpression()->GetName(), target });
                             }
                             else
                             {
@@ -160,12 +157,12 @@ namespace djup
                         else
                         {
                             // function call
-                            if (label.GetExpression()->GetName() == target.GetExpression()->GetName() &&
+                            if (pattern.GetExpression()->GetName() == target.GetExpression()->GetName() &&
                                 !IsIdentifier(target))
                             {
                                 DiscrNodeToExpand node_to_process;
                                 node_to_process.m_targets = target.GetExpression()->GetArguments();
-                                node_to_process.m_node = candidate->m_source_node;
+                                node_to_process.m_node = candidate->m_dest_node;
                                 m_discr_nodes_to_expand.push_back(node_to_process);
                             }
                             else
@@ -183,23 +180,23 @@ namespace djup
                         // number of total parameters usable for the repeated pattern
                         Range usable;
 
-                        DJUP_ASSERT(target_size >= label_infos[label_index].m_remaining.m_min + label_index);
-                        usable.m_max = target_size - label_infos[label_index].m_remaining.m_min - label_index;
-                        if (label_infos[label_index].m_remaining.m_max == Range::s_infinite)
+                        DJUP_ASSERT(target_size >= patterns_infos[patterns_index].m_remaining.m_min + patterns_index);
+                        usable.m_max = target_size - patterns_infos[patterns_index].m_remaining.m_min - patterns_index;
+                        if (patterns_infos[patterns_index].m_remaining.m_max == Range::s_infinite)
                         {
                             usable.m_min = 0;
                         }
                         else
                         {
-                            DJUP_ASSERT(target_size >= label_infos[label_index].m_remaining.m_max + label_index);
-                            usable.m_min = target_size - label_infos[label_index].m_remaining.m_max - label_index;
+                            DJUP_ASSERT(target_size >= patterns_infos[patterns_index].m_remaining.m_max + patterns_index);
+                            usable.m_min = target_size - patterns_infos[patterns_index].m_remaining.m_max - patterns_index;
                         }
 
-                        usable = label_infos[label_index].m_cardinality.ClampRange(usable);
+                        usable = patterns_infos[patterns_index].m_cardinality.ClampRange(usable);
 
                         // align the usable range to be a multiple of sub_pattern_count
                         const uint32_t sub_pattern_count = NumericCast<uint32_t>(
-                            labels[label_index].GetExpression()->GetArguments().size());
+                            patterns[patterns_index].GetExpression()->GetArguments().size());
                         usable.m_min += sub_pattern_count - 1;
                         usable.m_min -= usable.m_min % sub_pattern_count;
                         usable.m_max -= usable.m_max % sub_pattern_count;
@@ -217,45 +214,46 @@ namespace djup
                             // auto curr_edge = candidate->m_discr_edge;
                             auto open = candidate->m_open;
                             auto close = candidate->m_close;
+                           
+
+                            const uint32_t continuation_source = candidate->m_source_node;
                             
-                            auto dest_node = candidate->m_dest_node;
+
+                            const uint32_t repetition_source = candidate->m_dest_node;
+                            
 
                             // expand the discrimination node
-                            for (auto& edge_it : m_discrimination_tree.EdgesFrom(candidate->m_source_node))
+                            for (auto& edge_it : m_discrimination_tree.EdgesFrom(candidate->m_dest_node))
                             {
                                 const DiscriminationTree::Edge& next_edge = edge_it.second;
 
-                                auto source_node = next_edge.m_dest_node;
-
-                                uint32_t middle_node = NewVirtualNode();
+                                const uint32_t repetition_dest = next_edge.m_dest_node;
+                                const uint32_t continuation_dest = next_edge.m_dest_node;
 
                                 // repetition candidate
                                 CandHandle rep_cand_handle = m_candidate_edges.New();
                                 CandidateEdge& rep_candidate = m_candidate_edges.GetObject(rep_cand_handle);
-                                rep_candidate.m_source_node = source_node;
-                                rep_candidate.m_dest_node = middle_node;
+                                rep_candidate.m_source_node = repetition_source;
+                                rep_candidate.m_dest_node = repetition_dest;
                                 rep_candidate.m_targets = targets.subspan(target_index, used);
                                 rep_candidate.m_patterns = next_edge.m_labels;
                                 rep_candidate.m_patterns_info = next_edge.m_pattern_info.m_labels_info;
                                 rep_candidate.m_repetitions = rep;
                                 rep_candidate.m_open = open + 1;
                                 rep_candidate.m_close = close + 1;
-                                //rep_candidate.m_discr_edge = &next_edge;
                                 m_candidate_edges_queue.push_back(rep_cand_handle);
 
                                 // continuation candidate
                                 CandHandle cont_cand_handle = m_candidate_edges.New();
                                 CandidateEdge& cont_candidate = m_candidate_edges.GetObject(cont_cand_handle);
-
-                                cont_candidate.m_source_node = middle_node;
-                                cont_candidate.m_dest_node = dest_node;
+                                cont_candidate.m_source_node = continuation_source;
+                                cont_candidate.m_dest_node = continuation_dest;
                                 cont_candidate.m_targets = targets.subspan(target_index + used);
-                                cont_candidate.m_patterns = labels.subspan(label_index + 1);
-                                cont_candidate.m_patterns_info = label_infos.subspan(label_index + 1);
+                                cont_candidate.m_patterns = patterns.subspan(patterns_index + 1);
+                                cont_candidate.m_patterns_info = patterns_infos.subspan(patterns_index + 1);
                                 cont_candidate.m_repetitions = 1;
                                 cont_candidate.m_open = open;
                                 cont_candidate.m_close = close;
-                                // cont_candidate.m_discr_edge = curr_edge;
                                 m_candidate_edges_queue.push_back(cont_cand_handle);
 
                                 candidate = &m_candidate_edges.GetObject(i_candidate_edge_handle);
@@ -264,7 +262,7 @@ namespace djup
                         return;
                     }
 
-                } // for each label
+                } // for each pattern
             } // for each repetition
 
             /* The pattern of this candidate is fully matched, so if the target
@@ -292,10 +290,10 @@ namespace djup
                     solution_edge.m_next_node = parent_candidate.m_source_discr_node;
                 }*/
 
-                if (candidate->m_source_node < m_discrimination_tree.GetNodeCount() &&
-                    m_discrimination_tree.IsLeafNode(candidate->m_source_node))
+                if (candidate->m_dest_node < m_discrimination_tree.GetNodeCount() &&
+                    m_discrimination_tree.IsLeafNode(candidate->m_dest_node))
                 {
-                    m_reached_leaf_nodes.insert(candidate->m_source_node);
+                    m_reached_leaf_nodes.insert(candidate->m_dest_node);
                 }
             }
         }
@@ -312,7 +310,7 @@ namespace djup
             for (uint32_t leaf_index : m_reached_leaf_nodes)
             {
                 Solution candidate_solution;
-                candidate_solution.m_curr_node = leaf_index;
+                candidate_solution.m_curr_node = m_discrimination_tree.GetRootNodeIndex();
                 candidate_solution.m_pattern_id = m_discrimination_tree.GetPatternId(leaf_index);
                 m_solutions.push_back(std::move(candidate_solution));
             }
@@ -330,8 +328,8 @@ namespace djup
                 {
                     Solution & solution = m_solutions[solution_index];
 
-                    // if not at the root of the discrimination tree root...
-                    if (solution.m_curr_node != m_discrimination_tree.GetRootNodeIndex())
+                    // if not at a leaf of the discrimination tree...
+                    if (!m_discrimination_tree.IsLeafNode(solution.m_curr_node))
                     {
                         any_processed = true;
 
