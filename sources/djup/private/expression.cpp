@@ -22,14 +22,28 @@ namespace djup
     void ToSimplifiedString(StringBuilder & i_dest, const Expression& i_source,
         FormatFlags i_format_flags, size_t i_depth);
 
-    FunctionFlags GetFunctionFlags(const Name& i_function_name)
+    FunctionFlags GetFunctionFlags(const Expression & i_expression)
     {
+        const Name & name = i_expression.GetName();
+
         FunctionFlags flags = {};
-        if (i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "Equals")
+        if (name == "Add" || name == "Mul" || name == "Equals")
             flags = CombineFlags(flags, FunctionFlags::Commutative);
-        if (i_function_name == "Add" || i_function_name == "Mul" || i_function_name == "MatMul")
+        if (name == "Add" || name == "Mul" || name == "MatMul")
             flags = CombineFlags(flags, FunctionFlags::Associative);
         return flags;
+    }
+
+    FunctionKind GetExpressionKind(const Expression & i_expression)
+    {
+        if (i_expression.GetMetadata().m_is_constant)
+            return FunctionKind::Constant;
+        else if (i_expression.GetMetadata().m_is_identifier)
+            return FunctionKind::Identifier;        
+        else if (i_expression.GetMetadata().m_is_repetition)
+            return FunctionKind::Variadic;
+        else
+            return FunctionKind::VariableFunction;
     }
 
     Expression::Expression()
@@ -54,7 +68,11 @@ namespace djup
             m_metadata.m_is_constant = true;
         }
 
-        if(HasFlag(GetFunctionFlags(m_name), FunctionFlags::Commutative))
+        m_metadata.m_is_repetition = m_name == builtin_names::RepetitionsZeroToMany ||
+            m_name == builtin_names::RepetitionsZeroToOne ||
+            m_name == builtin_names::RepetitionsOneToMany;
+
+        if(HasFlag(GetFunctionFlags(*this), FunctionFlags::Commutative))
         {
             std::sort(m_arguments.begin(), m_arguments.end(), 
                 [](const Tensor & i_first, const Tensor & i_second){

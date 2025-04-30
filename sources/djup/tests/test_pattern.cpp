@@ -64,7 +64,7 @@ namespace djup
 
             substitution_graph.FindMatches(*GetStandardNamespace(), i_test_descr.m_target, callback);
 
-            CORE_EXPECTS(substitution_graph.GetSolutions().size() == i_test_descr.m_expected_solutions);
+            CORE_EXPECTS_EQ(substitution_graph.GetSolutions().size(), i_test_descr.m_expected_solutions);
 
             if (i_test_descr.m_expected_solutions >= 1)
             {
@@ -87,9 +87,8 @@ namespace djup
             // create or clean artifact path
             if (std::filesystem::exists(artifact_path))
             {
-                for (auto file : std::filesystem::recursive_directory_iterator(artifact_path))
-                    if (file.is_regular_file())
-                        std::filesystem::remove(file.path());
+                for (auto file : std::filesystem::directory_iterator(artifact_path))
+                    std::filesystem::remove_all(file.path());
             }
             else
             {
@@ -104,7 +103,7 @@ namespace djup
             {
                 PatternTestDescr descr;
                 descr.m_test_name = "pattern_1";
-                descr.m_save_graphs = false;
+                descr.m_save_graphs = true;
                 descr.m_patterns = { "g(1 2 3 any a any b any c)"_t };
                 descr.m_target = "g(1 2 3 4 5 6)"_t;
                 descr.m_expected_solutions = 1;

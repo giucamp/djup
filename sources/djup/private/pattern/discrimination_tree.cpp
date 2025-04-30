@@ -24,7 +24,7 @@ namespace djup
         Tensor PreprocessPattern(const Tensor& i_pattern)
         {
             return SubstituteByPredicate(i_pattern, [](const Tensor& i_candidate) {
-                FunctionFlags flags = GetFunctionFlags(i_candidate.GetExpression()->GetName());
+                FunctionFlags flags = GetFunctionFlags(*i_candidate.GetExpression());
 
                 bool some_substitution = false;
                 std::vector<Tensor> new_arguments;

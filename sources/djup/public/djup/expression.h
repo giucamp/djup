@@ -24,6 +24,7 @@ namespace djup
         bool m_is_constant = false;
         bool m_is_literal = false;
         bool m_is_identifier = false;
+        bool m_is_repetition = false;
     };
 
     class Expression
@@ -81,7 +82,17 @@ namespace djup
         Commutative = 1 << 1,
     };
 
-    FunctionFlags GetFunctionFlags(const Name & i_function_name);
+    FunctionFlags GetFunctionFlags(const Expression & i_expression);
+
+    enum class FunctionKind : uint16_t
+    {
+        Constant,
+        Identifier,
+        VariableFunction,
+        Variadic
+    };
+
+    FunctionKind GetExpressionKind(const Expression & i_expression);
 
     GraphWizGraph TensorToGraph(const Tensor& i_source,
         FormatFlags i_format_flags = FormatFlags::Tidy,

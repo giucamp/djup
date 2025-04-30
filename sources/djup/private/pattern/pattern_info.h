@@ -16,7 +16,7 @@
 /* Warning: this flags will alter the layout of classes, adding
    string where it is useful for debug purpose. They can also
    enable some Print. */
-#define DJUP_DEBUG_PATTERN_INFO                         false
+#define DJUP_DEBUG_PATTERN_INFO                         true
 
 namespace djup
 {
@@ -69,7 +69,7 @@ namespace djup
             bool HasSingleValue() const noexcept { return m_min == m_max; }
 
             // returns a string representation of the range, for example:
-            // "1, 1", "0, 1", "0, Inf", "1, Inf"
+            // "1, 1", "0, 1", "2, Inf", "-2, Inf"
             std::string ToString() const;
         };
 
@@ -97,6 +97,8 @@ namespace djup
             #endif
 
             FunctionFlags m_flags{}; //>** Associativity or commutativity of the pattern */
+
+            FunctionKind m_kind{}; //>** Constant, identifier, variadic or variable function */
 
             /** Minimum and maximum number of parameters that may match this pattern.
                 Used to early reject target spans. */

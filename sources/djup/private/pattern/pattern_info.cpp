@@ -140,7 +140,8 @@ namespace djup
             Span<const Tensor> pattern_args = i_pattern.GetExpression()->GetArguments();
 
             PatternInfo result;
-            result.m_flags = GetFunctionFlags(i_pattern.GetExpression()->GetName());
+            result.m_flags = GetFunctionFlags(*i_pattern.GetExpression());
+            result.m_kind = GetExpressionKind(*i_pattern.GetExpression());
 
             result.m_arguments_info.resize(pattern_args.size());
 
@@ -167,9 +168,9 @@ namespace djup
                 result.m_dbg_labels = "Arguments: " + result.m_arguments_range.ToString();
                 for (size_t i = 0; i < result.m_arguments_info.size(); ++i)
                 {
-                    result.m_dbg_labels += "\nArg[" + std::to_string(i) + "]: " +
+                    result.m_dbg_labels += "\nArg[" + std::to_string(i) + "]: [" +
                         result.m_arguments_info[i].m_cardinality.ToString();
-                    result.m_dbg_labels += " Remaining: " +
+                    result.m_dbg_labels += "], Remaining: " +
                         result.m_arguments_info[i].m_remaining.ToString();
                 }
             #endif
