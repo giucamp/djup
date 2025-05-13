@@ -73,8 +73,7 @@ namespace djup
 
         constexpr uint32_t g_start_node_index = 1;
         constexpr uint32_t g_end_node_index = 0;
-        constexpr uint32_t s_max_reps = std::numeric_limits<uint32_t>::max();
-
+        
         struct PatternSegment
         {
             FunctionFlags m_flags = FunctionFlags::None;

@@ -90,6 +90,9 @@
     <ClInclude Include="..\private\o2o_pattern\o2o_pattern_match.h">
       <Filter>private\o2o_pattern</Filter>
     </ClInclude>
+    <ClInclude Include="..\private\o2o_pattern\o2o_substitutions_builder.h">
+      <Filter>private\o2o_pattern</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
@@ -201,6 +204,9 @@
       <Filter>private\o2o_pattern</Filter>
     </ClCompile>
     <ClCompile Include="..\private\o2o_pattern\o2o_pattern_match.cpp">
+      <Filter>private\o2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\o2o_pattern\o2o_substitutions_builder.cpp">
       <Filter>private\o2o_pattern</Filter>
     </ClCompile>
   </ItemGroup>
