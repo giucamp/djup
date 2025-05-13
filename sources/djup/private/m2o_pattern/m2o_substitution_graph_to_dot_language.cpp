@@ -5,10 +5,10 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/m2o_pattern/substitution_graph.h>
-#include <private/m2o_pattern/discrimination_tree.h>
-#include <private/m2o_pattern/candidate.h>
-#include <private/m2o_pattern/debug_utils.h>
+#include <private/m2o_pattern/m2o_substitution_graph.h>
+#include <private/m2o_pattern/m2o_discrimination_tree.h>
+#include <private/m2o_pattern/m2o_candidate.h>
+#include <private/m2o_pattern/m2o_debug_utils.h>
 
 namespace djup
 {

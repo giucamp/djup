@@ -6,9 +6,9 @@
 
 #include <private/common.h>
 #include <private/namespace.h>
-#include <private/m2o_pattern/discrimination_tree.h>
-#include <private/m2o_pattern/substitution_graph.h>
-#include <private/m2o_pattern/pattern_info.h>
+#include <private/m2o_pattern/m2o_discrimination_tree.h>
+#include <private/m2o_pattern/m2o_substitution_graph.h>
+#include <private/m2o_pattern/m2o_pattern_info.h>
 #include <tests/test_utils.h>
 #include <fstream>
 #include <filesystem>

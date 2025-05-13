@@ -6,7 +6,7 @@
 
 #include <private/common.h>
 #include <tests/test_utils.h>
-#include <private/m2o_pattern/substitutions_builder.h>
+#include <private/m2o_pattern/m2o_substitutions_builder.h>
 
 namespace djup
 {

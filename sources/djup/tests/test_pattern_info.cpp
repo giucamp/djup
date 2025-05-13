@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/m2o_pattern/pattern_info.h>
+#include <private/m2o_pattern/m2o_pattern_info.h>
 #include <tests/test_utils.h>
 
 namespace djup

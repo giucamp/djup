@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/m2o_pattern/substitutions_builder.h>
+#include <private/m2o_pattern/m2o_substitutions_builder.h>
 
 namespace djup
 {

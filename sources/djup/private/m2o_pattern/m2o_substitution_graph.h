@@ -6,7 +6,7 @@
 
 #pragma once
 #include <private/common.h>
-#include <private/m2o_pattern/substitutions_builder.h>
+#include <private/m2o_pattern/m2o_substitutions_builder.h>
 #include <core/pool.h>
 #include <core/graph_wiz.h>
 #include <unordered_map>

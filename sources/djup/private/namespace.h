@@ -7,7 +7,7 @@
 #pragma once
 #include <private/common.h>
 #include <memory>
-#include <private/m2o_pattern/discrimination_tree.h>
+#include <private/m2o_pattern/m2o_discrimination_tree.h>
 #include <core/name.h>
 
 namespace djup

@@ -4,20 +4,16 @@
 //        (See accompanying file LICENSE or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
 //#include <private/common.h>
-//#include <djup/expression.h>
-//#include <private/m2o_pattern/pattern_info.h>
-//#include <private/m2o_pattern/discrimination_tree.h>
-//#include <private/m2o_pattern/substitution_graph.h>
-//#include <private/m2o_pattern/debug_utils.h>
+//#include <private/m2o_pattern/m2o_candidate.h>
+//#include <private/m2o_pattern/m2o_debug_utils.h>
+//#include <limits>
 
 namespace djup
 {
     namespace m2o_pattern
     {
 
-    
     } // namespace m2o_pattern
 
 } // namespace djup

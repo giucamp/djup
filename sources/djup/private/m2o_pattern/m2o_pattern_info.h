@@ -7,7 +7,7 @@
 #pragma once
 #include <private/common.h>
 #include <djup/expression.h>
-#include <private/m2o_pattern/debug_utils.h>
+#include <private/m2o_pattern/m2o_debug_utils.h>
 #include <vector>
 #include <string>
 #include <cstdint>

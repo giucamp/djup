@@ -9,8 +9,8 @@
 #include <core/graph_wiz.h>
 #include <djup/tensor.h>
 #include <private/old_pattern_match.h>
-#include <private/m2o_pattern/pattern_info.h>
-#include <private/m2o_pattern/debug_utils.h>
+#include <private/m2o_pattern/m2o_pattern_info.h>
+#include <private/m2o_pattern/m2o_debug_utils.h>
 #include <unordered_map>
 #include <limits>
 

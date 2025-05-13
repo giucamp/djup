@@ -11,7 +11,7 @@
 #include <private/make_expr.h>
 #include <private/namespace.h>
 #include <djup/expression.h>
-#include <private/m2o_pattern/pattern_info.h>
+#include <private/m2o_pattern/m2o_pattern_info.h>
 #include <core/flags.h>
 #include <core/diagnostic.h>
 #include <vector>

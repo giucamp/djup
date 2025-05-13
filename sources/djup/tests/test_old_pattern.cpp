@@ -8,7 +8,7 @@
 #include <private/namespace.h>
 #include <tests/test_utils.h>
 #include <fstream>
-#include <private/m2o_pattern/debug_utils.h>
+#include <private/m2o_pattern/m2o_debug_utils.h>
 
 #define DBG_CREATE_GRAPHVIZ_SVG         1
 #define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""
