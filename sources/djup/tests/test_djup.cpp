@@ -18,6 +18,7 @@ namespace djup
         void OldPattern();
         void TensorToGraph();
         void DiscriminationTree_();
+        void TestSubstitutionBuilder();
         void Pattern();
         
         void Djup()
@@ -31,6 +32,7 @@ namespace djup
             OldPattern();
             TensorToGraph();
             DiscriminationTree_();
+            TestSubstitutionBuilder();
             Pattern();
 
             PrintLn("successful");

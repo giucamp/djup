@@ -5,15 +5,14 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/pattern/pattern_info.h>
-#include <private/pattern/debug_utils.h>
+#include <private/m2o_pattern/pattern_info.h>
+#include <private/m2o_pattern/debug_utils.h>
 #include <private/builtin_names.h>
 #include <core/to_string.h>
-#include <private/pattern/debug_utils.h>
 
 namespace djup
 {
-    namespace pattern
+    namespace m2o_pattern
     {
                         /**** Range ****/
 
@@ -141,12 +140,12 @@ namespace djup
 
             PatternInfo result;
             result.m_flags = GetFunctionFlags(*i_pattern.GetExpression());
-            result.m_kind = GetExpressionKind(*i_pattern.GetExpression());
 
             result.m_arguments_info.resize(pattern_args.size());
 
             for(size_t i = 0; i < pattern_args.size(); i++)
             {
+                result.m_arguments_info[i].m_kind = GetExpressionKind(*pattern_args[i].GetExpression());
                 result.m_arguments_info[i].m_cardinality = GetCardinality(pattern_args[i]);
                 result.m_arguments_range += result.m_arguments_info[i].m_cardinality;
             }
@@ -178,7 +177,25 @@ namespace djup
             return result;
         }
 
-    } // namespace pattern
+        bool operator == (const PatternInfo & i_first, const PatternInfo & i_second)
+        {
+            if (i_first.m_arguments_range != i_second.m_arguments_range ||
+                i_first.m_flags != i_second.m_flags ||
+                i_first.m_arguments_info.size() != i_second.m_arguments_info.size())
+            {
+                return false;
+            }
+
+            for (size_t i = 0; i < i_first.m_arguments_info.size(); ++i)
+            {
+                if (i_first.m_arguments_info[i] != i_second.m_arguments_info[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+    } // namespace m2o_pattern
 
 } // namespace djup
 

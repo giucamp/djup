@@ -8,7 +8,7 @@
 #include <private/namespace.h>
 #include <tests/test_utils.h>
 #include <fstream>
-#include <private/pattern/debug_utils.h>
+#include <private/m2o_pattern/debug_utils.h>
 
 #define DBG_CREATE_GRAPHVIZ_SVG         1
 #define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""
@@ -40,11 +40,11 @@ namespace djup
             }
 
             {
-                //g_enable_graphviz = true;
-                auto target =  "g(f(1 2 3 4 5))"_t;
-                auto pattern = "g(f(1 real x... real y...)...)"_t;
+                g_enable_graphviz = false;
+                auto target =  "f(1 2 3 4 5 6)"_t;
+                auto pattern = "f(real x... real y...)"_t;
                 size_t solutions = PatternMatchingCount(target, pattern);
-                CORE_EXPECTS(solutions == 5);
+                CORE_EXPECTS(solutions == 7);
             }
 
             {

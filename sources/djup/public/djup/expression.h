@@ -84,7 +84,7 @@ namespace djup
 
     FunctionFlags GetFunctionFlags(const Expression & i_expression);
 
-    enum class FunctionKind : uint16_t
+    enum class ExpressionKind : uint16_t
     {
         Constant,
         Identifier,
@@ -92,7 +92,7 @@ namespace djup
         Variadic
     };
 
-    FunctionKind GetExpressionKind(const Expression & i_expression);
+    ExpressionKind GetExpressionKind(const Expression & i_expression);
 
     GraphWizGraph TensorToGraph(const Tensor& i_source,
         FormatFlags i_format_flags = FormatFlags::Tidy,

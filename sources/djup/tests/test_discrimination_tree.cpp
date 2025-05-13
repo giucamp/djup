@@ -6,9 +6,9 @@
 
 #include <private/common.h>
 #include <private/namespace.h>
-#include <private/pattern/discrimination_tree.h>
-#include <private/pattern/substitution_graph.h>
-#include <private/pattern/pattern_info.h>
+#include <private/m2o_pattern/discrimination_tree.h>
+#include <private/m2o_pattern/substitution_graph.h>
+#include <private/m2o_pattern/pattern_info.h>
 #include <tests/test_utils.h>
 #include <fstream>
 #include <filesystem>
@@ -35,7 +35,7 @@ namespace djup
                 std::filesystem::create_directories(artifact_path);
             }
 
-            pattern::DiscriminationTree discrimination_net;
+            m2o_pattern::DiscriminationTree discrimination_net;
             discrimination_net.AddPattern(2, "a(b(c(real d)1))");
             static bool save_it = false;
             if (save_it)
@@ -43,7 +43,7 @@ namespace djup
                 discrimination_net.ToGraphWiz("discrimination").SaveAsImage(artifact_path / "discr.png");
             }
 
-            pattern::DiscriminationTree discrimination_net1;
+            m2o_pattern::DiscriminationTree discrimination_net1;
             discrimination_net1.AddPattern(2, "a(b(c(real d))1)");
             if (save_it)
             {

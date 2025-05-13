@@ -6,7 +6,7 @@
 
 #include <private/common.h>
 #include <private/namespace.h>
-#include <private/pattern/substitution_graph.h>
+#include <private/m2o_pattern/substitution_graph.h>
 #include <private/make_expr.h>
 #include <djup/expression.h>
 #include <private/builtin_names.h>
@@ -121,7 +121,7 @@ namespace djup
     {
         std::vector<PatternMatch> matches;
 
-        pattern::SubstitutionGraph substitution_graph(m_substitution_axioms_patterns);
+        m2o_pattern::SubstitutionGraph substitution_graph(m_substitution_axioms_patterns);
         
         substitution_graph.FindMatches(*this, i_source);
 
@@ -140,7 +140,7 @@ namespace djup
     {
         std::vector<PatternMatch> matches;
 
-        pattern::SubstitutionGraph substitution_graph(m_type_inference_axioms_patterns);
+        m2o_pattern::SubstitutionGraph substitution_graph(m_type_inference_axioms_patterns);
 
         substitution_graph.FindMatches(i_source);
 

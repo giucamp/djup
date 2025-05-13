@@ -5,12 +5,12 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/pattern/debug_utils.h>
-#include <private/pattern/pattern_info.h>
+#include <private/m2o_pattern/debug_utils.h>
+#include <private/m2o_pattern/pattern_info.h>
 
 namespace djup
 {
-    namespace pattern
+    namespace m2o_pattern
     {
         std::vector<Span<const Tensor>> Tokenize(const Tensor& i_tensor)
         {
@@ -45,6 +45,6 @@ namespace djup
             return result;
         }
     
-    } // namespace pattern
+    } // namespace m2o_pattern
 
 } // namespace djup

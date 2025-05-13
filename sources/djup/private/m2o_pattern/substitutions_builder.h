@@ -14,7 +14,7 @@
 
 namespace djup
 {
-    namespace pattern
+    namespace m2o_pattern
     {
         struct Substitution
         {
@@ -26,14 +26,13 @@ namespace djup
         {
         public:
 
-            bool Add(
-                const std::vector<Substitution>& i_substitutions,
-                uint32_t i_open, uint32_t i_close);
+            bool Add(const std::vector<Substitution>& i_substitutions);
 
-            const std::vector<Substitution>& GetSubstitutions() const
-            {
-                return m_substitutions;
-            }
+            void Open(uint32_t i_depth);
+
+            bool Close(uint32_t i_depth);
+
+            const std::vector<Substitution>& GetSubstitutions() const;
 
         private:
 
@@ -64,6 +63,6 @@ namespace djup
             std::unordered_map<Name, VariadicValue> m_variadic_substitutions;
         };
     
-    } // namespace pattern
+    } // namespace m2o_pattern
 
 } // namespace djup

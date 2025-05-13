@@ -7,7 +7,7 @@
 #pragma once
 #include <private/common.h>
 #include <djup/expression.h>
-#include <private/pattern/debug_utils.h>
+#include <private/m2o_pattern/debug_utils.h>
 #include <vector>
 #include <string>
 #include <cstdint>
@@ -20,7 +20,7 @@
 
 namespace djup
 {
-    namespace pattern
+    namespace m2o_pattern
     {
         /** Inclusive range of integers. If the bounds are equal the range contains a single
             value. If the lower bound is greater than the upper bound the range is empty, 
@@ -79,10 +79,26 @@ namespace djup
             /** How many times this label can be repeated: [1,1] for plain parameters,
                 [0,Inf] for variadic parameters, etc. */
             Range m_cardinality;
+
             /** Given a parameter for this argument, how many parameters can follow. For
                 example given f(a, b, c) and b is [1, 1], while for f(a, b..., c) is [1, Inf].
                 This is redundant, but can early reject matching tries. s*/
             Range m_remaining;
+
+            //** Constant, identifier, variadic or variable function. */
+            ExpressionKind m_kind{};
+
+            friend bool operator == (const ArgumentInfo & i_first, const ArgumentInfo & i_second)
+            {
+                return i_first.m_cardinality == i_second.m_cardinality &&
+                    i_first.m_remaining == i_second.m_remaining&&
+                    i_first.m_kind == i_second.m_kind;
+            }
+
+            friend bool operator != (const ArgumentInfo & i_first, const ArgumentInfo & i_second)
+            {
+                return !(i_first == i_second);
+            }
         };
 
         /** Statically describes a pattern and its arguments, independently of
@@ -98,14 +114,19 @@ namespace djup
 
             FunctionFlags m_flags{}; //>** Associativity or commutativity of the pattern */
 
-            FunctionKind m_kind{}; //>** Constant, identifier, variadic or variable function */
-
             /** Minimum and maximum number of parameters that may match this pattern.
                 Used to early reject target spans. */
             Range m_arguments_range;
 
             /** Describes every single label of the pattern. */
             std::vector<ArgumentInfo> m_arguments_info;
+
+            friend bool operator == (const PatternInfo & i_first, const PatternInfo & i_second);
+
+            friend bool operator != (const PatternInfo & i_first, const PatternInfo & i_second)
+            {
+                return !(i_first == i_second);
+            }
         };
 
         /** Returns true if the (root) expression is a repetition (?, .. or ...) */
@@ -114,17 +135,17 @@ namespace djup
         /** Constructs a PatternInfo (static pattern information) given a pattern */
         PatternInfo BuildPatternInfo(const Tensor & i_pattern);
 
-    } // namespace pattern
+    } // namespace m2o_pattern
 
 } // namespace djup
 
 namespace core
 {
-    template <> struct CharWriter<djup::pattern::Range>
+    template <> struct CharWriter<djup::m2o_pattern::Range>
     {
-        constexpr void operator() (CharBufferView& i_dest, const djup::pattern::Range & i_source)
+        constexpr void operator() (CharBufferView& i_dest, const djup::m2o_pattern::Range & i_source)
         {
-            const int32_t infinite = djup::pattern::Range::s_infinite;
+            const int32_t infinite = djup::m2o_pattern::Range::s_infinite;
 
             if (i_source.m_min > i_source.m_max)
                 i_dest << "empty";
@@ -140,9 +161,9 @@ namespace core
     };
 
     #if DJUP_DEBUG_PATTERN_INFO
-    template <> struct CharWriter<djup::pattern::PatternInfo>
+    template <> struct CharWriter<djup::m2o_pattern::PatternInfo>
     {
-        void operator() (CharBufferView& i_dest, const djup::pattern::PatternInfo & i_source)
+        void operator() (CharBufferView& i_dest, const djup::m2o_pattern::PatternInfo & i_source)
         {
             i_dest << "Pattern: " << i_source.m_dbg_str_pattern << "\n";
             i_dest << "Arguments: " << i_source.m_arguments_range.ToString() << "\n";

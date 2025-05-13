@@ -6,9 +6,9 @@
 
 #include <private/common.h>
 #include <private/namespace.h>
-#include <private/pattern/discrimination_tree.h>
-#include <private/pattern/substitution_graph.h>
-#include <private/pattern/pattern_info.h>
+#include <private/m2o_pattern/discrimination_tree.h>
+#include <private/m2o_pattern/substitution_graph.h>
+#include <private/m2o_pattern/pattern_info.h>
 #include <tests/test_utils.h>
 #include <fstream>
 #include <filesystem>
@@ -36,7 +36,7 @@ namespace djup
                 std::filesystem::create_directories(artifact_path);
             }
 
-            pattern::DiscriminationTree discrimination_net;
+            m2o_pattern::DiscriminationTree discrimination_net;
             for (uint32_t i = 0; i < i_test_descr.m_patterns.size(); i++)
             {
                 discrimination_net.AddPattern(i, i_test_descr.m_patterns[i]);
@@ -49,7 +49,7 @@ namespace djup
             }
 
             // substitutions
-            pattern::SubstitutionGraph substitution_graph(discrimination_net);
+            m2o_pattern::SubstitutionGraph substitution_graph(discrimination_net);
             int step = 0;
 
             auto callback = [&] {
@@ -71,7 +71,7 @@ namespace djup
                 const auto& solution = substitution_graph.GetSolutionAt(0);
                 const auto& substitutions = solution.m_substitutions.GetSubstitutions();
 
-                Tensor after_sub = pattern::ApplySubstitutions(
+                Tensor after_sub = m2o_pattern::ApplySubstitutions(
                     i_test_descr.m_patterns[solution.m_pattern_id], substitutions);
 
                 CORE_EXPECTS(AlwaysEqual(after_sub, i_test_descr.m_target));
@@ -98,6 +98,21 @@ namespace djup
             /*TensorToGraph("f(1 2 Sin(a + g(b...))... + c 3 4)"_t)
                 .SaveAsImage(artifact_path / "nested_pattern.png");*/
 
+            // pattern 0
+            {
+                PatternTestDescr descr;
+                descr.m_test_name = "pattern_1";
+                descr.m_save_graphs = true;
+                descr.m_patterns = { 
+                    "f(1 2 Sin(real x)... 3 4 Sin(y)...)"_t,
+                    "f(1 2 Sin(real x)... 3 4 Cos(y)...)"_t,
+                    "f(1 2 Cos(real x)... 3 4 Sin(y)...)"_t,
+                    "f(1 2 Cos(real x)... 3 4 Cos(y)...)"_t,
+                };
+                descr.m_target = "g(1 2 Sin(10) Sin(11) 3 4 Cos(12) Cos(13))"_t;
+                descr.m_expected_solutions = 1;
+                PatternTest(descr);
+            }
 #if 1
             // pattern 1
             {
@@ -182,7 +197,7 @@ namespace djup
                 Tensor pattern2 = "f(1 w(real b)...)";
                 Tensor target = "f(1 g(1) g(2) g(3))";*/
                 
-                pattern::DiscriminationTree discrimination_net;
+                m2o_pattern::DiscriminationTree discrimination_net;
                 discrimination_net.AddPattern(1, pattern);
                 //discrimination_net.AddPattern(2, pattern2);
                 static bool save_it = true;
@@ -193,7 +208,7 @@ namespace djup
                 }
 
                 // substitutions
-                pattern::SubstitutionGraph substitution_graph(discrimination_net);
+                m2o_pattern::SubstitutionGraph substitution_graph(discrimination_net);
                 int step = 0;
 
                 auto callback = [&] {
@@ -212,7 +227,7 @@ namespace djup
                 const auto& solution = substitution_graph.GetSolutionAt(0);
                 const auto& substitutions = solution.m_substitutions.GetSubstitutions();
 
-                Tensor after_sub = pattern::ApplySubstitutions(pattern, substitutions);
+                Tensor after_sub = m2o_pattern::ApplySubstitutions(pattern, substitutions);
 
                 //CORE_EXPECTS(AlwaysEqual(after_sub, Tensor(target)));
             }

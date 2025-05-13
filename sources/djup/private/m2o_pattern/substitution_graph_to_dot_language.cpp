@@ -5,14 +5,14 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/pattern/substitution_graph.h>
-#include <private/pattern/discrimination_tree.h>
-#include <private/pattern/candidate.h>
-#include <private/pattern/debug_utils.h>
+#include <private/m2o_pattern/substitution_graph.h>
+#include <private/m2o_pattern/discrimination_tree.h>
+#include <private/m2o_pattern/candidate.h>
+#include <private/m2o_pattern/debug_utils.h>
 
 namespace djup
 {
-    namespace pattern
+    namespace m2o_pattern
     {
         namespace
         {
@@ -33,7 +33,7 @@ namespace djup
         {
             GraphWizGraph graph(i_graph_name);
             
-            for (uint32_t node_index = 0; node_index < m_solution_node_count; node_index++)
+            /*for (uint32_t node_index = 0; node_index < m_solution_node_count; node_index++)
             {
                 const bool is_node_to_expand = AnyOf(m_discr_nodes_to_expand,
                     [node_index](auto& node_to_exand)
@@ -78,9 +78,9 @@ namespace djup
                 const uint32_t source_node = pair.first;
                 const DiscriminationTree::Edge & edge = pair.second;
 
-                std::string text = TensorSpanToString(edge.m_labels, FormatFlags::Tidy, 1);
+                std::string text = TensorSpanToString(edge.m_patterns, FormatFlags::Tidy, 1);
                
-                std::string non_tidy_text = TensorSpanToString(edge.m_labels, {}, 1);
+                std::string non_tidy_text = TensorSpanToString(edge.m_patterns, {}, 1);
                 if (non_tidy_text != text)
                     text += "\n" + non_tidy_text;
                 
@@ -139,11 +139,11 @@ namespace djup
 
                 graph.AddEdge(candidate.m_source_node, candidate.m_dest_node, text)
                     .SetStyle(GraphWizGraph::EdgeStyle::Dotted);
-            }
+            }*/
 
             return graph;
         }
 
-    } // namespace pattern
+    } // namespace m2o_pattern
 
 } // namespace djup

@@ -5,23 +5,30 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/pattern/pattern_info.h>
+#include <private/m2o_pattern/pattern_info.h>
 #include <tests/test_utils.h>
 
 namespace djup
 {
+    namespace m2o_pattern
+    {
+        // defined in substitution_graph.cpp
+        Range GetUsableCount(const ArgumentInfo& i_argument_info,
+            uint32_t i_target_remaining_targets, uint32_t i_pattern_size);
+    }
+
     namespace tests
     {
         void PatternInfo()
         {
             Print("Test: djup - Pattern Info...");
 
-            using namespace pattern;
+            using namespace m2o_pattern;
 
             const auto infinity = std::numeric_limits<int32_t>::max();
 
             {
-                const pattern::PatternInfo info_1 = pattern::BuildPatternInfo("g(1 2 x...)");
+                const m2o_pattern::PatternInfo info_1 = m2o_pattern::BuildPatternInfo("g(1 2 x...)");
 
                 CORE_EXPECTS(info_1.m_flags == FunctionFlags{});
                 CORE_EXPECTS_EQ(info_1.m_arguments_range, (Range{ 2, infinity }));
@@ -51,7 +58,7 @@ Arg[2]: [0, Inf], Remaining: 0, 0)";
             /////////////////////////////////////////////////
 
             {
-                const pattern::PatternInfo info_2 = pattern::BuildPatternInfo(
+                const m2o_pattern::PatternInfo info_2 = m2o_pattern::BuildPatternInfo(
                     "g(1 a... 10 11 b...)");
 
                 CORE_EXPECTS_EQ(info_2.m_arguments_info[0].m_cardinality, (Range{ 1, 1 }));
@@ -70,7 +77,7 @@ Arg[2]: [0, Inf], Remaining: 0, 0)";
                     /////////////////////////////////////////////////
 
             {
-                const pattern::PatternInfo info_3 = pattern::BuildPatternInfo(
+                const m2o_pattern::PatternInfo info_3 = m2o_pattern::BuildPatternInfo(
                     "g(1 a.. 10 11 b...)");
 
                 CORE_EXPECTS_EQ(info_3.m_arguments_info[0].m_cardinality, (Range{ 1, 1 }));
@@ -90,20 +97,41 @@ Arg[2]: [0, Inf], Remaining: 0, 0)";
 
             {
                 const std::string expr = "g(1 2 x... y... z... 3 4)";
-                const pattern::PatternInfo info_4 = pattern::BuildPatternInfo(expr.c_str());
+                const m2o_pattern::PatternInfo info_4 = m2o_pattern::BuildPatternInfo(expr.c_str());
                 #if DJUP_DEBUG_PATTERN_INFO
                     //Print(expr, "\n", info_4.m_dbg_labels, "\n");
                 #endif
             }
+
                         /////////////////////////////////////////////////
 
             {
                 const std::string expr = "g(1 2 (real x real y)... 3 4)";
-                const pattern::PatternInfo info_5 = pattern::BuildPatternInfo(expr.c_str());
+                const m2o_pattern::PatternInfo info_5 = m2o_pattern::BuildPatternInfo(expr.c_str());
                 #if DJUP_DEBUG_PATTERN_INFO
                     //Print(expr, "\n", info_5.m_dbg_labels, "\n");
                 #endif
             }
+
+            {
+                PrintLn();
+                const Tensor pattern = "g(1 a... 10 11 b... 12 13 c... 14)"_t;
+                const uint32_t target_size = 10;
+                const auto & arguments = pattern.GetExpression()->GetArguments();
+                const m2o_pattern::PatternInfo info_6 = m2o_pattern::BuildPatternInfo(pattern);
+                std::vector<Range> usable;
+                usable.resize(info_6.m_arguments_info.size());
+                for (uint32_t i = 0; i < info_6.m_arguments_info.size(); ++i)
+                {
+                    if (info_6.m_arguments_info[i].m_cardinality.m_min !=
+                        info_6.m_arguments_info[i].m_cardinality.m_max)
+                    {
+                        usable[i] = GetUsableCount(info_6.m_arguments_info[i], target_size - i, 1);
+                        PrintLn(ToSimplifiedString(arguments[i]), ", usable: [", usable[i], "]");
+                    }
+                }
+            }
+
             PrintLn("successful");
         }
 

@@ -7,7 +7,7 @@
 #pragma once
 #include <private/common.h>
 #include <memory>
-#include <private/pattern/discrimination_tree.h>
+#include <private/m2o_pattern/discrimination_tree.h>
 #include <core/name.h>
 
 namespace djup
@@ -65,11 +65,11 @@ namespace djup
         std::vector<ScalarType> m_scalar_types;
 
         // substitution axioms: patterns and right-hand-side expressions
-        pattern::DiscriminationTree m_substitution_axioms_patterns;
+        m2o_pattern::DiscriminationTree m_substitution_axioms_patterns;
         std::vector<Tensor> m_substitution_axioms_rhss;
 
         // type-inference axioms: patterns and right-hand-side expressions
-        pattern::DiscriminationTree m_type_inference_axioms_patterns;
+        m2o_pattern::DiscriminationTree m_type_inference_axioms_patterns;
         std::vector<Tensor> m_type_inference_axioms_rhss;
 
         /* identifiers */

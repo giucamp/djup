@@ -5,11 +5,11 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/pattern/substitutions_builder.h>
+#include <private/m2o_pattern/substitutions_builder.h>
 
 namespace djup
 {
-    namespace pattern
+    namespace m2o_pattern
     {
         bool SubstitutionsBuilder::AddToBottomLayer(const Substitution & i_substitution)
         {
@@ -84,11 +84,8 @@ namespace djup
         }
 
         bool SubstitutionsBuilder::Add(
-            const std::vector<Substitution>& i_substitutions,
-            uint32_t i_open, uint32_t i_close)
+            const std::vector<Substitution>& i_substitutions)
         {
-            m_curr_depth += i_close;
-
             if (m_curr_depth == 0)
             {
                 return AddToBottomLayer(i_substitutions);
@@ -97,33 +94,51 @@ namespace djup
             {                
                 AddToVariadic(i_substitutions);
 
-                m_curr_depth -= i_open;
-                //DJUP_ASSERT(m_curr_depth <= i_open); // detects underflow
-
-                if (m_curr_depth == 0)
-                {
-                    for (auto & var_subst : m_variadic_substitutions)
-                    {
-                        Tensor value = VariadicClear(var_subst.second);
-                        if (!AddToBottomLayer({ var_subst.first, value }))
-                        {
-                            return false;
-                        }
-                    }
-                    m_variadic_substitutions.clear();
-                }
-                else
-                {
-                    for (auto & var_subst : m_variadic_substitutions)
-                    {
-                        while (var_subst.second.m_stack.size() > m_curr_depth)
-                            VariadicReduceDepth(var_subst.second);
-                    }
-                }
+     
                 return true;
             }
         }
 
-    } // namespace pattern
+        void SubstitutionsBuilder::Open(uint32_t i_depth)
+        {
+            m_curr_depth += i_depth;
+        }
+
+        bool SubstitutionsBuilder::Close(uint32_t i_depth)
+        {
+            DJUP_ASSERT(m_curr_depth >= i_depth); // detects underflow
+            m_curr_depth -= i_depth;
+
+            if (m_curr_depth == 0)
+            {
+                for (auto& var_subst : m_variadic_substitutions)
+                {
+                    Tensor value = VariadicClear(var_subst.second);
+                    if (!AddToBottomLayer({ var_subst.first, value }))
+                    {
+                        return false;
+                    }
+                }
+                m_variadic_substitutions.clear();
+            }
+            else
+            {
+                for (auto& var_subst : m_variadic_substitutions)
+                {
+                    while (var_subst.second.m_stack.size() > m_curr_depth)
+                        VariadicReduceDepth(var_subst.second);
+                }
+            }
+
+            return true;
+        }
+
+        const std::vector<Substitution> & SubstitutionsBuilder::GetSubstitutions() const
+        {
+            DJUP_ASSERT(m_curr_depth == 0);
+            return m_substitutions;
+        }
+
+    } // namespace m2o_pattern
 
 } // namespace djup

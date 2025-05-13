@@ -6,7 +6,7 @@ echo clang-8
 export CC=/usr/bin/clang-8
 export CXX=/usr/bin/clang++-8
 
-#clan
+#clean
 if [[ "$*" == *"--clean"* ]]; then
 	echo "cleaning clang-8 build"
 	pushd build/

@@ -34,16 +34,16 @@ namespace djup
         return flags;
     }
 
-    FunctionKind GetExpressionKind(const Expression & i_expression)
+    ExpressionKind GetExpressionKind(const Expression & i_expression)
     {
         if (i_expression.GetMetadata().m_is_constant)
-            return FunctionKind::Constant;
+            return ExpressionKind::Constant;
         else if (i_expression.GetMetadata().m_is_identifier)
-            return FunctionKind::Identifier;        
+            return ExpressionKind::Identifier;        
         else if (i_expression.GetMetadata().m_is_repetition)
-            return FunctionKind::Variadic;
+            return ExpressionKind::Variadic;
         else
-            return FunctionKind::VariableFunction;
+            return ExpressionKind::VariableFunction;
     }
 
     Expression::Expression()

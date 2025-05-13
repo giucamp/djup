@@ -10,8 +10,11 @@
     <Filter Include="tests">
       <UniqueIdentifier>{23930c8a-cb98-4356-af49-c7960622fee5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="private\pattern">
+    <Filter Include="private\m2o_pattern">
       <UniqueIdentifier>{4d450ea9-6776-453b-9e98-aca9d426325e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="private\o2o_pattern">
+      <UniqueIdentifier>{58b0ead6-7399-46b5-b0d1-29f490de6d0e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -45,21 +48,6 @@
     <ClInclude Include="..\private\old_pattern_match.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\pattern\discrimination_tree.h">
-      <Filter>private\pattern</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\pattern\pattern_info.h">
-      <Filter>private\pattern</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\pattern\substitution_graph.h">
-      <Filter>private\pattern</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\pattern\debug_utils.h">
-      <Filter>private\pattern</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\pattern\candidate.h">
-      <Filter>private\pattern</Filter>
-    </ClInclude>
     <ClInclude Include="..\private\common.h">
       <Filter>private</Filter>
     </ClInclude>
@@ -75,8 +63,32 @@
     <ClInclude Include="..\private\tensor_type.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\pattern\substitutions_builder.h">
-      <Filter>private\pattern</Filter>
+    <ClInclude Include="..\private\m2o_pattern\pattern_info.h">
+      <Filter>private\m2o_pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\m2o_pattern\substitution_graph.h">
+      <Filter>private\m2o_pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\m2o_pattern\substitutions_builder.h">
+      <Filter>private\m2o_pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\m2o_pattern\candidate.h">
+      <Filter>private\m2o_pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\m2o_pattern\debug_utils.h">
+      <Filter>private\m2o_pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\m2o_pattern\discrimination_tree.h">
+      <Filter>private\m2o_pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\o2o_pattern\o2o_pattern_info.h">
+      <Filter>private\o2o_pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\o2o_pattern\o2o_debug_utils.h">
+      <Filter>private\o2o_pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\o2o_pattern\o2o_pattern_match.h">
+      <Filter>private\o2o_pattern</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -125,26 +137,8 @@
     <ClCompile Include="..\private\old_pattern_match.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\pattern\discrimination_tree.cpp">
-      <Filter>private\pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\pattern\pattern_info.cpp">
-      <Filter>private\pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\pattern\substitution_graph.cpp">
-      <Filter>private\pattern</Filter>
-    </ClCompile>
     <ClCompile Include="..\tests\test_pattern.cpp">
       <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\pattern\substitution_graph_to_dot_language.cpp">
-      <Filter>private\pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\pattern\debug_utils.cpp">
-      <Filter>private\pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\pattern\candidate.cpp">
-      <Filter>private\pattern</Filter>
     </ClCompile>
     <ClCompile Include="..\tests\test_parse.cpp">
       <Filter>tests</Filter>
@@ -170,11 +164,44 @@
     <ClCompile Include="..\tests\test_tensor_type.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\pattern\substitutions_builder.cpp">
-      <Filter>private\pattern</Filter>
-    </ClCompile>
     <ClCompile Include="..\tests\test_discrimination_tree.cpp">
       <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_substitutions_builder.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\m2o_pattern\substitution_graph.cpp">
+      <Filter>private\m2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\m2o_pattern\substitution_graph_to_dot_language.cpp">
+      <Filter>private\m2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\m2o_pattern\substitution_match.cpp">
+      <Filter>private\m2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\m2o_pattern\substitutions_builder.cpp">
+      <Filter>private\m2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\m2o_pattern\candidate.cpp">
+      <Filter>private\m2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\m2o_pattern\debug_utils.cpp">
+      <Filter>private\m2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\m2o_pattern\discrimination_tree.cpp">
+      <Filter>private\m2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\m2o_pattern\pattern_info.cpp">
+      <Filter>private\m2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\o2o_pattern\o2o_pattern_info.cpp">
+      <Filter>private\o2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\o2o_pattern\o2o_debug_utils.cpp">
+      <Filter>private\o2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\o2o_pattern\o2o_pattern_match.cpp">
+      <Filter>private\o2o_pattern</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

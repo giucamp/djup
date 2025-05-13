@@ -11,7 +11,7 @@
 
 namespace djup
 {
-    namespace pattern
+    namespace o2o_pattern
     {
         std::vector<Span<const Tensor>> Tokenize(const Tensor& i_tensor);
 
@@ -19,6 +19,6 @@ namespace djup
             FormatFlags i_format_flags = FormatFlags::Tidy,
             size_t i_depth = std::numeric_limits<size_t>::max());
 
-    } // namespace pattern
+    } // namespace o2o_pattern
 
 } // namespace djup
