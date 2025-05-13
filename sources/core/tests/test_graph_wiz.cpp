@@ -62,8 +62,10 @@ namespace core
             EscapeTestChain("vertical tab: \v");
 
             const std::string dot = graph.ToDotLanguage();
-            const std::string expected = R"(digraph unnamed_graph
+            const std::string expected = R"(digraph
 {
+	label = "unnamed_graph"
+	dpi = 384
 	v0[shape = ellipse label = "abc" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v1[shape = ellipse label = "def" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v2[shape = ellipse label = "g\"h\"i" color = "#000000FF" fontcolor = "#FFFF00FF" style = "filled" fillcolor = "#FFFFFFFF"]
@@ -80,24 +82,26 @@ namespace core
 	v13[shape = ellipse label = "carriage return: \r" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v14[shape = ellipse label = "horizontal tab: \t" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v15[shape = ellipse label = "vertical tab: " color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
-	v0 -> v1[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v1 -> v2[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v3 -> v0[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v4 -> v0[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v6 -> v5[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v7 -> v6[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v8 -> v7[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v9 -> v8[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v10 -> v9[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v11 -> v10[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v12 -> v11[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v13 -> v12[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v14 -> v13[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v15 -> v14[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
+	v0 -> v1[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v1 -> v2[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v3 -> v0[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v4 -> v0[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v6 -> v5[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v7 -> v6[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v8 -> v7[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v9 -> v8[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v10 -> v9[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v11 -> v10[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v12 -> v11[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v13 -> v12[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v14 -> v13[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v15 -> v14[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
 }
 )";
-            CORE_EXPECTS_EQ(dot, expected);
+            
             //graph.SaveAsImage("C:\\repos\\djup\\tests\\graph.png");
+
+            CORE_EXPECTS_EQ(dot, expected);
 
             PrintLn("successful");
         }

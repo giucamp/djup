@@ -30,10 +30,10 @@ namespace djup
 	v2[shape = ellipse label = "Mul" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v3[shape = ellipse label = "2" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v4[shape = ellipse label = "5" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
-	v0 -> v1[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v2 -> v3[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v2 -> v4[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
-	v0 -> v2[label = "" color = "#000000FF" fontcolor = "#000000FF" style = "solid"]
+	v0 -> v1[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v2 -> v3[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v2 -> v4[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v0 -> v2[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
 }
 )tensor_to_graph";
             CORE_EXPECTS_EQ(dot, expected);

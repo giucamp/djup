@@ -13,6 +13,7 @@
 #include <private/builtin_names.h>
 #include <core/flags.h>
 #include <core/pool.h>
+#include <core/graph_wiz.h>
 
 namespace djup
 {
@@ -129,6 +130,7 @@ namespace djup
         {
             const Namespace * m_namespace;
             Pool<Candidate> m_candidates;
+            std::vector<Pool<Candidate>::Handle> m_candidate_queue;
             std::vector<GraphNode> m_graph_nodes;
             std::unordered_multimap<uint32_t, Edge> m_edges; // the key is the destination node
             std::unordered_map<const Expression*, PatternInfo> m_pattern_infos;
@@ -155,6 +157,7 @@ namespace djup
 
             auto cand_handle = i_context.m_candidates.New();
             Candidate new_candidate = i_context.m_candidates.GetObject(cand_handle);
+            i_context.m_candidate_queue.push_back(cand_handle);
             new_candidate.m_start_node = i_start_node;
             new_candidate.m_dest_node = i_dest_node;
             new_candidate.m_pattern = i_pattern;
@@ -384,7 +387,246 @@ namespace djup
             return true;
         }
 
+        void RemoveNode(MatchingContext & i_context, uint32_t i_node_index)
+        {
+            std::vector<uint32_t> nodes_to_remove;
+            nodes_to_remove.push_back(i_node_index);
 
+            while (!nodes_to_remove.empty())
+            {
+                uint32_t node = nodes_to_remove.back();
+                nodes_to_remove.pop_back();
+
+                const auto range = i_context.m_edges.equal_range(node);
+                for (auto it = range.first; it != range.second;)
+                {
+                    uint32_t start_node = it->second.m_source_index;
+
+                    if (i_context.m_candidates.IsValid(it->second.m_candidate_ref))
+                    {
+                        Candidate & candidate = i_context.m_candidates.GetObject(it->second.m_candidate_ref);
+                        if (candidate.m_start_node == it->second.m_source_index &&
+                            candidate.m_dest_node == it->first)
+                        {
+                            candidate.m_decayed = true;
+                        }
+                    }
+
+                    DJUP_ASSERT(i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges > 0);
+                    i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges--;
+                    it = i_context.m_edges.erase(it);
+
+                    if (i_context.m_graph_nodes[start_node].m_outgoing_edges == 0)
+                    {
+                        // we have removed the last outcoming edge for i_start_node, we can erase it
+                        nodes_to_remove.push_back(start_node);
+                    }
+                }
+            }
+        }
+
+        void RemoveEdge(MatchingContext & i_context,
+            uint32_t i_start_node, uint32_t i_dest_node,
+            Pool<Candidate>::Handle i_candidate_ref)
+        {
+            bool found = false;
+            const auto range = i_context.m_edges.equal_range(i_dest_node);
+            for (auto it = range.first; it != range.second; it++)
+            {
+                if (it->second.m_source_index == i_start_node &&
+                    it->second.m_candidate_ref == i_candidate_ref)
+                {
+                    DJUP_ASSERT(i_context.m_graph_nodes[i_start_node].m_outgoing_edges > 0);
+                    i_context.m_graph_nodes[i_start_node].m_outgoing_edges--;
+                    i_context.m_edges.erase(it);
+                    found = true;
+                    break;
+                }
+            }
+            DJUP_ASSERT(found);
+
+            if (i_context.m_graph_nodes[i_start_node].m_outgoing_edges == 0)
+            {
+                // we have removed the last outcoming edge for i_start_node, we can erase it
+                RemoveNode(i_context, i_start_node);
+            }
+        }
+
+        
+        void MakeSubstitutionsGraph(MatchingContext & i_context, 
+            const Tensor & i_target, const Tensor & i_pattern)
+        {
+            Tensor pattern = PreprocessPattern(i_pattern);
+            const Tensor & target = i_target;
+
+            Range single_range = {1, 1};
+            Range single_remaining = {0, 0};
+
+            i_context.m_graph_nodes.emplace_back(); // the first node is the final target
+            i_context.m_graph_nodes.emplace_back();
+
+            PatternSegment segment;
+            segment.m_flags = FunctionFlags::None;
+            segment.m_pattern = {&pattern, 1};
+            ArgumentInfo arg_info{single_range, single_remaining};
+            segment.m_arg_infos = {&arg_info, 1};
+            AddCandidate(i_context, 1, 0, {&target, 1}, segment, {}, {});
+
+            #if DBG_CREATE_GRAPHVIZ_SVG
+            if(g_enable_graphviz)
+            {
+                DumpGraphviz(i_context, "InitialState");
+            }
+            #endif
+
+            int dbg_step = 0;
+            do {
+                Pool<Candidate>::Handle candidate_handle = std::move(i_context.m_candidate_queue.back());
+                i_context.m_candidate_queue.pop_back();
+                if(i_context.m_candidates.IsValid(candidate_handle))
+                {
+                    Candidate candidate = i_context.m_candidates.GetObject(candidate_handle);
+                    i_context.m_candidates.Delete(candidate_handle);
+
+                    #if DBG_CREATE_GRAPHVIZ_SVG
+                        dbg_step++;
+                    #endif
+
+                    bool match = MatchCandidate(i_context, candidate);
+
+                    if(!match)
+                    {
+                        RemoveEdge(i_context, 
+                            candidate.m_start_node, candidate.m_dest_node,
+                            candidate_handle);
+                    }
+                    else
+                    {
+                        // find the edge and sets the substitutions
+                        bool found = false;
+                        const auto range = i_context.m_edges.equal_range(candidate.m_dest_node);
+                        for(auto it = range.first; it != range.second; it++)
+                        {
+                            // the candidate has just been removed from the stack
+                            // DJUP_ASSERT(IsCandidateRefValid(i_context, it->second.m_candidate_ref));
+
+                            if(it->second.m_source_index == candidate.m_start_node &&
+                                it->second.m_candidate_ref == candidate_handle)
+                            {
+                                it->second.m_candidate_ref = {};
+
+                                DJUP_ASSERT(it->second.m_substitutions.empty());
+                                it->second.m_substitutions = std::move(candidate.m_substitutions);
+                                found = true;
+                                break;
+                            }
+                        }
+                        DJUP_ASSERT(found);
+                    }
+
+                    #if DBG_CREATE_GRAPHVIZ_SVG
+                        if(g_enable_graphviz)
+                            DumpGraphviz(i_context, ToString("Step_", dbg_step));
+                    #endif
+                }
+
+            } while(!i_context.m_candidate_queue.empty());
+        }
+
+        GraphWizGraph MakeSolutionGraph(const MatchingContext & i_source,
+            std::string i_graph_name)
+        {
+            GraphWizGraph graph(i_graph_name);
+            
+            // next_candidate
+            const Candidate * next_candidate = nullptr;
+            for (auto handle: i_source.m_candidate_queue)
+            {
+                if (i_source.m_candidates.IsValid(handle))
+                {
+                    next_candidate = &i_source.m_candidates.GetObject(handle);
+                    break;
+                }
+            }
+
+            for (size_t i = 0; i < i_source.m_graph_nodes.size(); i++)
+            {
+                const GraphNode & node = i_source.m_graph_nodes[i];
+                
+                GraphWizGraph::Node & dest_node = graph.AddNode({});
+
+                if (i == 0)
+                    dest_node.SetLabel("Final");
+                else if (i == 1)
+                    dest_node.SetLabel("Initial");
+                else
+                    dest_node.SetLabel(ToString("Node ", i));
+            }
+
+            for (const auto & edge : i_source.m_edges)
+            {
+                GraphWizGraph::Edge & dest_edge = graph.AddEdge(
+                    edge.second.m_source_index, edge.first);
+
+                std::string tail;
+                auto append_to_tail = [&](const std::string & i_str) {
+                    if (!tail.empty())
+                        tail += "\n";
+                    tail += i_str;
+                };
+
+                if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
+                {
+                    const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
+                    if (HasAllFlags(candidate.m_pattern.m_flags, CombineFlags(FunctionFlags::Associative, FunctionFlags::Commutative)))
+                        append_to_tail("ac");
+                    else if (HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Associative))
+                        append_to_tail("a");
+                    else if (HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Commutative))
+                        append_to_tail("a");
+                }
+
+                if (edge.second.m_open)
+                    append_to_tail(" " + std::string(edge.second.m_open, '+') + " ");
+
+                std::string labels;
+                if (!tail.empty())
+                    dest_edge.SetTailLabel(tail);
+                if (edge.second.m_close)
+                    dest_edge.SetHeadLabel(std::string(edge.second.m_close, '-'));
+                    
+                if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
+                {
+                    const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
+
+                    std::string label;
+                    if (!candidate.m_target_arguments.empty() && !candidate.m_pattern.m_pattern.empty())
+                    {
+                        label = TensorSpanToString(candidate.m_target_arguments);
+                        label += "\\nis\\n";
+                        label += TensorSpanToString(candidate.m_pattern.m_pattern);
+                        if (candidate.m_repetitions != std::numeric_limits<uint32_t>::max())
+                            label += ToString(" (", candidate.m_repetitions, " times)");
+                    }
+
+                    dest_edge.SetLabel(label);
+
+                    if (&candidate == next_candidate)
+                        dest_edge.SetDrawingColor({0, 100, 0});
+                }
+                else
+                {
+                    std::string label;
+                    for (const auto & substitution : edge.second.m_substitutions)
+                    {
+                        label += ToString(substitution.m_identifier_name, " = ", ToSimplifiedString(substitution.m_value), "\n");
+                    }
+                    dest_edge.SetLabel(label);
+                }
+            }
+
+            return graph;
+        }
 
         Pattern::Pattern(const Tensor & i_pattern, const Tensor & i_when)
         {

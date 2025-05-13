@@ -132,6 +132,10 @@ namespace core
 
             Edge & SetLabel(std::string i_label) { m_label = std::move(i_label); return *this; }
 
+            Edge & SetHeadLabel(std::string i_head_label) { m_head_label = std::move(i_head_label); return *this; }
+
+            Edge & SetTailLabel(std::string i_tail_label) { m_tail_label = std::move(i_tail_label); return *this; }
+
             Edge & SetStyle(EdgeStyle i_style) { m_style = i_style; return *this; }
 
             Edge & SetDrawingColor(Color i_color) { m_drawing_color = i_color; return *this; }
@@ -141,7 +145,7 @@ namespace core
         private:
             size_t m_from;
             size_t m_to;
-            std::string m_label;
+            std::string m_label, m_head_label, m_tail_label;
             EdgeStyle m_style = EdgeStyle::Solid;
             Color m_drawing_color = {0, 0, 0};
             Color m_font_color = {0, 0, 0};

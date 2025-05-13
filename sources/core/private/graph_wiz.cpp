@@ -171,13 +171,16 @@ namespace core
             builder << "v" << edge.m_from << " -> v" << edge.m_to;
             builder << "[";
             builder << "label = \"" << GetEscaped(edge.m_label) << "\"";
-            builder << " color = \"" << RgbaToHex(edge.m_drawing_color) << "\"";
+            if(!edge.m_head_label.empty())
+                builder << "headlabel  = \"" << GetEscaped(edge.m_head_label) << "\"";
+            if (!edge.m_tail_label.empty())
+                builder << "taillabel = \"" << GetEscaped(edge.m_tail_label) << "\"";
             builder << " fontcolor = \"" << RgbaToHex(edge.m_font_color) << "\"";
             builder << " style = \"" << edge_styles[static_cast<int>(edge.m_style)] << "\"";
+            builder << " color = \"" << RgbaToHex(edge.m_drawing_color) << "\"";
             builder << "]";
             builder.NewLine();
         }
-
 
         builder.Untab();
         builder << "}";
