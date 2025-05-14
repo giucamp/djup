@@ -53,7 +53,7 @@ namespace core
         /** Apparently Visual Studio 17.13.4 has a bug that wraps to 0
             a 63-bit field when incrementing it from 1, so we handle
             the bits by hand. I was not able to reproduce a small instance
-            of this problem, and reducing this one may be too time consuming. */
+            of this problem, and reducing this one may be time consuming. */
         UINT m_version__is_allocated;
         constexpr static UINT s_version_mask = bits<UINT>(0, std::numeric_limits<UINT>::digits - 1);
         constexpr static UINT s_is_allocated_mask = bit_reverse<UINT>(0);
@@ -235,7 +235,14 @@ namespace core
 
         item.IncrementVersion();
         item.SetIsAllocated(false);
-        
+        #ifndef NDEBUG
+            /* write garbage on the element memory. The m_next_free
+               field must be saved and restored because m_element and
+               m_next_free overlap. */
+            const UINT next_free = item.m_next_free;
+            memset(&item.m_element, 0Xcd, sizeof(item.m_element));
+            item.m_next_free = next_free;
+        #endif
         assert(m_allocated_objects > 0);
         --m_allocated_objects;
     }
