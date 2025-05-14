@@ -98,7 +98,7 @@ namespace djup
             uint32_t m_start_node{};
             uint32_t m_dest_node{};
             Span<const Tensor> m_target_arguments;
-            PatternSegment m_pattern;
+            PatternSegment m_segment;
             uint32_t m_repetitions = 0;
             uint32_t m_version{};
             uint32_t m_open{};
@@ -108,7 +108,7 @@ namespace djup
 
         StringBuilder & operator << (StringBuilder & i_dest, const Candidate & i_source)
         {
-            i_dest << "Pattern: " << TensorSpanToString(i_source.m_pattern.m_pattern);
+            i_dest << "Pattern: " << TensorSpanToString(i_source.m_segment.m_pattern);
             if (i_source.m_repetitions != 1)
                 i_dest << " (" << i_source.m_repetitions << " times)";
             i_dest.NewLine();
@@ -143,13 +143,13 @@ namespace djup
             
             // next_candidate
             const Candidate * next_candidate = nullptr;
-            for (auto handle: i_source.m_candidate_queue)
+            for (auto it = i_source.m_candidate_queue.rbegin();
+                it != i_source.m_candidate_queue.rend();
+                ++it)
             {
-                if (i_source.m_candidates.IsValid(handle))
-                {
-                    next_candidate = &i_source.m_candidates.GetObject(handle);
+                next_candidate = i_source.m_candidates.TryGetObject(*it);
+                if (next_candidate != nullptr)
                     break;
-                }
             }
 
             for (size_t i = 0; i < i_source.m_graph_nodes.size(); i++)
@@ -181,11 +181,11 @@ namespace djup
                 if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
                 {
                     const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
-                    if (HasAllFlags(candidate.m_pattern.m_flags, CombineFlags(FunctionFlags::Associative, FunctionFlags::Commutative)))
+                    if (HasAllFlags(candidate.m_segment.m_flags, CombineFlags(FunctionFlags::Associative, FunctionFlags::Commutative)))
                         append_to_tail("ac");
-                    else if (HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Associative))
+                    else if (HasFlag(candidate.m_segment.m_flags, FunctionFlags::Associative))
                         append_to_tail("a");
-                    else if (HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Commutative))
+                    else if (HasFlag(candidate.m_segment.m_flags, FunctionFlags::Commutative))
                         append_to_tail("a");
                 }
 
@@ -203,11 +203,11 @@ namespace djup
                     const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
 
                     std::string label;
-                    if (!candidate.m_target_arguments.empty() && !candidate.m_pattern.m_pattern.empty())
+                    if (!candidate.m_target_arguments.empty() && !candidate.m_segment.m_pattern.empty())
                     {
                         label = TensorSpanToString(candidate.m_target_arguments);
                         label += "\nis\n";
-                        label += TensorSpanToString(candidate.m_pattern.m_pattern);
+                        label += TensorSpanToString(candidate.m_segment.m_pattern);
                         if (candidate.m_repetitions != 1)
                             label += ToString(" (", candidate.m_repetitions, " times)");
                     }
@@ -256,7 +256,7 @@ namespace djup
             i_context.m_candidate_queue.push_back(cand_handle);
             new_candidate.m_start_node = i_start_node;
             new_candidate.m_dest_node = i_dest_node;
-            new_candidate.m_pattern = i_pattern;
+            new_candidate.m_segment = i_pattern;
             new_candidate.m_target_arguments = i_target;
             new_candidate.m_repetitions = i_repetitions;
             new_candidate.m_open = i_open;
@@ -282,6 +282,7 @@ namespace djup
             LinearPath & operator = (const LinearPath &) = delete;
 
             void AddEdge(Span<const Tensor> i_target, PatternSegment i_pattern,
+                std::vector<Substitution> && i_substitutions,
                 bool i_increase_depth = false, uint32_t i_repetitions = 1)
             {
                 /*std::string rep_str;
@@ -363,11 +364,14 @@ namespace djup
             size_t target_index = 0;
             for (uint32_t repetition = 0; repetition < repetitions; repetition++)
             {
-                for (size_t pattern_index = 0; pattern_index < i_candidate.m_pattern.m_pattern.size(); target_index++, pattern_index++)
+                for (size_t pattern_index = 0; pattern_index < i_candidate.m_segment.m_pattern.size(); target_index++, pattern_index++)
                 {
-                    const Tensor & pattern = i_candidate.m_pattern.m_pattern[pattern_index];
+                    const Tensor & pattern = i_candidate.m_segment.m_pattern[pattern_index];
 
-                    const ArgumentInfo & arg_info = i_candidate.m_pattern.m_arg_infos[pattern_index];
+                    const ArgumentInfo & arg_info = i_candidate.m_segment.m_arg_infos[pattern_index];
+
+                    if (target_index >= i_candidate.m_target_arguments.size())
+                        return false;
 
                     if (arg_info.m_cardinality.m_min != arg_info.m_cardinality.m_max)
                     {
@@ -405,22 +409,20 @@ namespace djup
                             pre_segment.m_arg_infos = pattern_info.m_arguments_info;
                             path.AddEdge(
                                 i_candidate.m_target_arguments.subspan(target_index, used),
-                                pre_segment, true, rep);
+                                pre_segment, std::move(i_candidate.m_substitutions), 
+                                true, rep);
 
                             // post-pattern
                             PatternSegment post_segment;
                             post_segment.m_flags = pattern_info.m_flags;
-                            post_segment.m_pattern = i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1);
-                            post_segment.m_arg_infos = i_candidate.m_pattern.m_arg_infos.subspan(pattern_index + 1);
+                            post_segment.m_pattern = i_candidate.m_segment.m_pattern.subspan(pattern_index + 1);
+                            post_segment.m_arg_infos = i_candidate.m_segment.m_arg_infos.subspan(pattern_index + 1);
                             path.AddEdge(
                                 i_candidate.m_target_arguments.subspan(target_index + used),
-                                post_segment);
+                                post_segment, {});
                         }
                         return false;
                     }
-
-                    if (target_index >= i_candidate.m_target_arguments.size())
-                        return false;
 
                     const Tensor & target = i_candidate.m_target_arguments[target_index];
 
@@ -458,19 +460,20 @@ namespace djup
                             path.AddEdge(target.GetExpression()->GetArguments(),
                                 PatternSegment{ pattern_info.m_flags,
                                     pattern.GetExpression()->GetArguments(),
-                                    pattern_info.m_arguments_info });
+                                    pattern_info.m_arguments_info },
+                                    std::move(i_candidate.m_substitutions));
 
                             // rest of this repetition
-                            const size_t remaining_in_pattern = i_candidate.m_pattern.m_pattern.size() - (pattern_index + 1);
+                            const size_t remaining_in_pattern = i_candidate.m_segment.m_pattern.size() - (pattern_index + 1);
                             path.AddEdge(i_candidate.m_target_arguments.subspan(target_index + 1, remaining_in_pattern),
                                 PatternSegment{ pattern_info.m_flags,
-                                    i_candidate.m_pattern.m_pattern.subspan(pattern_index + 1),
-                                    i_candidate.m_pattern.m_arg_infos.subspan(pattern_index + 1) });
+                                    i_candidate.m_segment.m_pattern.subspan(pattern_index + 1),
+                                    i_candidate.m_segment.m_arg_infos.subspan(pattern_index + 1) }, {});
 
                             // remaining repetitions
                             const size_t target_start = target_index + 1 + remaining_in_pattern;
                             path.AddEdge(i_candidate.m_target_arguments.subspan(target_start),
-                                i_candidate.m_pattern, false, repetitions - (repetition + 1));
+                                i_candidate.m_segment, {}, false, repetitions - (repetition + 1));
                         }
                         return false;
                     }

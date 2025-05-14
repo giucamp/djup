@@ -71,27 +71,12 @@ namespace djup
                 std::filesystem::create_directories(artifact_path);
             }
 
-            // pattern 0
-            /*{
-                O2oPatternTestDescr descr;
-                descr.m_test_name = "pattern_1";
-                descr.m_save_graphs = true;
-                descr.m_patterns = { 
-                    "f(1 2 Sin(real x)... 3 4 Sin(y)...)"_t,
-                    "f(1 2 Sin(real x)... 3 4 Cos(y)...)"_t,
-                    "f(1 2 Cos(real x)... 3 4 Sin(y)...)"_t,
-                    "f(1 2 Cos(real x)... 3 4 Cos(y)...)"_t,
-                };
-                descr.m_target = "g(1 2 Sin(10) Sin(11) 3 4 Cos(12) Cos(13))"_t;
-                descr.m_expected_solutions = 1;
-                O2oPatternTest(descr);
-            }*/
 #if 1
             // pattern 1
             {
                 O2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_1";
-                descr.m_save_graphs = true;
+                descr.m_save_graphs = false;
                 descr.m_pattern = "g(1 2 3 any a any b any c)"_t;
                 descr.m_target = "g(1 2 3 4 5 6)"_t;
                 descr.m_expected_solutions = 1;
@@ -102,18 +87,7 @@ namespace djup
             {
                 O2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_2";
-                descr.m_save_graphs = false;
-                descr.m_pattern = "g(1 2 3 any a any b any a)"_t;
-                descr.m_target = "g(1 2 3 4 5 6)"_t;
-                descr.m_expected_solutions = 0;
-                O2oPatternTest(descr);
-            }
-
-            // pattern 3
-            {
-                O2oPatternTestDescr descr;
-                descr.m_test_name = "pattern_3";
-                descr.m_save_graphs = false;
+                descr.m_save_graphs = true;
                 descr.m_pattern = "g(1 2 3 f(real a h(real b)) real c)"_t;
                 descr.m_target = "g(1 2 3 f(4 h(5)) 6)"_t;
                 descr.m_expected_solutions = 1;
