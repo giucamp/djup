@@ -54,9 +54,6 @@
     <ClInclude Include="..\public\djup\expression.h">
       <Filter>public</Filter>
     </ClInclude>
-    <ClInclude Include="..\tests\test_utils.h">
-      <Filter>tests</Filter>
-    </ClInclude>
     <ClInclude Include="..\private\make_expr.h">
       <Filter>private</Filter>
     </ClInclude>
@@ -93,6 +90,9 @@
     <ClInclude Include="..\private\o2o_pattern\o2o_substitutions_builder.h">
       <Filter>private\o2o_pattern</Filter>
     </ClInclude>
+    <ClInclude Include="..\tests\test_utils.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\expression.cpp">
@@ -116,20 +116,8 @@
     <ClCompile Include="..\private\indices.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\tests\test_djup.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_old_pattern.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\tensor_to_string.cpp">
       <Filter>private</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_lexer.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_tensor_to_string.cpp">
-      <Filter>tests</Filter>
     </ClCompile>
     <ClCompile Include="..\private\standard_namespace.cpp">
       <Filter>private</Filter>
@@ -140,38 +128,14 @@
     <ClCompile Include="..\private\old_pattern_match.cpp">
       <Filter>private</Filter>
     </ClCompile>
-    <ClCompile Include="..\tests\test_pattern.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_parse.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_pattern_info.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\tensor_to_graph.cpp">
       <Filter>private</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_tensor_to_graph.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_utils.cpp">
-      <Filter>tests</Filter>
     </ClCompile>
     <ClCompile Include="..\private\make_expr.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\tensor_type.cpp">
       <Filter>private</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_tensor_type.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_discrimination_tree.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\test_substitutions_builder.cpp">
-      <Filter>tests</Filter>
     </ClCompile>
     <ClCompile Include="..\private\m2o_pattern\m2o_substitution_graph.cpp">
       <Filter>private\m2o_pattern</Filter>
@@ -208,6 +172,45 @@
     </ClCompile>
     <ClCompile Include="..\private\o2o_pattern\o2o_substitutions_builder.cpp">
       <Filter>private\o2o_pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_old_pattern.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_parse.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_tensor_to_graph.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_tensor_to_string.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_tensor_type.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_utils.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_o2o_pattern.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_djup.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_lexer.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_m2o_discrimination_tree.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_m2o_pattern.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_m2o_pattern_info.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_m2o_substitutions_builder.cpp">
+      <Filter>tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

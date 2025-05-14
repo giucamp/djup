@@ -17,7 +17,7 @@ namespace djup
 {
     namespace tests
     {
-        struct PatternTestDescr
+        struct M2oPatternTestDescr
         {
             std::string m_test_name;
             std::vector<Tensor> m_patterns;
@@ -26,9 +26,9 @@ namespace djup
             bool m_save_graphs{ false };
         };
 
-        void PatternTest(const PatternTestDescr & i_test_descr)
+        void M2oPatternTest(const M2oPatternTestDescr & i_test_descr)
         {
-            const std::string rel_artifact_path = "test_pattern/" + i_test_descr.m_test_name;
+            const std::string rel_artifact_path = "test_m2opattern/" + i_test_descr.m_test_name;
             const std::filesystem::path artifact_path = GetArtifactPath(rel_artifact_path);
             
             if (i_test_descr.m_save_graphs)
@@ -78,9 +78,9 @@ namespace djup
             }
         }
 
-        void Pattern()
+        void M2oPattern()
         {
-            Print("Test: djup - Pattern Matching...");
+            Print("Test: djup - m2o Pattern Matching...");
 
             const std::filesystem::path artifact_path = GetArtifactPath("test_pattern");
 
@@ -100,7 +100,7 @@ namespace djup
 
             // pattern 0
             {
-                PatternTestDescr descr;
+                M2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_1";
                 descr.m_save_graphs = true;
                 descr.m_patterns = { 
@@ -111,45 +111,45 @@ namespace djup
                 };
                 descr.m_target = "g(1 2 Sin(10) Sin(11) 3 4 Cos(12) Cos(13))"_t;
                 descr.m_expected_solutions = 1;
-                PatternTest(descr);
+                M2oPatternTest(descr);
             }
 #if 1
             // pattern 1
             {
-                PatternTestDescr descr;
+                M2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_1";
                 descr.m_save_graphs = true;
                 descr.m_patterns = { "g(1 2 3 any a any b any c)"_t };
                 descr.m_target = "g(1 2 3 4 5 6)"_t;
                 descr.m_expected_solutions = 1;
-                PatternTest(descr);
+                M2oPatternTest(descr);
             }
 
             // pattern 2
             {
-                PatternTestDescr descr;
+                M2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_2";
                 descr.m_save_graphs = false;
                 descr.m_patterns = { "g(1 2 3 any a any b any a)"_t };
                 descr.m_target = "g(1 2 3 4 5 6)"_t;
                 descr.m_expected_solutions = 0;
-                PatternTest(descr);
+                M2oPatternTest(descr);
             }
 
             // pattern 3
             {
-                PatternTestDescr descr;
+                M2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_3";
                 descr.m_save_graphs = false;
                 descr.m_patterns = { "g(1 2 3 f(real a h(real b)) real c)"_t };
                 descr.m_target = "g(1 2 3 f(4 h(5)) 6)"_t;
                 descr.m_expected_solutions = 1;
-                PatternTest(descr);
+                M2oPatternTest(descr);
             }
             
             // tree 1
             {
-                PatternTestDescr descr;
+                M2oPatternTestDescr descr;
                 descr.m_test_name = "tree_1";
                 descr.m_save_graphs = false;
                 descr.m_patterns = {
@@ -164,12 +164,12 @@ namespace djup
                 };
                 descr.m_target = "g(1 2 3 4 5 6)"_t;
                 descr.m_expected_solutions = 1;
-                PatternTest(descr);
+                M2oPatternTest(descr);
             }
 
             // tree 3
             {
-                PatternTestDescr descr;
+                M2oPatternTestDescr descr;
                 descr.m_test_name = "tree_3";
                 descr.m_save_graphs = true;
                 descr.m_patterns = {
@@ -178,7 +178,7 @@ namespace djup
                 };
                 descr.m_target = "f(1 2 3 4 5 6 7 8 9)"_t;
                 descr.m_expected_solutions = 1;
-                PatternTest(descr);
+                M2oPatternTest(descr);
             }
 
 #endif

@@ -19,9 +19,9 @@ namespace djup
 
     namespace tests
     {
-        void PatternInfo()
+        void M2oPatternInfo()
         {
-            Print("Test: djup - Pattern Info...");
+            Print("Test: djup - m2o Pattern Info...");
 
             using namespace m2o_pattern;
 
@@ -114,7 +114,7 @@ Arg[2]: [0, Inf], Remaining: 0, 0)";
             }
 
             {
-                PrintLn();
+                //PrintLn();
                 const Tensor pattern = "g(1 a... 10 11 b... 12 13 c... 14)"_t;
                 const uint32_t target_size = 10;
                 const auto & arguments = pattern.GetExpression()->GetArguments();
@@ -127,7 +127,7 @@ Arg[2]: [0, Inf], Remaining: 0, 0)";
                         info_6.m_arguments_info[i].m_cardinality.m_max)
                     {
                         usable[i] = GetUsableCount(info_6.m_arguments_info[i], target_size - i, 1);
-                        PrintLn(ToSimplifiedString(arguments[i]), ", usable: [", usable[i], "]");
+                        //PrintLn(ToSimplifiedString(arguments[i]), ", usable: [", usable[i], "]");
                     }
                 }
             }

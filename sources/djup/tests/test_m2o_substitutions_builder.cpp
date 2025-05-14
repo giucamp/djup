@@ -12,9 +12,9 @@ namespace djup
 {
     namespace tests
     {
-        void TestSubstitutionBuilder()
+        void TestM2oSubstitutionBuilder()
         {
-            Print("Test: djup - Substitution Builder...");
+            Print("Test: djup - m2o Substitution Builder...");
 
             using namespace m2o_pattern;
 

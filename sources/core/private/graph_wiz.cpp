@@ -132,7 +132,7 @@ namespace core
         builder.NewLine();
         builder.Tab();
 
-        builder << "label = \"" << m_graph_name << "\""; builder.NewLine();
+        builder << "label = \"" << GetEscaped(m_graph_name) << "\""; builder.NewLine();
         builder << "dpi = " << m_dpi; builder.NewLine();
 
         for (size_t node_index = 0; node_index < m_nodes.size(); ++node_index)

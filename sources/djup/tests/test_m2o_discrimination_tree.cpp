@@ -17,11 +17,11 @@ namespace djup
 {
     namespace tests
     {
-        void DiscriminationTree_()
+        void M2oDiscriminationTree_()
         {
-            Print("Test: djup - DiscriminationTree...");
+            Print("Test: djup - m2o DiscriminationTree...");
 
-            const std::filesystem::path artifact_path = GetArtifactPath("discrimination");
+            const std::filesystem::path artifact_path = GetArtifactPath("m2o_discrimination");
 
             // create or clean artifact path
             if (std::filesystem::exists(artifact_path))

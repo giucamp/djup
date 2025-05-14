@@ -101,7 +101,6 @@ namespace djup
             PatternSegment m_pattern;
             uint32_t m_repetitions = 0;
             uint32_t m_version{};
-            bool m_decayed = false;
             uint32_t m_open{};
             uint32_t m_close{};
             std::vector<Substitution> m_substitutions;
@@ -110,7 +109,7 @@ namespace djup
         StringBuilder & operator << (StringBuilder & i_dest, const Candidate & i_source)
         {
             i_dest << "Pattern: " << TensorSpanToString(i_source.m_pattern.m_pattern);
-            if (i_source.m_repetitions != 0)
+            if (i_source.m_repetitions != 1)
                 i_dest << " (" << i_source.m_repetitions << " times)";
             i_dest.NewLine();
             i_dest << " Target: " << TensorSpanToString(i_source.m_target_arguments);
@@ -134,7 +133,104 @@ namespace djup
             std::vector<GraphNode> m_graph_nodes;
             std::unordered_multimap<uint32_t, Edge> m_edges; // the key is the destination node
             std::unordered_map<const Expression*, PatternInfo> m_pattern_infos;
+            const char * m_artifact_path{nullptr};
         };
+
+        GraphWizGraph MakeSolutionGraph(const MatchingContext & i_source,
+            std::string i_graph_name)
+        {
+            GraphWizGraph graph(i_graph_name);
+            
+            // next_candidate
+            const Candidate * next_candidate = nullptr;
+            for (auto handle: i_source.m_candidate_queue)
+            {
+                if (i_source.m_candidates.IsValid(handle))
+                {
+                    next_candidate = &i_source.m_candidates.GetObject(handle);
+                    break;
+                }
+            }
+
+            for (size_t i = 0; i < i_source.m_graph_nodes.size(); i++)
+            {
+                const GraphNode & node = i_source.m_graph_nodes[i];
+                
+                GraphWizGraph::Node & dest_node = graph.AddNode({});
+
+                if (i == 0)
+                    dest_node.SetLabel("Final");
+                else if (i == 1)
+                    dest_node.SetLabel("Initial");
+                else
+                    dest_node.SetLabel(ToString("Node ", i));
+            }
+
+            for (const auto & edge : i_source.m_edges)
+            {
+                GraphWizGraph::Edge & dest_edge = graph.AddEdge(
+                    edge.second.m_source_index, edge.first);
+
+                std::string tail;
+                auto append_to_tail = [&](const std::string & i_str) {
+                    if (!tail.empty())
+                        tail += "\n";
+                    tail += i_str;
+                };
+
+                if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
+                {
+                    const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
+                    if (HasAllFlags(candidate.m_pattern.m_flags, CombineFlags(FunctionFlags::Associative, FunctionFlags::Commutative)))
+                        append_to_tail("ac");
+                    else if (HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Associative))
+                        append_to_tail("a");
+                    else if (HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Commutative))
+                        append_to_tail("a");
+                }
+
+                if (edge.second.m_open)
+                    append_to_tail(" " + std::string(edge.second.m_open, '+') + " ");
+
+                std::string labels;
+                if (!tail.empty())
+                    dest_edge.SetTailLabel(tail);
+                if (edge.second.m_close)
+                    dest_edge.SetHeadLabel(std::string(edge.second.m_close, '-'));
+                    
+                if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
+                {
+                    const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
+
+                    std::string label;
+                    if (!candidate.m_target_arguments.empty() && !candidate.m_pattern.m_pattern.empty())
+                    {
+                        label = TensorSpanToString(candidate.m_target_arguments);
+                        label += "\nis\n";
+                        label += TensorSpanToString(candidate.m_pattern.m_pattern);
+                        if (candidate.m_repetitions != 1)
+                            label += ToString(" (", candidate.m_repetitions, " times)");
+                    }
+
+                    dest_edge.SetLabel(label);
+
+                    if (&candidate == next_candidate)
+                        dest_edge.SetDrawingColor({0, 100, 0});
+                }
+                else
+                {
+                    std::string label;
+                    for (const auto & substitution : edge.second.m_substitutions)
+                    {
+                        label += ToString(substitution.m_identifier_name, " = ", ToSimplifiedString(substitution.m_value), "\n");
+                    }
+                    dest_edge.SetLabel(label);
+                }
+            }
+
+            return graph;
+        }
+
 
         const PatternInfo & GetPatternInfo(MatchingContext & i_context, const Tensor & i_pattern)
         {
@@ -151,12 +247,12 @@ namespace djup
             uint32_t i_start_node, uint32_t i_dest_node,
             Span<const Tensor> i_target, PatternSegment i_pattern,
             uint32_t i_open, uint32_t i_close,
-            uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
+            uint32_t i_repetitions = 1)
         {
             DJUP_ASSERT(i_start_node != i_dest_node);
 
             auto cand_handle = i_context.m_candidates.New();
-            Candidate new_candidate = i_context.m_candidates.GetObject(cand_handle);
+            Candidate & new_candidate = i_context.m_candidates.GetObject(cand_handle);
             i_context.m_candidate_queue.push_back(cand_handle);
             new_candidate.m_start_node = i_start_node;
             new_candidate.m_dest_node = i_dest_node;
@@ -186,7 +282,7 @@ namespace djup
             LinearPath & operator = (const LinearPath &) = delete;
 
             void AddEdge(Span<const Tensor> i_target, PatternSegment i_pattern,
-                bool i_increase_depth = false, uint32_t i_repetitions = std::numeric_limits<uint32_t>::max())
+                bool i_increase_depth = false, uint32_t i_repetitions = 1)
             {
                 /*std::string rep_str;
                 if(i_repetitions != std::numeric_limits<uint32_t>::max())
@@ -262,8 +358,7 @@ namespace djup
         /** Returns false if the matching has failed */
         bool MatchCandidate(MatchingContext & i_context, Candidate & i_candidate)
         {
-            const bool nest_index = i_candidate.m_repetitions != std::numeric_limits<uint32_t>::max();
-            const uint32_t repetitions = nest_index ? i_candidate.m_repetitions : 1;
+            const uint32_t repetitions = i_candidate.m_repetitions;
 
             size_t target_index = 0;
             for (uint32_t repetition = 0; repetition < repetitions; repetition++)
@@ -301,8 +396,6 @@ namespace djup
                         uint32_t rep = NumericCast<uint32_t>(usable.m_min / sub_pattern_count);
                         for (size_t used = usable.m_min; used <= usable.m_max; used += sub_pattern_count, rep++)
                         {
-                            DJUP_ASSERT(!nest_index); // repetitions can't be nested directly
-
                             LinearPath path(i_context, i_candidate);
 
                             // pre-pattern
@@ -408,7 +501,7 @@ namespace djup
                         if (candidate.m_start_node == it->second.m_source_index &&
                             candidate.m_dest_node == it->first)
                         {
-                            candidate.m_decayed = true;
+                            i_context.m_candidates.Delete(it->second.m_candidate_ref);
                         }
                     }
 
@@ -472,12 +565,11 @@ namespace djup
             segment.m_arg_infos = {&arg_info, 1};
             AddCandidate(i_context, 1, 0, {&target, 1}, segment, {}, {});
 
-            #if DBG_CREATE_GRAPHVIZ_SVG
-            if(g_enable_graphviz)
+            if (i_context.m_artifact_path != nullptr)
             {
-                DumpGraphviz(i_context, "InitialState");
+                GraphWizGraph graph = MakeSolutionGraph(i_context, "Initial");
+                graph.SaveAsImage(std::filesystem::path(i_context.m_artifact_path) / "Initial.png");
             }
-            #endif
 
             int dbg_step = 0;
             do {
@@ -488,10 +580,8 @@ namespace djup
                     Candidate candidate = i_context.m_candidates.GetObject(candidate_handle);
                     i_context.m_candidates.Delete(candidate_handle);
 
-                    #if DBG_CREATE_GRAPHVIZ_SVG
-                        dbg_step++;
-                    #endif
-
+                    dbg_step++;
+                    
                     bool match = MatchCandidate(i_context, candidate);
 
                     if(!match)
@@ -524,117 +614,32 @@ namespace djup
                         DJUP_ASSERT(found);
                     }
 
-                    #if DBG_CREATE_GRAPHVIZ_SVG
-                        if(g_enable_graphviz)
-                            DumpGraphviz(i_context, ToString("Step_", dbg_step));
-                    #endif
+                    if (i_context.m_artifact_path != nullptr)
+                    {
+                        std::string title = ToString("Step_", dbg_step);
+                        GraphWizGraph graph = MakeSolutionGraph(i_context, title);
+                        graph.SaveAsImage(std::filesystem::path(i_context.m_artifact_path) / (title + ".png"));
+                    }
                 }
 
             } while(!i_context.m_candidate_queue.empty());
         }
 
-        GraphWizGraph MakeSolutionGraph(const MatchingContext & i_source,
-            std::string i_graph_name)
-        {
-            GraphWizGraph graph(i_graph_name);
-            
-            // next_candidate
-            const Candidate * next_candidate = nullptr;
-            for (auto handle: i_source.m_candidate_queue)
-            {
-                if (i_source.m_candidates.IsValid(handle))
-                {
-                    next_candidate = &i_source.m_candidates.GetObject(handle);
-                    break;
-                }
-            }
-
-            for (size_t i = 0; i < i_source.m_graph_nodes.size(); i++)
-            {
-                const GraphNode & node = i_source.m_graph_nodes[i];
-                
-                GraphWizGraph::Node & dest_node = graph.AddNode({});
-
-                if (i == 0)
-                    dest_node.SetLabel("Final");
-                else if (i == 1)
-                    dest_node.SetLabel("Initial");
-                else
-                    dest_node.SetLabel(ToString("Node ", i));
-            }
-
-            for (const auto & edge : i_source.m_edges)
-            {
-                GraphWizGraph::Edge & dest_edge = graph.AddEdge(
-                    edge.second.m_source_index, edge.first);
-
-                std::string tail;
-                auto append_to_tail = [&](const std::string & i_str) {
-                    if (!tail.empty())
-                        tail += "\n";
-                    tail += i_str;
-                };
-
-                if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
-                {
-                    const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
-                    if (HasAllFlags(candidate.m_pattern.m_flags, CombineFlags(FunctionFlags::Associative, FunctionFlags::Commutative)))
-                        append_to_tail("ac");
-                    else if (HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Associative))
-                        append_to_tail("a");
-                    else if (HasFlag(candidate.m_pattern.m_flags, FunctionFlags::Commutative))
-                        append_to_tail("a");
-                }
-
-                if (edge.second.m_open)
-                    append_to_tail(" " + std::string(edge.second.m_open, '+') + " ");
-
-                std::string labels;
-                if (!tail.empty())
-                    dest_edge.SetTailLabel(tail);
-                if (edge.second.m_close)
-                    dest_edge.SetHeadLabel(std::string(edge.second.m_close, '-'));
-                    
-                if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
-                {
-                    const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
-
-                    std::string label;
-                    if (!candidate.m_target_arguments.empty() && !candidate.m_pattern.m_pattern.empty())
-                    {
-                        label = TensorSpanToString(candidate.m_target_arguments);
-                        label += "\\nis\\n";
-                        label += TensorSpanToString(candidate.m_pattern.m_pattern);
-                        if (candidate.m_repetitions != std::numeric_limits<uint32_t>::max())
-                            label += ToString(" (", candidate.m_repetitions, " times)");
-                    }
-
-                    dest_edge.SetLabel(label);
-
-                    if (&candidate == next_candidate)
-                        dest_edge.SetDrawingColor({0, 100, 0});
-                }
-                else
-                {
-                    std::string label;
-                    for (const auto & substitution : edge.second.m_substitutions)
-                    {
-                        label += ToString(substitution.m_identifier_name, " = ", ToSimplifiedString(substitution.m_value), "\n");
-                    }
-                    dest_edge.SetLabel(label);
-                }
-            }
-
-            return graph;
-        }
-
-        Pattern::Pattern(const Tensor & i_pattern, const Tensor & i_when)
+        Pattern::Pattern(const Namespace & i_namespace,
+            const Tensor & i_pattern, const Tensor & i_when)
+                : m_namespace(i_namespace)
         {
             m_pattern = PreprocessPattern(i_pattern);
         }
 
-        MatchResult Pattern::Match(const Tensor & i_target) const
+        MatchResult Pattern::Match(const Tensor & i_target,
+            const char * i_artifact_path) const
         {
+            MatchingContext context;
+            context.m_namespace = &m_namespace;
+            context.m_artifact_path = i_artifact_path;
+            MakeSubstitutionsGraph(context, i_target, m_pattern);
+
             return {};
         }
 

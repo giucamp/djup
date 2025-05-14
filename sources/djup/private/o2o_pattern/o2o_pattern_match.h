@@ -11,6 +11,8 @@
 
 namespace djup
 {
+    class Namespace;
+
     namespace o2o_pattern
     {
         struct Substitution
@@ -28,12 +30,15 @@ namespace djup
         {
         public:
 
-            Pattern(const Tensor & i_pattern, const Tensor & i_when);
+            Pattern(const Namespace & i_namespace, 
+                const Tensor & i_pattern, const Tensor & i_when = true);
 
-            MatchResult Match(const Tensor & i_target) const;
+            MatchResult Match(const Tensor & i_target, 
+                const char * i_artifact_path) const;
 
         private:
             Tensor m_pattern;
+            const Namespace & m_namespace;
         };
 
     } // namespace o2o_pattern

@@ -14,13 +14,14 @@ namespace djup
         void Lexer();
         void TensorToString();
         void Parse();
-        void PatternInfo();
+        void M2oPatternInfo();
         void OldPattern();
         void TensorToGraph();
-        void DiscriminationTree_();
-        void TestSubstitutionBuilder();
-        void Pattern();
-        
+        void M2oDiscriminationTree_();
+        void TestM2oSubstitutionBuilder();
+        void O2oPattern();
+        void M2oPattern();
+
         void Djup()
         {
             PrintLn("Test: djup...");
@@ -28,12 +29,13 @@ namespace djup
             Lexer();
             TensorToString();
             Parse();
-            PatternInfo();
+            M2oPatternInfo();
             OldPattern();
             TensorToGraph();
-            DiscriminationTree_();
-            TestSubstitutionBuilder();
-            Pattern();
+            M2oDiscriminationTree_();
+            TestM2oSubstitutionBuilder();
+            O2oPattern();
+            M2oPattern();
 
             PrintLn("successful");
         }
