@@ -136,7 +136,7 @@ namespace djup
             const char * m_artifact_path{nullptr};
         };
 
-        GraphWizGraph MakeSolutionGraph(const MatchingContext & i_source,
+        GraphWizGraph MakeSolutionGraphWiz(const MatchingContext & i_source,
             std::string i_graph_name)
         {
             GraphWizGraph graph(i_graph_name);
@@ -212,7 +212,15 @@ namespace djup
                             label += ToString(" (", candidate.m_repetitions, " times)");
                     }
 
+                    for (const auto & substitution : candidate.m_substitutions)
+                    {
+                        label += ToString("\n", 
+                            substitution.m_identifier_name, " = ", ToSimplifiedString(substitution.m_value), "\n");
+                    }
+
                     dest_edge.SetLabel(label);
+
+                    dest_edge.SetStyle(GraphWizGraph::EdgeStyle::Dashed);
 
                     if (&candidate == next_candidate)
                         dest_edge.SetDrawingColor({0, 100, 0});
@@ -246,6 +254,7 @@ namespace djup
         void AddCandidate(MatchingContext & i_context,
             uint32_t i_start_node, uint32_t i_dest_node,
             Span<const Tensor> i_target, PatternSegment i_pattern,
+            std::vector<Substitution> i_substitutions,
             uint32_t i_open, uint32_t i_close,
             uint32_t i_repetitions = 1)
         {
@@ -261,6 +270,7 @@ namespace djup
             new_candidate.m_repetitions = i_repetitions;
             new_candidate.m_open = i_open;
             new_candidate.m_close = i_close;
+            new_candidate.m_substitutions = std::move(i_substitutions);
 
             i_context.m_edges.insert({ i_dest_node, Edge{i_start_node, cand_handle, {}, i_open, i_close } });
             i_context.m_graph_nodes[i_start_node].m_outgoing_edges++;
@@ -282,7 +292,7 @@ namespace djup
             LinearPath & operator = (const LinearPath &) = delete;
 
             void AddEdge(Span<const Tensor> i_target, PatternSegment i_pattern,
-                std::vector<Substitution> && i_substitutions,
+                std::vector<Substitution> i_substitutions,
                 bool i_increase_depth = false, uint32_t i_repetitions = 1)
             {
                 /*std::string rep_str;
@@ -291,9 +301,11 @@ namespace djup
                 PrintLn("Pattern: ", TensorListToString(i_pattern.m_pattern), rep_str);
                 PrintLn("Target: ", TensorListToString(i_target));*/
 
-                if (!i_target.empty() && !i_pattern.m_pattern.empty() && i_repetitions != 0)
+                /*if (!i_target.empty() && !i_pattern.m_pattern.empty() && 
+                    i_repetitions != 0 && i_substitutions.empty())*/
                 {
-                    if (!(m_target.empty() && m_pattern.m_pattern.empty()) && m_repetitions != 0)
+                    /*if (!(m_target.empty() && m_pattern.m_pattern.empty()) &&
+                        m_repetitions != 0 && !m_substitutions.empty())*/
                     {
                         const uint32_t intermediate_node = NumericCast<uint32_t>(m_context.m_graph_nodes.size());
                         m_context.m_graph_nodes.emplace_back();
@@ -308,6 +320,7 @@ namespace djup
                     m_pattern = i_pattern;
                     m_repetitions = i_repetitions;
                     m_increase_depth = i_increase_depth;
+                    m_substitutions = std::move(i_substitutions);
                 }
             }
 
@@ -323,7 +336,8 @@ namespace djup
 
             void FlushPendingEdgeIfNotEmpty(uint32_t i_dest_node)
             {
-                if (!(m_target.empty() && m_pattern.m_pattern.empty()) && m_repetitions != 0)
+                /*if (!(m_target.empty() && m_pattern.m_pattern.empty()) &&
+                    m_repetitions != 0 )*/
                 {
                     FlushPendingEdge(i_dest_node);
                 }
@@ -338,7 +352,9 @@ namespace djup
                     open++;
                     i_close++;
                 }
-                AddCandidate(m_context, m_start_node, i_dest_node, m_target, m_pattern, open, i_close, m_repetitions);
+                AddCandidate(m_context, m_start_node, i_dest_node, 
+                    m_target, m_pattern, std::move(m_substitutions), 
+                    open, i_close, m_repetitions);
                 m_open = 0;
             }
 
@@ -348,6 +364,7 @@ namespace djup
             uint32_t m_dest_node;
             uint32_t m_open;
             uint32_t m_close;
+            std::vector<Substitution> m_substitutions;
 
             // pending edge
             Span<const Tensor> m_target;
@@ -566,11 +583,11 @@ namespace djup
             segment.m_pattern = {&pattern, 1};
             ArgumentInfo arg_info{single_range, single_remaining};
             segment.m_arg_infos = {&arg_info, 1};
-            AddCandidate(i_context, 1, 0, {&target, 1}, segment, {}, {});
+            AddCandidate(i_context, 1, 0, { &target, 1 }, segment, {}, {}, {});
 
             if (i_context.m_artifact_path != nullptr)
             {
-                GraphWizGraph graph = MakeSolutionGraph(i_context, "Initial");
+                GraphWizGraph graph = MakeSolutionGraphWiz(i_context, "Initial");
                 graph.SaveAsImage(std::filesystem::path(i_context.m_artifact_path) / "Initial.png");
             }
 
@@ -620,7 +637,7 @@ namespace djup
                     if (i_context.m_artifact_path != nullptr)
                     {
                         std::string title = ToString("Step_", dbg_step);
-                        GraphWizGraph graph = MakeSolutionGraph(i_context, title);
+                        GraphWizGraph graph = MakeSolutionGraphWiz(i_context, title);
                         graph.SaveAsImage(std::filesystem::path(i_context.m_artifact_path) / (title + ".png"));
                     }
                 }
