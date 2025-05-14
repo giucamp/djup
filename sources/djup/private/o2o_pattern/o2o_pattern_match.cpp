@@ -295,22 +295,26 @@ namespace djup
                 std::vector<Substitution> i_substitutions,
                 bool i_increase_depth = false, uint32_t i_repetitions = 1)
             {
-                /*std::string rep_str;
-                if(i_repetitions != std::numeric_limits<uint32_t>::max())
-                    rep_str = ToString(" x", i_repetitions);
-                PrintLn("Pattern: ", TensorListToString(i_pattern.m_pattern), rep_str);
-                PrintLn("Target: ", TensorListToString(i_target));*/
+                bool empty_edge = i_target.empty() && i_substitutions.empty() && !i_increase_depth;
 
-                /*if (!i_target.empty() && !i_pattern.m_pattern.empty() && 
-                    i_repetitions != 0 && i_substitutions.empty())*/
+                empty_edge = empty_edge || i_repetitions == 0;
+
+                if(!empty_edge)
                 {
+                    /*std::string rep_str;
+                    if(i_repetitions != std::numeric_limits<uint32_t>::max())
+                        rep_str = ToString(" x", i_repetitions);
+                    PrintLn("Pattern: ", TensorSpanToString(i_pattern.m_pattern), rep_str);
+                    PrintLn("Target: ", TensorSpanToString(i_target));*/
+
                     /*if (!(m_target.empty() && m_pattern.m_pattern.empty()) &&
                         m_repetitions != 0 && !m_substitutions.empty())*/
+                    if(m_has_edge)
                     {
                         const uint32_t intermediate_node = NumericCast<uint32_t>(m_context.m_graph_nodes.size());
                         m_context.m_graph_nodes.emplace_back();
 
-                        FlushPendingEdgeIfNotEmpty(intermediate_node);
+                        FlushPendingEdge(intermediate_node);
 
                         m_start_node = intermediate_node;
                     }
@@ -321,39 +325,31 @@ namespace djup
                     m_repetitions = i_repetitions;
                     m_increase_depth = i_increase_depth;
                     m_substitutions = std::move(i_substitutions);
+                    m_has_edge = true;
                 }
             }
 
             ~LinearPath() noexcept(false)
             {
-                if (m_close == 0)
-                    FlushPendingEdgeIfNotEmpty(m_dest_node);
-                else
+                if(m_has_edge)
                     FlushPendingEdge(m_dest_node, m_close);
             }
 
         private:
 
-            void FlushPendingEdgeIfNotEmpty(uint32_t i_dest_node)
-            {
-                /*if (!(m_target.empty() && m_pattern.m_pattern.empty()) &&
-                    m_repetitions != 0 )*/
-                {
-                    FlushPendingEdge(i_dest_node);
-                }
-            }
-
-
             void FlushPendingEdge(uint32_t i_dest_node, uint32_t i_close = {})
             {
+                DJUP_ASSERT(m_has_edge);
+                
                 uint32_t open = m_open;
                 if (m_increase_depth)
                 {
                     open++;
                     i_close++;
                 }
-                AddCandidate(m_context, m_start_node, i_dest_node, 
-                    m_target, m_pattern, std::move(m_substitutions), 
+
+                AddCandidate(m_context, m_start_node, i_dest_node,
+                    m_target, m_pattern, std::move(m_substitutions),
                     open, i_close, m_repetitions);
                 m_open = 0;
             }
@@ -364,13 +360,14 @@ namespace djup
             uint32_t m_dest_node;
             uint32_t m_open;
             uint32_t m_close;
-            std::vector<Substitution> m_substitutions;
 
             // pending edge
             Span<const Tensor> m_target;
             PatternSegment m_pattern;
             uint32_t m_repetitions{};
-            bool m_increase_depth{};
+            bool m_increase_depth{ false };
+            bool m_has_edge{ false };
+            std::vector<Substitution> m_substitutions;
         };
 
         /** Returns false if the matching has failed */
@@ -434,9 +431,8 @@ namespace djup
                             post_segment.m_flags = pattern_info.m_flags;
                             post_segment.m_pattern = i_candidate.m_segment.m_pattern.subspan(pattern_index + 1);
                             post_segment.m_arg_infos = i_candidate.m_segment.m_arg_infos.subspan(pattern_index + 1);
-                            path.AddEdge(
-                                i_candidate.m_target_arguments.subspan(target_index + used),
-                                post_segment, {});
+                            auto target = i_candidate.m_target_arguments.subspan(target_index + used);
+                            path.AddEdge(target, post_segment, {});
                         }
                         return false;
                     }
