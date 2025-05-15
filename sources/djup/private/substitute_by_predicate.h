@@ -33,16 +33,16 @@ namespace djup
             std::vector<Tensor> new_arguments;
             new_arguments.reserve(replacement.GetExpression()->GetArguments().size());
         
-            bool some_operand_replaced = false;
-            for(const Tensor & operand : replacement.GetExpression()->GetArguments())
+            bool some_argument_replaced = false;
+            for(const Tensor & argument : replacement.GetExpression()->GetArguments())
             {
                 new_arguments.push_back(
-                    SubstituteByPredicateImpl(operand, i_predicate, i_replacement_map));
+                    SubstituteByPredicateImpl(argument, i_predicate, i_replacement_map));
 
-                some_operand_replaced = some_operand_replaced || 
-                    new_arguments.back().GetExpression() != operand.GetExpression();
+                some_argument_replaced = some_argument_replaced || 
+                    new_arguments.back().GetExpression() != argument.GetExpression();
             }
-            if(some_operand_replaced)
+            if(some_argument_replaced)
             {
                 const Expression & expr = *replacement.GetExpression();
                 replacement = MakeExpression(
