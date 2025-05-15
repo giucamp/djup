@@ -33,13 +33,19 @@ namespace djup
             Pattern(const Namespace & i_namespace, 
                 const Tensor & i_pattern, const Tensor & i_when = true);
 
-            MatchResult Match(const Tensor & i_target, 
+            MatchResult MatchOne(const Tensor & i_target, 
+                const char * i_artifact_path) const;
+
+            std::vector<MatchResult> MatchAll(const Tensor & i_target,
                 const char * i_artifact_path) const;
 
         private:
             Tensor m_pattern;
             const Namespace & m_namespace;
         };
+
+        Tensor ApplySubstitutions(const Tensor & i_where,
+            Span<const Substitution> i_substitutions);
 
     } // namespace o2o_pattern
 

@@ -30,46 +30,39 @@ namespace djup
             const std::filesystem::path artifact_path = GetArtifactPath(rel_artifact_path);
             const std::string artifact_path_string = artifact_path.string();
 
+            // create or clean artifact path
             if (i_test_descr.m_save_graphs)
             {
-                std::filesystem::create_directories(artifact_path);
+                if (std::filesystem::exists(artifact_path))
+                {
+                    for (auto file : std::filesystem::directory_iterator(artifact_path))
+                        std::filesystem::remove_all(file.path());
+                }
+                else
+                {
+                    std::filesystem::create_directories(artifact_path);
+                }
             }
 
             o2o_pattern::Pattern pattern(*GetStandardNamespace(), i_test_descr.m_pattern);
 
-            o2o_pattern::MatchResult result = pattern.Match(i_test_descr.m_target,
+            std::vector<o2o_pattern::MatchResult> solutions = pattern.MatchAll(i_test_descr.m_target,
                 i_test_descr.m_save_graphs ? artifact_path_string.c_str() : nullptr);
             
-            //CORE_EXPECTS_EQ(substitution_graph.GetSolutions().size(), i_test_descr.m_expected_solutions);
+            CORE_EXPECTS_EQ(solutions.size(), i_test_descr.m_expected_solutions);
 
-            /*if (i_test_descr.m_expected_solutions >= 1)
+            for (size_t solution_index = 0; solution_index < solutions.size(); ++solution_index)
             {
-                const auto& solution = substitution_graph.GetSolutionAt(0);
-                const auto& substitutions = solution.m_substitutions.GetSubstitutions();
-
                 Tensor after_sub = o2o_pattern::ApplySubstitutions(
-                    i_test_descr.m_patterns[solution.m_pattern_id], substitutions);
+                    i_test_descr.m_pattern, solutions[solution_index].m_substitutions);
 
                 CORE_EXPECTS(AlwaysEqual(after_sub, i_test_descr.m_target));
-            }*/
+            }
         }
 
         void O2oPattern()
         {
             Print("Test: djup - o2o Pattern Matching...");
-
-            const std::filesystem::path artifact_path = GetArtifactPath("test_o2opattern");
-
-            // create or clean artifact path
-            if (std::filesystem::exists(artifact_path))
-            {
-                for (auto file : std::filesystem::directory_iterator(artifact_path))
-                    std::filesystem::remove_all(file.path());
-            }
-            else
-            {
-                std::filesystem::create_directories(artifact_path);
-            }
 
 #if 1
             // pattern 1
@@ -90,6 +83,20 @@ namespace djup
                 descr.m_save_graphs = true;
                 descr.m_pattern = "g(1 2 3 f(real a h(real b)) real c)"_t;
                 descr.m_target = "g(1 2 3 f(4 h(5)) 6)"_t;
+                descr.m_expected_solutions = 1;
+                O2oPatternTest(descr);
+            }
+
+            // pattern 3
+            {
+                auto target = "f(1 2 3 4 5 6)"_t;
+                auto pattern = "f(real x... real y...)"_t;
+
+                O2oPatternTestDescr descr;
+                descr.m_test_name = "pattern_3";
+                descr.m_save_graphs = false;
+                descr.m_pattern = pattern;
+                descr.m_target = target;
                 descr.m_expected_solutions = 1;
                 O2oPatternTest(descr);
             }

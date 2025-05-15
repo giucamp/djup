@@ -10,6 +10,7 @@
 #include <private/o2o_pattern/o2o_pattern_match.h>
 #include <private/o2o_pattern/o2o_pattern_info.h>
 #include <private/o2o_pattern/o2o_debug_utils.h>
+#include <private/o2o_pattern/o2o_substitutions_builder.h>
 #include <private/builtin_names.h>
 #include <core/flags.h>
 #include <core/pool.h>
@@ -81,7 +82,8 @@ namespace djup
 
             PatternSegment() = default;
 
-            PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern, Span<const ArgumentInfo> i_arguments)
+            PatternSegment(FunctionFlags i_flags, Span<const Tensor> i_pattern,
+                    Span<const ArgumentInfo> i_arguments)
                 : m_flags(i_flags), m_pattern(i_pattern), m_arg_infos(i_arguments)
             {
                 DJUP_ASSERT(m_arg_infos.size() == m_pattern.size());
@@ -135,6 +137,9 @@ namespace djup
             std::unordered_map<const Expression*, PatternInfo> m_pattern_infos;
             const char * m_artifact_path{nullptr};
         };
+
+        constexpr uint32_t g_start_node_index = 1;
+        constexpr uint32_t g_end_node_index = 0;
 
         GraphWizGraph MakeSolutionGraphWiz(const MatchingContext & i_source,
             std::string i_graph_name)
@@ -307,8 +312,6 @@ namespace djup
                     PrintLn("Pattern: ", TensorSpanToString(i_pattern.m_pattern), rep_str);
                     PrintLn("Target: ", TensorSpanToString(i_target));*/
 
-                    /*if (!(m_target.empty() && m_pattern.m_pattern.empty()) &&
-                        m_repetitions != 0 && !m_substitutions.empty())*/
                     if(m_has_edge)
                     {
                         const uint32_t intermediate_node = NumericCast<uint32_t>(m_context.m_graph_nodes.size());
@@ -579,7 +582,7 @@ namespace djup
             segment.m_pattern = {&pattern, 1};
             ArgumentInfo arg_info{single_range, single_remaining};
             segment.m_arg_infos = {&arg_info, 1};
-            AddCandidate(i_context, 1, 0, { &target, 1 }, segment, {}, {}, {});
+            AddCandidate(i_context, g_start_node_index, g_end_node_index, { &target, 1 }, segment, {}, {}, {});
 
             if (i_context.m_artifact_path != nullptr)
             {
@@ -641,6 +644,76 @@ namespace djup
             } while(!i_context.m_candidate_queue.empty());
         }
 
+        struct SolutionBuilder
+        {
+            uint32_t m_curr_node;
+            SubstitutionsBuilder m_builder;
+        };
+
+        std::vector<MatchResult> GetAllSolutions(const MatchingContext & i_context)
+        {
+            std::vector<SolutionBuilder> builders;
+            std::vector<MatchResult> solutions;
+
+            builders.emplace_back().m_curr_node = g_end_node_index;
+
+            do {
+                for (auto bld_it = builders.begin(); bld_it != builders.end(); )
+                {
+                    const auto equal_range = i_context.m_edges.equal_range(bld_it->m_curr_node);
+
+                    SolutionBuilder copy;
+                    uint32_t outgoing_edges = 0;
+                    for (auto edge_it = equal_range.first; edge_it != equal_range.second;
+                        ++edge_it, ++outgoing_edges)
+                    {
+                        if (outgoing_edges == 0)
+                        {
+                            copy = *bld_it;
+                            bld_it = builders.erase(bld_it);
+                        }
+
+                        bld_it = builders.insert(bld_it, copy);
+
+                        bool compatible = bld_it->m_builder.Add(edge_it->second.m_substitutions);
+                        bld_it->m_curr_node = edge_it->second.m_source_index;
+
+                        if (!compatible)
+                        {
+                            bld_it = builders.erase(bld_it);
+                        }
+                        else if (bld_it->m_curr_node == g_start_node_index)
+                        {
+                            solutions.emplace_back().m_substitutions = std::move(
+                                bld_it->m_builder.StealSubstitutions());
+
+                            bld_it = builders.erase(bld_it);
+                        }
+                        else
+                        {
+                            ++bld_it;
+                        }
+                    }
+                }
+            } while (!builders.empty());
+            return solutions;
+        }
+
+        Tensor ApplySubstitutions(const Tensor & i_where,
+            Span<const Substitution> i_substitutions)
+        {
+            return SubstituteByPredicate(i_where, [i_substitutions](const Tensor i_tensor) {
+                for (const Substitution & subst : i_substitutions)
+                {
+                    if (i_tensor.GetExpression()->GetName() == subst.m_identifier_name)
+                    {
+                        return subst.m_value;
+                    }
+                }
+                return i_tensor;
+            });
+        }
+
         Pattern::Pattern(const Namespace & i_namespace,
             const Tensor & i_pattern, const Tensor & i_when)
                 : m_namespace(i_namespace)
@@ -648,7 +721,7 @@ namespace djup
             m_pattern = PreprocessPattern(i_pattern);
         }
 
-        MatchResult Pattern::Match(const Tensor & i_target,
+        std::vector<MatchResult> Pattern::MatchAll(const Tensor & i_target,
             const char * i_artifact_path) const
         {
             MatchingContext context;
@@ -656,7 +729,9 @@ namespace djup
             context.m_artifact_path = i_artifact_path;
             MakeSubstitutionsGraph(context, i_target, m_pattern);
 
-            return {};
+            std::vector<MatchResult> solutions = GetAllSolutions(context);
+
+            return { solutions };
         }
 
     } // namespace o2o_pattern

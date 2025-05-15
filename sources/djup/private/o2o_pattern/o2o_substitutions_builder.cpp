@@ -6,6 +6,7 @@
 
 #include <private/common.h>
 #include <private/o2o_pattern/o2o_substitutions_builder.h>
+#include <private/o2o_pattern/o2o_pattern_match.h>
 
 namespace djup
 {
@@ -137,6 +138,12 @@ namespace djup
         {
             DJUP_ASSERT(m_curr_depth == 0);
             return m_substitutions;
+        }
+
+        std::vector<Substitution> SubstitutionsBuilder::StealSubstitutions() const
+        {
+            DJUP_ASSERT(m_curr_depth == 0);
+            return std::move(m_substitutions);
         }
 
     } // namespace o2o_pattern

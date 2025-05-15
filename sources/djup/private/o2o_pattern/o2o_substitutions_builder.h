@@ -16,11 +16,7 @@ namespace djup
 {
     namespace o2o_pattern
     {
-        struct Substitution
-        {
-            Name m_identifier_name;
-            Tensor m_value;
-        };
+        struct Substitution;;
 
         class SubstitutionsBuilder
         {
@@ -33,6 +29,8 @@ namespace djup
             bool Close(uint32_t i_depth);
 
             const std::vector<Substitution>& GetSubstitutions() const;
+
+            std::vector<Substitution> StealSubstitutions() const;
 
         private:
 
