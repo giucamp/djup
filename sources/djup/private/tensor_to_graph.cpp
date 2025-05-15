@@ -6,7 +6,7 @@
 
 #include <private/common.h>
 #include <djup/tensor.h>
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <private/builtin_names.h>
 #include <core/graph_wiz.h>
 #include <core/flags.h>

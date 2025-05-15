@@ -398,7 +398,7 @@ namespace djup
                         DJUP_ASSERT(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                         // compute usable range
-                        Range usable;
+                        IntInterval usable;
                         usable.m_max = static_cast<int32_t>(total_available_targets - arg_info.m_remaining.m_min);
                         usable.m_min = static_cast<int32_t>(arg_info.m_remaining.m_max ==
                             std::numeric_limits<uint32_t>::max() ?
@@ -571,8 +571,8 @@ namespace djup
             Tensor pattern = PreprocessPattern(i_pattern);
             const Tensor & target = i_target;
 
-            Range single_range = {1, 1};
-            Range single_remaining = {0, 0};
+            IntInterval single_range = {1, 1};
+            IntInterval single_remaining = {0, 0};
 
             i_context.m_graph_nodes.emplace_back(); // the first node is the final target
             i_context.m_graph_nodes.emplace_back();
@@ -717,10 +717,12 @@ namespace djup
             for (size_t i = 0; i < arguments.size(); ++i)
             {
                 const Tensor & arg = arguments[i];
-                if (arg.GetExpression()->GetName() == builtin_names::RepetitionsOneToMany)
+                if (arg.GetExpression()->GetName() == builtin_names::RepetitionsZeroToMany)
                 {
+
                 }
-            }*/
+            }
+            return {};*/
             return SubstituteByPredicate(i_where, [i_substitutions](const Tensor i_tensor) {
                 for (const Substitution & subst : i_substitutions)
                 {

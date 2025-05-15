@@ -21,7 +21,6 @@ namespace djup
     {
         class DiscriminationTree;
 
-        /**   */
         class SubstitutionGraph
         {
 

@@ -6,7 +6,7 @@
 
 #pragma once
 #include <private/common.h>
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <private/o2o_pattern/o2o_debug_utils.h>
 #include <vector>
 #include <string>
@@ -22,68 +22,17 @@ namespace djup
 {
     namespace o2o_pattern
     {
-        /** Inclusive range of integers. If the bounds are equal the range contains a single
-            value. If the lower bound is greater than the upper bound the range is empty, 
-            than this the values are meaningless. A default constructed range is empty.
-            If min == max the range contains a single number.
-            To do: rename to Interval */
-        struct Range
-        {
-            int32_t m_min{1}; /**< inclusive lower bound */
-            int32_t m_max{0}; /**< inclusive upper bound */
-
-            constexpr static int32_t s_infinite = std::numeric_limits<int32_t>::max();
-
-            /** returns whether no value is contained in this range */
-            bool IsEmpty() const noexcept { return m_min > m_max; }
-
-            /** returns whether a value is contained in this range */
-            bool IsValaueWithin(int32_t i_value) const noexcept 
-                { return i_value >= m_min && i_value <= m_max; }
-
-            // makes this range containing all values of both input range
-            Range operator | (const Range & i_other) const noexcept;
-            
-            // returns a range that contains both values of all input ranges
-            Range & operator |= (const Range & i_other) noexcept;
-
-            // sums two ranges, possibly yielding to infinity
-            Range operator + (const Range& i_other) const noexcept;
-
-            // sums two ranges, possibly yielding to an infinity
-            Range& operator += (const Range& i_other) noexcept;
-
-            /** returns whether the bounds of the ranges are identical */
-            bool operator == (const Range & i_other) const noexcept;
-            
-            /** returns whether the bounds of the ranges not are identical */
-            bool operator != (const Range & i_other) const noexcept;
-
-            /** clamps the input value to lay in this range */
-            int32_t ClampValue(int32_t i_value) const noexcept;
-
-            /** clamps the input range so that its values lay in this range */
-            Range ClampRange(Range i_range) const noexcept;
-
-            /** Returns whether one and only on value lies in the range */
-            bool HasSingleValue() const noexcept { return m_min == m_max; }
-
-            // returns a string representation of the range, for example:
-            // "1, 1", "0, 1", "2, Inf", "-2, Inf"
-            std::string ToString() const;
-        };
-
         /** Describes a single parameter of a pattern, for example b in f(a, b, c) */
         struct ArgumentInfo
         {
             /** How many times this label can be repeated: [1,1] for plain parameters,
                 [0,Inf] for variadic parameters, etc. */
-            Range m_cardinality;
+            IntInterval m_cardinality;
 
             /** Given a parameter for this argument, how many parameters can follow. For
                 example given f(a, b, c) and b is [1, 1], while for f(a, b..., c) is [1, Inf].
                 This is redundant, but can early reject matching tries. s*/
-            Range m_remaining;
+            IntInterval m_remaining;
 
             //** Constant, identifier, variadic or variable function. */
             ExpressionKind m_kind{};
@@ -116,7 +65,7 @@ namespace djup
 
             /** Minimum and maximum number of parameters that may match this pattern.
                 Used to early reject target spans. */
-            Range m_arguments_range;
+            IntInterval m_arguments_range;
 
             /** Describes every single label of the pattern. */
             std::vector<ArgumentInfo> m_arguments_info;
@@ -129,9 +78,6 @@ namespace djup
             }
         };
 
-        /** Returns true if the (root) expression is a repetition (?, .. or ...) */
-        bool IsRepetition(const Tensor& i_expression);
-
         /** Constructs a PatternInfo (static pattern information) given a pattern */
         PatternInfo BuildPatternInfo(const Tensor & i_pattern);
 
@@ -141,25 +87,6 @@ namespace djup
 
 namespace core
 {
-    template <> struct CharWriter<djup::o2o_pattern::Range>
-    {
-        constexpr void operator() (CharBufferView& i_dest, const djup::o2o_pattern::Range & i_source)
-        {
-            const int32_t infinite = djup::o2o_pattern::Range::s_infinite;
-
-            if (i_source.m_min > i_source.m_max)
-                i_dest << "empty";
-            else if (i_source.m_min == infinite && i_source.m_max == infinite)
-                i_dest << "Inf, Inf";
-            else if (i_source.m_min == infinite)
-                i_dest << "Inf, " << i_source.m_max;
-            else if (i_source.m_max == infinite)
-                i_dest << i_source.m_min << ", Inf";
-            else
-                i_dest << i_source.m_min << ", " << i_source.m_max;
-        }
-    };
-
     #if DJUP_DEBUG_PATTERN_INFO
     template <> struct CharWriter<djup::o2o_pattern::PatternInfo>
     {

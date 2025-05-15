@@ -10,7 +10,7 @@
 #include <private/substitute_by_predicate.h>
 #include <private/make_expr.h>
 #include <private/namespace.h>
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <private/m2o_pattern/m2o_pattern_info.h>
 #include <core/flags.h>
 #include <core/diagnostic.h>
@@ -474,7 +474,7 @@ namespace djup
                         DJUP_ASSERT(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                         // compute usable range
-                        Range usable;
+                        IntInterval usable;
                         usable.m_max = static_cast<int32_t>(total_available_targets - arg_info.m_remaining.m_min);
                         usable.m_min = static_cast<int32_t>(arg_info.m_remaining.m_max == 
                             std::numeric_limits<uint32_t>::max() ?
@@ -676,8 +676,8 @@ namespace djup
             const Tensor & target = i_target;
 
             MatchingContext context;
-            Range single_range = {1, 1};
-            Range single_remaining = {0, 0};
+            IntInterval single_range = {1, 1};
+            IntInterval single_remaining = {0, 0};
 
             static_assert(g_start_node_index == 1);
             static_assert(g_end_node_index == 0);

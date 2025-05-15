@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <private/namespace.h>
 #include <private/builtin_names.h>
 #include <core/algorithms.h>
@@ -44,6 +44,25 @@ namespace djup
             return ExpressionKind::Variadic;
         else
             return ExpressionKind::VariableFunction;
+    }
+
+    IntInterval GetCardinality(const Tensor & i_expression)
+    {
+        if (NameIs(i_expression, builtin_names::RepetitionsZeroToMany))
+            return { 0, IntInterval::s_infinite };
+        else if (NameIs(i_expression, builtin_names::RepetitionsZeroToOne))
+            return { 0, 1 };
+        else if (NameIs(i_expression, builtin_names::RepetitionsOneToMany) || NameIs(i_expression, builtin_names::AssociativeIdentifier))
+            return { 1, IntInterval::s_infinite };
+        else
+            return { 1, 1 };
+    }
+
+    bool IsRepetition(const Tensor & i_expression)
+    {
+        return NameIs(i_expression, builtin_names::RepetitionsZeroToMany)
+            || NameIs(i_expression, builtin_names::RepetitionsZeroToOne)
+            || NameIs(i_expression, builtin_names::RepetitionsOneToMany);
     }
 
     Expression::Expression()

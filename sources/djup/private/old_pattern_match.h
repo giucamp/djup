@@ -8,7 +8,7 @@
 #include <private/common.h>
 #include <djup/tensor.h>
 #include <core/name.h>
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <variant>
 
 namespace djup

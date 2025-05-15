@@ -6,7 +6,7 @@
 
 #pragma once
 //#include <private/common.h>
-//#include <djup/expression.h>
+//#include <private/expression.h>
 //#include <private/m2o_pattern/m2o_pattern_info.h>
 //#include <private/m2o_pattern/m2o_discrimination_tree.h>
 //#include <private/m2o_pattern/m2o_substitution_graph.h>

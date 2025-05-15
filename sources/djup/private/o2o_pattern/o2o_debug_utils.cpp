@@ -7,6 +7,7 @@
 #include <private/common.h>
 #include <private/o2o_pattern/o2o_debug_utils.h>
 #include <private/o2o_pattern/o2o_pattern_info.h>
+#include <private/expression.h>
 
 namespace djup
 {

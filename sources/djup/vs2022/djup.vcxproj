@@ -23,7 +23,9 @@
     <ClInclude Include="..\private\builtin_names.h" />
     <ClInclude Include="..\private\common.h" />
     <ClInclude Include="..\private\constant_shape.h" />
+    <ClInclude Include="..\private\expression.h" />
     <ClInclude Include="..\private\indices.h" />
+    <ClInclude Include="..\private\int_interval.h" />
     <ClInclude Include="..\private\lexer.h" />
     <ClInclude Include="..\private\m2o_pattern\m2o_candidate.h" />
     <ClInclude Include="..\private\m2o_pattern\m2o_debug_utils.h" />
@@ -41,11 +43,11 @@
     <ClInclude Include="..\private\old_pattern_match.h" />
     <ClInclude Include="..\private\substitute_by_predicate.h" />
     <ClInclude Include="..\private\tensor_type.h" />
-    <ClInclude Include="..\public\djup\expression.h" />
     <ClInclude Include="..\public\djup\tensor.h" />
     <ClInclude Include="..\tests\test_utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\private\int_interval.cpp" />
     <ClCompile Include="..\private\m2o_pattern\m2o_candidate.cpp" />
     <ClCompile Include="..\private\m2o_pattern\m2o_debug_utils.cpp" />
     <ClCompile Include="..\private\m2o_pattern\m2o_discrimination_tree.cpp" />

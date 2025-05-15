@@ -51,9 +51,6 @@
     <ClInclude Include="..\private\common.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\djup\expression.h">
-      <Filter>public</Filter>
-    </ClInclude>
     <ClInclude Include="..\private\make_expr.h">
       <Filter>private</Filter>
     </ClInclude>
@@ -92,6 +89,12 @@
     </ClInclude>
     <ClInclude Include="..\tests\test_utils.h">
       <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\expression.h">
+      <Filter>private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\private\int_interval.h">
+      <Filter>private</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -211,6 +214,9 @@
     </ClCompile>
     <ClCompile Include="..\tests\test_m2o_substitutions_builder.cpp">
       <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\int_interval.cpp">
+      <Filter>private</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

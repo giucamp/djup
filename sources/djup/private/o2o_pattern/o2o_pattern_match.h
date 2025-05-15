@@ -6,7 +6,7 @@
 
 #pragma once
 #include <private/common.h>
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <vector>
 
 namespace djup

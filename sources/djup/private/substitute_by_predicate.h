@@ -8,7 +8,7 @@
 #include <private/common.h>
 #include <private/make_expr.h>
 #include "djup/tensor.h"
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <unordered_map>
 
 namespace djup

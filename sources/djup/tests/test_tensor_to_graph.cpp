@@ -7,7 +7,7 @@
 #include <private/common.h>
 #include <djup/tensor.h>
 #include <tests/test_utils.h>
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <fstream>
 #include <filesystem>
 

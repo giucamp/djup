@@ -8,7 +8,7 @@
 #include <private/namespace.h>
 #include <private/m2o_pattern/m2o_substitution_graph.h>
 #include <private/make_expr.h>
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <private/builtin_names.h>
 #include <core/algorithms.h>
 

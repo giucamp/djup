@@ -11,7 +11,7 @@
 #include <private/parser.h>
 #include <private/lexer.h>
 #include <private/alphabet.h>
-#include <djup/expression.h>
+#include <private/expression.h>
 #include <private/namespace.h>
 #include <private/builtin_names.h>
 #include <private/make_expr.h>

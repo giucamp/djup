@@ -13,7 +13,7 @@ namespace djup
     namespace m2o_pattern
     {
         // defined in substitution_graph.cpp
-        Range GetUsableCount(const ArgumentInfo& i_argument_info,
+        IntInterval GetUsableCount(const ArgumentInfo& i_argument_info,
             uint32_t i_target_remaining_targets, uint32_t i_pattern_size);
     }
 
@@ -31,16 +31,16 @@ namespace djup
                 const m2o_pattern::PatternInfo info_1 = m2o_pattern::BuildPatternInfo("g(1 2 x...)");
 
                 CORE_EXPECTS(info_1.m_flags == FunctionFlags{});
-                CORE_EXPECTS_EQ(info_1.m_arguments_range, (Range{ 2, infinity }));
+                CORE_EXPECTS_EQ(info_1.m_arguments_range, (IntInterval{ 2, infinity }));
 
                 CORE_EXPECTS_EQ(NumericCast<int32_t>(info_1.m_arguments_info.size()), 3);
 
-                CORE_EXPECTS_EQ(info_1.m_arguments_info[0].m_cardinality, (Range{ 1, 1 }));
-                CORE_EXPECTS_EQ(info_1.m_arguments_info[1].m_cardinality, (Range{ 1, 1 }));
-                CORE_EXPECTS_EQ(info_1.m_arguments_info[2].m_cardinality, (Range{ 0, infinity }));
-                CORE_EXPECTS_EQ(info_1.m_arguments_info[0].m_remaining, (Range{ 1, infinity }));
-                CORE_EXPECTS_EQ(info_1.m_arguments_info[1].m_remaining, (Range{ 0, infinity }));
-                CORE_EXPECTS_EQ(info_1.m_arguments_info[2].m_remaining, (Range{ 0, 0 }));
+                CORE_EXPECTS_EQ(info_1.m_arguments_info[0].m_cardinality, (IntInterval{ 1, 1 }));
+                CORE_EXPECTS_EQ(info_1.m_arguments_info[1].m_cardinality, (IntInterval{ 1, 1 }));
+                CORE_EXPECTS_EQ(info_1.m_arguments_info[2].m_cardinality, (IntInterval{ 0, infinity }));
+                CORE_EXPECTS_EQ(info_1.m_arguments_info[0].m_remaining, (IntInterval{ 1, infinity }));
+                CORE_EXPECTS_EQ(info_1.m_arguments_info[1].m_remaining, (IntInterval{ 0, infinity }));
+                CORE_EXPECTS_EQ(info_1.m_arguments_info[2].m_remaining, (IntInterval{ 0, 0 }));
 
                 #if DJUP_DEBUG_PATTERN_INFO      
             
@@ -61,17 +61,17 @@ Arg[2]: [0, Inf], Remaining: 0, 0)";
                 const m2o_pattern::PatternInfo info_2 = m2o_pattern::BuildPatternInfo(
                     "g(1 a... 10 11 b...)");
 
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[0].m_cardinality, (Range{ 1, 1 }));
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[1].m_cardinality, (Range{ 0, infinity }));
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[2].m_cardinality, (Range{ 1, 1 }));
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[3].m_cardinality, (Range{ 1, 1 }));
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[4].m_cardinality, (Range{ 0, infinity }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[0].m_cardinality, (IntInterval{ 1, 1 }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[1].m_cardinality, (IntInterval{ 0, infinity }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[2].m_cardinality, (IntInterval{ 1, 1 }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[3].m_cardinality, (IntInterval{ 1, 1 }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[4].m_cardinality, (IntInterval{ 0, infinity }));
 
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[0].m_remaining, (Range{ 2, infinity }));
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[1].m_remaining, (Range{ 2, infinity }));
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[2].m_remaining, (Range{ 1, infinity }));
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[3].m_remaining, (Range{ 0, infinity }));
-                CORE_EXPECTS_EQ(info_2.m_arguments_info[4].m_remaining, (Range{ 0, 0 }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[0].m_remaining, (IntInterval{ 2, infinity }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[1].m_remaining, (IntInterval{ 2, infinity }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[2].m_remaining, (IntInterval{ 1, infinity }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[3].m_remaining, (IntInterval{ 0, infinity }));
+                CORE_EXPECTS_EQ(info_2.m_arguments_info[4].m_remaining, (IntInterval{ 0, 0 }));
             }
 
                     /////////////////////////////////////////////////
@@ -80,17 +80,17 @@ Arg[2]: [0, Inf], Remaining: 0, 0)";
                 const m2o_pattern::PatternInfo info_3 = m2o_pattern::BuildPatternInfo(
                     "g(1 a.. 10 11 b...)");
 
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[0].m_cardinality, (Range{ 1, 1 }));
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[1].m_cardinality, (Range{ 1, infinity }));
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[2].m_cardinality, (Range{ 1, 1 }));
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[3].m_cardinality, (Range{ 1, 1 }));
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[4].m_cardinality, (Range{ 0, infinity }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[0].m_cardinality, (IntInterval{ 1, 1 }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[1].m_cardinality, (IntInterval{ 1, infinity }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[2].m_cardinality, (IntInterval{ 1, 1 }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[3].m_cardinality, (IntInterval{ 1, 1 }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[4].m_cardinality, (IntInterval{ 0, infinity }));
 
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[0].m_remaining, (Range{ 3, infinity }));
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[1].m_remaining, (Range{ 2, infinity }));
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[2].m_remaining, (Range{ 1, infinity }));
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[3].m_remaining, (Range{ 0, infinity }));
-                CORE_EXPECTS_EQ(info_3.m_arguments_info[4].m_remaining, (Range{ 0, 0 }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[0].m_remaining, (IntInterval{ 3, infinity }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[1].m_remaining, (IntInterval{ 2, infinity }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[2].m_remaining, (IntInterval{ 1, infinity }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[3].m_remaining, (IntInterval{ 0, infinity }));
+                CORE_EXPECTS_EQ(info_3.m_arguments_info[4].m_remaining, (IntInterval{ 0, 0 }));
             }
 
             /////////////////////////////////////////////////
@@ -119,7 +119,7 @@ Arg[2]: [0, Inf], Remaining: 0, 0)";
                 const uint32_t target_size = 10;
                 const auto & arguments = pattern.GetExpression()->GetArguments();
                 const m2o_pattern::PatternInfo info_6 = m2o_pattern::BuildPatternInfo(pattern);
-                std::vector<Range> usable;
+                std::vector<IntInterval> usable;
                 usable.resize(info_6.m_arguments_info.size());
                 for (uint32_t i = 0; i < info_6.m_arguments_info.size(); ++i)
                 {
