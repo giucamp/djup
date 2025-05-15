@@ -80,7 +80,7 @@ namespace djup
             {
                 O2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_2";
-                descr.m_save_graphs = true;
+                descr.m_save_graphs = false;
                 descr.m_pattern = "g(1 2 3 f(real a h(real b)) real c)"_t;
                 descr.m_target = "g(1 2 3 f(4 h(5)) 6)"_t;
                 descr.m_expected_solutions = 1;
@@ -97,7 +97,7 @@ namespace djup
                 descr.m_save_graphs = false;
                 descr.m_pattern = pattern;
                 descr.m_target = target;
-                descr.m_expected_solutions = 1;
+                descr.m_expected_solutions = 7;
                 O2oPatternTest(descr);
             }
 #endif

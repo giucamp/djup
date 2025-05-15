@@ -675,9 +675,16 @@ namespace djup
 
                         bld_it = builders.insert(bld_it, copy);
 
+                        if (edge_it->second.m_close)
+                            bld_it->m_builder.Open(edge_it->second.m_close);
+                        
                         bool compatible = bld_it->m_builder.Add(edge_it->second.m_substitutions);
                         bld_it->m_curr_node = edge_it->second.m_source_index;
 
+                        if (edge_it->second.m_open)
+                            compatible = compatible && bld_it->m_builder.Close(edge_it->second.m_open);
+                        bld_it->m_curr_node = edge_it->second.m_source_index;
+                        
                         if (!compatible)
                         {
                             bld_it = builders.erase(bld_it);
@@ -694,7 +701,11 @@ namespace djup
                             ++bld_it;
                         }
                     }
+
+                    if (outgoing_edges == 0)
+                        builders.erase(bld_it);
                 }
+
             } while (!builders.empty());
             return solutions;
         }
@@ -702,6 +713,14 @@ namespace djup
         Tensor ApplySubstitutions(const Tensor & i_where,
             Span<const Substitution> i_substitutions)
         {
+            /*const auto & arguments = i_where.GetExpression()->GetArguments();
+            for (size_t i = 0; i < arguments.size(); ++i)
+            {
+                const Tensor & arg = arguments[i];
+                if (arg.GetExpression()->GetName() == builtin_names::RepetitionsOneToMany)
+                {
+                }
+            }*/
             return SubstituteByPredicate(i_where, [i_substitutions](const Tensor i_tensor) {
                 for (const Substitution & subst : i_substitutions)
                 {
