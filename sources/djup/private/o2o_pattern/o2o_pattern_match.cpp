@@ -6,6 +6,7 @@
 
 #include <private/common.h>
 #include <private/namespace.h>
+#include <private/make_expr.h>
 #include <private/substitute_by_predicate.h>
 #include <private/o2o_pattern/o2o_pattern_match.h>
 #include <private/o2o_pattern/o2o_pattern_info.h>
@@ -710,34 +711,9 @@ namespace djup
             return solutions;
         }
 
-        Tensor ApplySubstitutions(const Tensor & i_where,
-            Span<const Substitution> i_substitutions)
-        {
-            /*const auto & arguments = i_where.GetExpression()->GetArguments();
-            for (size_t i = 0; i < arguments.size(); ++i)
-            {
-                const Tensor & arg = arguments[i];
-                if (arg.GetExpression()->GetName() == builtin_names::RepetitionsZeroToMany)
-                {
-
-                }
-            }
-            return {};*/
-            return SubstituteByPredicate(i_where, [i_substitutions](const Tensor i_tensor) {
-                for (const Substitution & subst : i_substitutions)
-                {
-                    if (i_tensor.GetExpression()->GetName() == subst.m_identifier_name)
-                    {
-                        return subst.m_value;
-                    }
-                }
-                return i_tensor;
-            });
-        }
-
         Pattern::Pattern(const Namespace & i_namespace,
             const Tensor & i_pattern, const Tensor & i_when)
-                : m_namespace(i_namespace)
+            : m_namespace(i_namespace)
         {
             m_pattern = PreprocessPattern(i_pattern);
         }

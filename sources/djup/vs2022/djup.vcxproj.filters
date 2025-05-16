@@ -218,6 +218,9 @@
     <ClCompile Include="..\private\int_interval.cpp">
       <Filter>private</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\o2o_pattern\o2o_apply_substitutions.cpp">
+      <Filter>private\m2o_pattern</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis">

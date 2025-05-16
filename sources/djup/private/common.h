@@ -23,7 +23,11 @@
 #ifndef NDEBUG
     #define DJUP_ASSERT(condition)      if(!(condition)) {DJUP_DEBUG_BREAK;} else { }
 #else
-    #define DJUP_ASSERT(condition)      (void)0
+    #if defined(_MSC_VER)
+        #define DJUP_ASSERT(condition)      __assume(condition)
+    #else
+        #define DJUP_ASSERT(condition)      (void)0
+    #endif
 #endif
 
 // DJUP_SUBST_GRAPH_DEBUG_PRINTLN - debug print for substitution graph
