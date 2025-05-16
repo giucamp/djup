@@ -93,7 +93,7 @@ namespace djup
 
         struct GraphNode
         {
-            size_t m_outgoing_edges{};
+            size_t m_incoming_edges{};
         };
 
         struct Candidate
@@ -121,7 +121,7 @@ namespace djup
 
         struct Edge
         {
-            uint32_t m_source_index{};
+            uint32_t m_dest_index{};
             Pool<Candidate>::Handle m_candidate_ref;
             std::vector<Substitution> m_substitutions;
             uint32_t m_open;
@@ -134,13 +134,13 @@ namespace djup
             Pool<Candidate> m_candidates;
             std::vector<Pool<Candidate>::Handle> m_candidate_queue;
             std::vector<GraphNode> m_graph_nodes;
-            std::unordered_multimap<uint32_t, Edge> m_edges; // the key is the destination node
+            std::unordered_multimap<uint32_t, Edge> m_edges; // the key is the source node
             std::unordered_map<const Expression*, PatternInfo> m_pattern_infos;
             const char * m_artifact_path{nullptr};
         };
 
-        constexpr uint32_t g_start_node_index = 1;
-        constexpr uint32_t g_end_node_index = 0;
+        constexpr uint32_t g_start_node_index = 0;
+        constexpr uint32_t g_end_node_index = 1;
 
         GraphWizGraph MakeSolutionGraphWiz(const MatchingContext & i_source,
             std::string i_graph_name)
@@ -164,10 +164,10 @@ namespace djup
                 
                 GraphWizGraph::Node & dest_node = graph.AddNode({});
 
-                if (i == 0)
-                    dest_node.SetLabel("Final");
-                else if (i == 1)
-                    dest_node.SetLabel("Initial");
+                if (i == g_end_node_index)
+                    dest_node.SetLabel("Final (1)");
+                else if (i == g_start_node_index)
+                    dest_node.SetLabel("Initial (0)");
                 else
                     dest_node.SetLabel(ToString("Node ", i));
             }
@@ -175,35 +175,35 @@ namespace djup
             for (const auto & edge : i_source.m_edges)
             {
                 GraphWizGraph::Edge & dest_edge = graph.AddEdge(
-                    edge.second.m_source_index, edge.first);
+                    edge.first, edge.second.m_dest_index);
 
-                std::string tail;
-                auto append_to_tail = [&](const std::string & i_str) {
-                    if (!tail.empty())
-                        tail += "\n";
-                    tail += i_str;
+                auto Append = [&](std::string & i_dest, const std::string & i_str) {
+                    if (!i_dest.empty())
+                        i_dest += "\n";
+                    i_dest += i_str;
                 };
 
+                std::string label, head, tail;
                 if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
                 {
                     const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
                     if (HasAllFlags(candidate.m_segment.m_flags, CombineFlags(FunctionFlags::Associative, FunctionFlags::Commutative)))
-                        append_to_tail("ac");
+                        Append(label, "ac");
                     else if (HasFlag(candidate.m_segment.m_flags, FunctionFlags::Associative))
-                        append_to_tail("a");
+                        Append(label, "a");
                     else if (HasFlag(candidate.m_segment.m_flags, FunctionFlags::Commutative))
-                        append_to_tail("a");
+                        Append(label, "a");
                 }
 
                 if (edge.second.m_open)
-                    append_to_tail(" " + std::string(edge.second.m_open, '+') + " ");
+                    Append(tail, std::string(edge.second.m_open, '+'));
 
-                std::string labels;
-                if (!tail.empty())
-                    dest_edge.SetTailLabel(tail);
                 if (edge.second.m_close)
-                    dest_edge.SetHeadLabel(std::string(edge.second.m_close, '-'));
-                    
+                    Append(head, std::string(edge.second.m_close, '-'));
+
+                dest_edge.SetHeadLabel(head);
+                dest_edge.SetTailLabel(tail);
+
                 if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
                 {
                     const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
@@ -211,17 +211,17 @@ namespace djup
                     std::string label;
                     if (!candidate.m_target_arguments.empty() && !candidate.m_segment.m_pattern.empty())
                     {
-                        label = TensorSpanToString(candidate.m_target_arguments);
-                        label += "\nis\n";
-                        label += TensorSpanToString(candidate.m_segment.m_pattern);
+                        Append(label, TensorSpanToString(candidate.m_target_arguments));
+                        Append(label, "is" );
+                        Append(label, TensorSpanToString(candidate.m_segment.m_pattern));
                         if (candidate.m_repetitions != 1)
-                            label += ToString(" (", candidate.m_repetitions, " times)");
+                            Append(label, ToString(" (", candidate.m_repetitions, " times)"));
                     }
 
                     for (const auto & substitution : candidate.m_substitutions)
                     {
-                        label += ToString("\n", 
-                            substitution.m_identifier_name, " = ", ToSimplifiedString(substitution.m_value), "\n");
+                        Append(label, ToString(substitution.m_identifier_name, 
+                            " = ", ToSimplifiedString(substitution.m_value)));
                     }
 
                     dest_edge.SetLabel(label);
@@ -236,7 +236,8 @@ namespace djup
                     std::string label;
                     for (const auto & substitution : edge.second.m_substitutions)
                     {
-                        label += ToString(substitution.m_identifier_name, " = ", ToSimplifiedString(substitution.m_value), "\n");
+                        Append(label, ToString(substitution.m_identifier_name,
+                            " = ", ToSimplifiedString(substitution.m_value)));
                     }
                     dest_edge.SetLabel(label);
                 }
@@ -278,8 +279,8 @@ namespace djup
             new_candidate.m_close = i_close;
             new_candidate.m_substitutions = std::move(i_substitutions);
 
-            i_context.m_edges.insert({ i_dest_node, Edge{i_start_node, cand_handle, {}, i_open, i_close } });
-            i_context.m_graph_nodes[i_start_node].m_outgoing_edges++;
+            i_context.m_edges.insert({ i_start_node, Edge{i_dest_node, cand_handle, {}, i_open, i_close } });
+            i_context.m_graph_nodes[i_dest_node].m_incoming_edges++;
         }
 
         class LinearPath
@@ -507,32 +508,37 @@ namespace djup
 
             while (!nodes_to_remove.empty())
             {
-                uint32_t node = nodes_to_remove.back();
+                const uint32_t node = nodes_to_remove.back();
                 nodes_to_remove.pop_back();
 
+                // for all nodes outgoing from this node...
                 const auto range = i_context.m_edges.equal_range(node);
                 for (auto it = range.first; it != range.second;)
                 {
-                    uint32_t start_node = it->second.m_source_index;
+                    // we are going to delete the edge from this node to it->dest
+                    const uint32_t dest_node = it->second.m_dest_index;
 
+                    // if the edge has an associated candidate, delete it
                     if (i_context.m_candidates.IsValid(it->second.m_candidate_ref))
                     {
                         Candidate & candidate = i_context.m_candidates.GetObject(it->second.m_candidate_ref);
-                        if (candidate.m_start_node == it->second.m_source_index &&
-                            candidate.m_dest_node == it->first)
+                        if (candidate.m_start_node == it->first && 
+                            candidate.m_dest_node == it->second.m_dest_index)
                         {
                             i_context.m_candidates.Delete(it->second.m_candidate_ref);
                         }
                     }
 
-                    DJUP_ASSERT(i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges > 0);
-                    i_context.m_graph_nodes[it->second.m_source_index].m_outgoing_edges--;
+                    // decrement the incoming edge on the dest
+                    DJUP_ASSERT(i_context.m_graph_nodes[it->second.m_dest_index].m_incoming_edges > 0);
+                    i_context.m_graph_nodes[it->second.m_dest_index].m_incoming_edges--;
+                    
                     it = i_context.m_edges.erase(it);
 
-                    if (i_context.m_graph_nodes[start_node].m_outgoing_edges == 0)
+                    // if this was the last incoming edge to the dest node, delete it
+                    if (i_context.m_graph_nodes[dest_node].m_incoming_edges == 0)
                     {
-                        // we have removed the last outcoming edge for i_start_node, we can erase it
-                        nodes_to_remove.push_back(start_node);
+                        nodes_to_remove.push_back(dest_node);
                     }
                 }
             }
@@ -543,14 +549,14 @@ namespace djup
             Pool<Candidate>::Handle i_candidate_ref)
         {
             bool found = false;
-            const auto range = i_context.m_edges.equal_range(i_dest_node);
+            const auto range = i_context.m_edges.equal_range(i_start_node);
             for (auto it = range.first; it != range.second; it++)
             {
-                if (it->second.m_source_index == i_start_node &&
+                if (it->second.m_dest_index == i_dest_node &&
                     it->second.m_candidate_ref == i_candidate_ref)
                 {
-                    DJUP_ASSERT(i_context.m_graph_nodes[i_start_node].m_outgoing_edges > 0);
-                    i_context.m_graph_nodes[i_start_node].m_outgoing_edges--;
+                    DJUP_ASSERT(i_context.m_graph_nodes[i_dest_node].m_incoming_edges > 0);
+                    i_context.m_graph_nodes[i_dest_node].m_incoming_edges--;
                     i_context.m_edges.erase(it);
                     found = true;
                     break;
@@ -558,14 +564,13 @@ namespace djup
             }
             DJUP_ASSERT(found);
 
-            if (i_context.m_graph_nodes[i_start_node].m_outgoing_edges == 0)
+            if (i_context.m_graph_nodes[i_dest_node].m_incoming_edges == 0)
             {
                 // we have removed the last outcoming edge for i_start_node, we can erase it
-                RemoveNode(i_context, i_start_node);
+                RemoveNode(i_context, i_dest_node);
             }
         }
-
-        
+                
         void MakeSubstitutionsGraph(MatchingContext & i_context, 
             const Tensor & i_target, const Tensor & i_pattern)
         {
@@ -575,8 +580,9 @@ namespace djup
             IntInterval single_range = {1, 1};
             IntInterval single_remaining = {0, 0};
 
-            i_context.m_graph_nodes.emplace_back(); // the first node is the final target
-            i_context.m_graph_nodes.emplace_back();
+            static_assert(g_start_node_index == 0 && g_end_node_index == 1);
+            i_context.m_graph_nodes.emplace_back(); // start node
+            i_context.m_graph_nodes.emplace_back(); // final node
 
             PatternSegment segment;
             segment.m_flags = FunctionFlags::None;
@@ -602,7 +608,7 @@ namespace djup
 
                     dbg_step++;
                     
-                    bool match = MatchCandidate(i_context, candidate);
+                    const bool match = MatchCandidate(i_context, candidate);
 
                     if(!match)
                     {
@@ -614,13 +620,13 @@ namespace djup
                     {
                         // find the edge and sets the substitutions
                         bool found = false;
-                        const auto range = i_context.m_edges.equal_range(candidate.m_dest_node);
+                        const auto range = i_context.m_edges.equal_range(candidate.m_start_node);
                         for(auto it = range.first; it != range.second; it++)
                         {
                             // the candidate has just been removed from the stack
                             // DJUP_ASSERT(IsCandidateRefValid(i_context, it->second.m_candidate_ref));
 
-                            if(it->second.m_source_index == candidate.m_start_node &&
+                            if(it->second.m_dest_index == candidate.m_dest_node &&
                                 it->second.m_candidate_ref == candidate_handle)
                             {
                                 it->second.m_candidate_ref = {};
@@ -656,18 +662,22 @@ namespace djup
             std::vector<SolutionBuilder> builders;
             std::vector<MatchResult> solutions;
 
-            builders.emplace_back().m_curr_node = g_end_node_index;
+            builders.emplace_back().m_curr_node = g_start_node_index;
 
             do {
                 for (auto bld_it = builders.begin(); bld_it != builders.end(); )
                 {
-                    const auto equal_range = i_context.m_edges.equal_range(bld_it->m_curr_node);
-
                     SolutionBuilder copy;
                     uint32_t outgoing_edges = 0;
+
+                    // for all edges starting from bld_it->m_curr_node
+                    const auto equal_range = i_context.m_edges.equal_range(bld_it->m_curr_node);
                     for (auto edge_it = equal_range.first; edge_it != equal_range.second;
                         ++edge_it, ++outgoing_edges)
                     {
+                        /* if this is the first edge, save a copy of it and remove it. For each edge
+                           we use it as starting point and add the encountered substitutions */
+
                         if (outgoing_edges == 0)
                         {
                             copy = *bld_it;
@@ -676,22 +686,23 @@ namespace djup
 
                         bld_it = builders.insert(bld_it, copy);
 
-                        if (edge_it->second.m_close)
-                            bld_it->m_builder.Open(edge_it->second.m_close);
+                        if (edge_it->second.m_open)
+                            bld_it->m_builder.Open(edge_it->second.m_open);
                         
                         bool compatible = bld_it->m_builder.Add(edge_it->second.m_substitutions);
-                        bld_it->m_curr_node = edge_it->second.m_source_index;
+                        bld_it->m_curr_node = edge_it->second.m_dest_index;
 
-                        if (edge_it->second.m_open)
-                            compatible = compatible && bld_it->m_builder.Close(edge_it->second.m_open);
-                        bld_it->m_curr_node = edge_it->second.m_source_index;
+                        if (edge_it->second.m_close)
+                            compatible = compatible && bld_it->m_builder.Close(edge_it->second.m_close);
+                        bld_it->m_curr_node = edge_it->second.m_dest_index;
                         
                         if (!compatible)
                         {
                             bld_it = builders.erase(bld_it);
                         }
-                        else if (bld_it->m_curr_node == g_start_node_index)
+                        else if (bld_it->m_curr_node == g_end_node_index)
                         {
+                            // complete non-contradictory solution, save it
                             solutions.emplace_back().m_substitutions = std::move(
                                 bld_it->m_builder.StealSubstitutions());
 

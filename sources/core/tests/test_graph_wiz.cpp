@@ -38,7 +38,7 @@ namespace core
             graph.AddNode("1\n2\n3")
                 .SetDrawingColor({ 0, 255, 0 });
 
-            graph.AddEdge(0, 1);
+            graph.AddEdge(0, 1).SetHeadLabel("head").SetTailLabel("tail");
             graph.AddEdge(1, 2);
             graph.AddEdge(3, 0);
             graph.AddEdge(4, 0);
@@ -82,7 +82,7 @@ namespace core
 	v13[shape = ellipse label = "carriage return: \r" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v14[shape = ellipse label = "horizontal tab: \t" color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
 	v15[shape = ellipse label = "vertical tab: " color = "#000000FF" fontcolor = "#000000FF" style = "filled" fillcolor = "#FFFFFFFF"]
-	v0 -> v1[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
+	v0 -> v1[label = "" headlabel  = "head" taillabel = "tail" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
 	v1 -> v2[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
 	v3 -> v0[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
 	v4 -> v0[label = "" fontcolor = "#000000FF" style = "solid" color = "#000000FF"]
@@ -99,7 +99,7 @@ namespace core
 }
 )";
             
-            //graph.SaveAsImage("C:\\repos\\djup\\tests\\graph.png");
+            // graph.SaveAsImage("C:\\repos\\djup\\tests\\graph.png");
 
             CORE_EXPECTS_EQ(dot, expected);
 

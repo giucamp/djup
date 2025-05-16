@@ -112,9 +112,29 @@ namespace core
         return new_edge;
     }
 
+    GraphWizGraph::Node & GraphWizGraph::GetNodeAt(size_t i_index)
+    {
+        return m_nodes.at(i_index);
+    }
+    
+    const GraphWizGraph::Node & GraphWizGraph::GetNodeAt(size_t i_index) const
+    {
+        return m_nodes.at(i_index);
+    }
+
     size_t GraphWizGraph::GetNodeCount() const
     { 
         return m_nodes.size();
+    }
+
+    GraphWizGraph::Edge & GraphWizGraph::GetEdgeAt(size_t i_index)
+    {
+        return m_edges.at(i_index);
+    }
+
+    const GraphWizGraph::Edge & GraphWizGraph::GetEdgeAt(size_t i_index) const
+    {
+        return m_edges.at(i_index);
     }
 
     size_t GraphWizGraph::GetEdgeCount() const
@@ -172,9 +192,9 @@ namespace core
             builder << "[";
             builder << "label = \"" << GetEscaped(edge.m_label) << "\"";
             if(!edge.m_head_label.empty())
-                builder << "headlabel  = \"" << GetEscaped(edge.m_head_label) << "\"";
+                builder << " headlabel  = \"" << GetEscaped(edge.m_head_label) << "\"";
             if (!edge.m_tail_label.empty())
-                builder << "taillabel = \"" << GetEscaped(edge.m_tail_label) << "\"";
+                builder << " taillabel = \"" << GetEscaped(edge.m_tail_label) << "\"";
             builder << " fontcolor = \"" << RgbaToHex(edge.m_font_color) << "\"";
             builder << " style = \"" << edge_styles[static_cast<int>(edge.m_style)] << "\"";
             builder << " color = \"" << RgbaToHex(edge.m_drawing_color) << "\"";

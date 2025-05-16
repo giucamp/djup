@@ -103,7 +103,7 @@ namespace djup
 
             // pattern 4
             {
-                auto target = "f(Sin(1 2 3 4 5 6))"_t;
+                auto target = "f(Sin(1) Sin(2) Sin(3) Sin(4))"_t;
                 auto pattern = "f(Sin(real x)...)"_t;
 
                 O2oPatternTestDescr descr;
