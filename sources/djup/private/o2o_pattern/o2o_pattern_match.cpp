@@ -704,7 +704,7 @@ namespace djup
                     }
 
                     if (outgoing_edges == 0)
-                        builders.erase(bld_it);
+                        bld_it = builders.erase(bld_it);
                 }
 
             } while (!builders.empty());

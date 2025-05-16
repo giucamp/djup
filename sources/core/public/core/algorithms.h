@@ -36,13 +36,13 @@ namespace core
     }
 
     template <typename TYPE_1, typename TYPE_2>
-        constexpr auto Min(const TYPE_1& i_first, const TYPE_2& i_second) noexcept
+        constexpr auto Min(const TYPE_1 & i_first, const TYPE_2 & i_second) noexcept
     {
         return i_first < i_second ? i_first : i_second;
     }
 
     template <typename TYPE_1, typename TYPE_2>
-        constexpr auto Max(const TYPE_1& i_first, const TYPE_2& i_second) noexcept
+        constexpr auto Max(const TYPE_1 & i_first, const TYPE_2 & i_second) noexcept
     {
         return i_first > i_second ? i_first : i_second;
     }

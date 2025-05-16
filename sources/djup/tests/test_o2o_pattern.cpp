@@ -100,6 +100,20 @@ namespace djup
                 descr.m_expected_solutions = 7;
                 O2oPatternTest(descr);
             }
+
+            // pattern 4
+            {
+                auto target = "f(Sin(1 2 3 4 5 6))"_t;
+                auto pattern = "f(Sin(real x)...)"_t;
+
+                O2oPatternTestDescr descr;
+                descr.m_test_name = "pattern_4";
+                descr.m_save_graphs = true;
+                descr.m_pattern = pattern;
+                descr.m_target = target;
+                descr.m_expected_solutions = 1;
+                O2oPatternTest(descr);
+            }
 #endif
 
             PrintLn("successful");
