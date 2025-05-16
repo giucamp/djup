@@ -219,7 +219,7 @@
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\o2o_pattern\o2o_apply_substitutions.cpp">
-      <Filter>private\m2o_pattern</Filter>
+      <Filter>private\o2o_pattern</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

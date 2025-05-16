@@ -108,7 +108,7 @@ namespace djup
 
                 O2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_4";
-                descr.m_save_graphs = true;
+                descr.m_save_graphs = false;
                 descr.m_pattern = pattern;
                 descr.m_target = target;
                 descr.m_expected_solutions = 1;

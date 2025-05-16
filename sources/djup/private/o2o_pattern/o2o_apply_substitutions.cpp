@@ -26,6 +26,17 @@ namespace djup
                 uint32_t m_curr_depth{ 0 };
             };
 
+            Tensor SubstituteSingleIdentifier(const Tensor & i_where,
+                const Name & i_name, const Tensor & i_with)
+            {
+                return SubstituteByPredicate(i_where, [&i_name, &i_with](const Tensor i_tensor) {
+                    if (i_tensor.GetExpression()->GetName() == i_name)
+                        return i_with;
+                    else
+                        return i_tensor;
+                    });
+            }
+
             void GetInvolvedIdentifiers(std::vector<std::shared_ptr<const Expression>> & o_involved, const Tensor & i_expr)
             {
                 if (IsIdentifier(i_expr) && !IsRepetition(i_expr))
@@ -97,7 +108,13 @@ namespace djup
                                         if (rep < subst.m_value.GetExpression()->GetArguments().size())
                                         {
                                             const auto & subst_val = subst.m_value.GetExpression()->GetArgument(rep).GetExpression();
-                                            i_context.m_processed[argument.GetExpression()] = subst_val;
+
+                                            // apply to the first argument of the repetition the substitutiontion
+                                            const auto subst_expr = SubstituteSingleIdentifier(
+                                                argument.GetExpression()->GetArgument(0).GetExpression(), 
+                                                subst.m_identifier_name, subst_val);
+
+                                            i_context.m_processed[argument.GetExpression()] = subst_expr.GetExpression();
                                         }
 
                                         new_arguments.push_back(
