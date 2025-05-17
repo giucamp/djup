@@ -117,7 +117,6 @@ Arg[2]: [0, Inf], Remaining: 0, 0)";
                 //PrintLn();
                 const Tensor pattern = "g(1 a... 10 11 b... 12 13 c... 14)"_t;
                 const uint32_t target_size = 10;
-                const auto & arguments = pattern.GetExpression()->GetArguments();
                 const m2o_pattern::PatternInfo info_6 = m2o_pattern::BuildPatternInfo(pattern);
                 std::vector<IntInterval> usable;
                 usable.resize(info_6.m_arguments_info.size());

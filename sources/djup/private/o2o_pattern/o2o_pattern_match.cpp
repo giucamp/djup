@@ -160,8 +160,6 @@ namespace djup
 
             for (size_t i = 0; i < i_source.m_graph_nodes.size(); i++)
             {
-                const GraphNode & node = i_source.m_graph_nodes[i];
-                
                 GraphWizGraph::Node & dest_node = graph.AddNode({});
 
                 if (i == g_end_node_index)
@@ -204,6 +202,7 @@ namespace djup
                 dest_edge.SetHeadLabel(head);
                 dest_edge.SetTailLabel(tail);
 
+                // if this edge is associated with an alive candidate
                 if (i_source.m_candidates.IsValid(edge.second.m_candidate_ref))
                 {
                     const Candidate & candidate = i_source.m_candidates.GetObject(edge.second.m_candidate_ref);
@@ -228,8 +227,12 @@ namespace djup
 
                     dest_edge.SetStyle(GraphWizGraph::EdgeStyle::Dashed);
 
+                    // make the next edge to be processed red
                     if (&candidate == next_candidate)
-                        dest_edge.SetDrawingColor({0, 100, 0});
+                    {
+                        dest_edge.SetDrawingColor({ 100, 0, 0 });
+                        dest_edge.SetFontColor({ 100, 0, 0 });
+                    }
                 }
                 else
                 {
@@ -403,7 +406,7 @@ namespace djup
                         IntInterval usable;
                         usable.m_max = static_cast<int32_t>(total_available_targets - arg_info.m_remaining.m_min);
                         usable.m_min = static_cast<int32_t>(arg_info.m_remaining.m_max ==
-                            std::numeric_limits<uint32_t>::max() ?
+                            std::numeric_limits<int32_t>::max() ?
                             0 :
                             total_available_targets - arg_info.m_remaining.m_max);
 
@@ -417,7 +420,7 @@ namespace djup
                         const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
 
                         uint32_t rep = NumericCast<uint32_t>(usable.m_min / sub_pattern_count);
-                        for (size_t used = usable.m_min; used <= usable.m_max; used += sub_pattern_count, rep++)
+                        for (uint32_t used = usable.m_min; used <= usable.m_max; used += sub_pattern_count, rep++)
                         {
                             LinearPath path(i_context, i_candidate);
 

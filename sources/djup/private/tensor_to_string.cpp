@@ -57,6 +57,10 @@ namespace djup
                 ToSimplifiedString(i_dest, i_source.GetArgument(0), i_format_flags, i_depth);
                 i_dest << "?";
             }
+            else if (i_source.GetName() == builtin_names::Tuple)
+            {
+                TensorSpanToString(i_dest, i_source.GetArguments(), i_format_flags, i_depth);
+            }
             else
             {
                 if (i_source.GetType() != TensorType{})

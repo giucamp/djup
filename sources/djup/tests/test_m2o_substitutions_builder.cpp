@@ -86,8 +86,7 @@ namespace djup
 
                 DJUP_EXPR_EXPECTS_EQ(
                     ToSimplifiedString(builder.GetSubstitutions().at(0).m_value),
-                    "Tuple(Tuple(Tuple(1, 2, 3), Tuple(4, 5, 6)), "
-                    "Tuple(Tuple(7, 8, 9)), Tuple(Tuple(10, 11, 12)))");
+                    "(((1, 2, 3), (4, 5, 6)), (7, 8, 9), (10, 11, 12))");
             }
 
             // test 3

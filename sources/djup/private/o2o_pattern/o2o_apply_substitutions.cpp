@@ -107,11 +107,12 @@ namespace djup
                                     {
                                         if (rep < subst.m_value.GetExpression()->GetArguments().size())
                                         {
-                                            const auto & subst_val = subst.m_value.GetExpression()->GetArgument(rep).GetExpression();
+                                            const Tensor subst_val = subst.m_value.GetExpression()->GetArgument(rep).GetExpression();
 
-                                            // apply to the first argument of the repetition the substitutiontion
+                                            // apply to the first argument of the repetition the substitution
+                                            Tensor rep_arg = argument.GetExpression()->GetArgument(0);
                                             const auto subst_expr = SubstituteSingleIdentifier(
-                                                argument.GetExpression()->GetArgument(0).GetExpression(), 
+                                                rep_arg.GetExpression(), 
                                                 subst.m_identifier_name, subst_val);
 
                                             i_context.m_processed[argument.GetExpression()] = subst_expr.GetExpression();
@@ -158,24 +159,13 @@ namespace djup
                 return replacement;
             }
 
-        } // unnamed namespace
+        } // anonymous namespace
 
         Tensor ApplySubstitutions(const Tensor & i_where,
             Span<const Substitution> i_substitutions)
         {
-            ApplySubstitutionContext context{ i_substitutions };
+            ApplySubstitutionContext context{ i_substitutions, {}, {} };
             return ApplySubstitutionsImpl(i_where, context);
-
-            /*return SubstituteByPredicate(i_where, [i_substitutions](const Tensor i_tensor) {
-                for (const Substitution & subst : i_substitutions)
-                {
-                    if (i_tensor.GetExpression()->GetName() == subst.m_identifier_name)
-                    {
-                        return subst.m_value;
-                    }
-                }
-                return i_tensor;
-            });*/
         }
         
     } // namespace o2o_pattern

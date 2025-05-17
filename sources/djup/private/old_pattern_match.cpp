@@ -189,8 +189,6 @@ namespace djup
 
             for(size_t i = 0; i < i_source.m_graph_nodes.size(); i++)
             {
-                const GraphNode & node = i_source.m_graph_nodes[i];
-            
                 i_dest << "v" << i << "[label = \"";
                 if(i == 0)
                     i_dest << "Final" << escaped_newline;
@@ -477,7 +475,7 @@ namespace djup
                         IntInterval usable;
                         usable.m_max = static_cast<int32_t>(total_available_targets - arg_info.m_remaining.m_min);
                         usable.m_min = static_cast<int32_t>(arg_info.m_remaining.m_max == 
-                            std::numeric_limits<uint32_t>::max() ?
+                            std::numeric_limits<int32_t>::max() ?
                             0 :
                             total_available_targets - arg_info.m_remaining.m_max);
 
@@ -547,7 +545,7 @@ namespace djup
                         const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
 
                         // if the target does not have enough arguments, early reject
-                        size_t target_arguments = target.GetExpression()->GetArguments().size();
+                        int32_t target_arguments = static_cast<int32_t>(target.GetExpression()->GetArguments().size());
                         if(target_arguments >= pattern_info.m_arguments_range.m_min &&
                             target_arguments <= pattern_info.m_arguments_range.m_max )
                         {
