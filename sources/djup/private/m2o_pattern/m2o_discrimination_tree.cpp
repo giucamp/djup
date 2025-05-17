@@ -87,8 +87,6 @@ namespace djup
         void DiscriminationTree::AddPattern(uint32_t i_pattern_id,
             const Tensor& i_pattern, const Tensor& i_condition)
         {
-            DJUP_ASSERT(i_pattern_id >= 0);
-
             const Tensor preprocessed = PreprocessPattern(i_pattern);
 
             // AddEdje(GetRootNodeIndex(), preprocessed);

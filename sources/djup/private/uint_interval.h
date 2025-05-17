@@ -18,45 +18,45 @@ namespace djup
         than this the values are meaningless. A default constructed range is empty.
         If min == max the range contains a single number.
         To do: rename to Interval */
-    struct IntInterval
+    struct UIntInterval
     {
-        int32_t m_min{ 1 }; /**< inclusive lower bound */
-        int32_t m_max{ 0 }; /**< inclusive upper bound */
+        uint32_t m_min{ 1 }; /**< inclusive lower bound */
+        uint32_t m_max{ 0 }; /**< inclusive upper bound */
 
-        constexpr static int32_t s_infinite = std::numeric_limits<int32_t>::max();
+        constexpr static uint32_t s_infinite = std::numeric_limits<uint32_t>::max();
 
         /** returns whether no value is contained in this range */
         bool IsEmpty() const noexcept { return m_min > m_max; }
 
         /** returns whether a value is contained in this range */
-        bool IsValaueWithin(int32_t i_value) const noexcept
+        bool IsValaueWithin(uint32_t i_value) const noexcept
         {
             return i_value >= m_min && i_value <= m_max;
         }
 
         // makes this range containing all values of both input range
-        IntInterval operator | (const IntInterval & i_other) const noexcept;
+        UIntInterval operator | (const UIntInterval & i_other) const noexcept;
 
         // returns a range that contains both values of all input ranges
-        IntInterval & operator |= (const IntInterval & i_other) noexcept;
+        UIntInterval & operator |= (const UIntInterval & i_other) noexcept;
 
         // sums two ranges, possibly yielding to infinity
-        IntInterval operator + (const IntInterval & i_other) const noexcept;
+        UIntInterval operator + (const UIntInterval & i_other) const noexcept;
 
         // sums two ranges, possibly yielding to an infinity
-        IntInterval & operator += (const IntInterval & i_other) noexcept;
+        UIntInterval & operator += (const UIntInterval & i_other) noexcept;
 
         /** returns whether the bounds of the ranges are identical */
-        bool operator == (const IntInterval & i_other) const noexcept;
+        bool operator == (const UIntInterval & i_other) const noexcept;
 
         /** returns whether the bounds of the ranges not are identical */
-        bool operator != (const IntInterval & i_other) const noexcept;
+        bool operator != (const UIntInterval & i_other) const noexcept;
 
         /** clamps the input value to lay in this range */
-        int32_t ClampValue(int32_t i_value) const noexcept;
+        uint32_t ClampValue(uint32_t i_value) const noexcept;
 
         /** clamps the input range so that its values lay in this range */
-        IntInterval ClampRange(IntInterval i_range) const noexcept;
+        UIntInterval ClampRange(UIntInterval i_range) const noexcept;
 
         /** Returns whether one and only on value lies in the range */
         bool HasSingleValue() const noexcept { return m_min == m_max; }
@@ -70,11 +70,11 @@ namespace djup
 
 namespace core
 {
-    template <> struct CharWriter<djup::IntInterval>
+    template <> struct CharWriter<djup::UIntInterval>
     {
-        constexpr void operator() (CharBufferView & i_dest, const djup::IntInterval & i_source)
+        constexpr void operator() (CharBufferView & i_dest, const djup::UIntInterval & i_source)
         {
-            const int32_t infinite = djup::IntInterval::s_infinite;
+            const uint32_t infinite = djup::UIntInterval::s_infinite;
 
             if (i_source.m_min > i_source.m_max)
                 i_dest << "empty";

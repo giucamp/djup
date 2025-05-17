@@ -27,12 +27,12 @@ namespace djup
         {
             /** How many times this label can be repeated: [1,1] for plain parameters,
                 [0,Inf] for variadic parameters, etc. */
-            IntInterval m_cardinality;
+            UIntInterval m_cardinality;
 
             /** Given a parameter for this argument, how many parameters can follow. For
                 example given f(a, b, c) and b is [1, 1], while for f(a, b..., c) is [1, Inf].
                 This is redundant, but can early reject matching tries. s*/
-            IntInterval m_remaining;
+            UIntInterval m_remaining;
 
             //** Constant, identifier, variadic or variable function. */
             ExpressionKind m_kind{};
@@ -65,7 +65,7 @@ namespace djup
 
             /** Minimum and maximum number of parameters that may match this pattern.
                 Used to early reject target spans. */
-            IntInterval m_arguments_range;
+            UIntInterval m_arguments_range;
 
             /** Describes every single label of the pattern. */
             std::vector<ArgumentInfo> m_arguments_info;

@@ -31,16 +31,16 @@ namespace djup
         {
         }
 
-        IntInterval GetUsableCount(const ArgumentInfo & i_argument_info,
+        UIntInterval GetUsableCount(const ArgumentInfo & i_argument_info,
             uint32_t i_target_remaining_targets, uint32_t i_pattern_size)
         {
             // number of total parameters usable for the repeated pattern
-            IntInterval usable;
+            UIntInterval usable;
 
             DJUP_ASSERT(i_target_remaining_targets >= static_cast<uint32_t>(
                 i_argument_info.m_remaining.m_min) );
             usable.m_max = i_target_remaining_targets - i_argument_info.m_remaining.m_min;
-            if (i_argument_info.m_remaining.m_max == IntInterval::s_infinite)
+            if (i_argument_info.m_remaining.m_max == UIntInterval::s_infinite)
             {
                 usable.m_min = 0;
             }

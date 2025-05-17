@@ -25,7 +25,7 @@
     <ClInclude Include="..\private\constant_shape.h" />
     <ClInclude Include="..\private\expression.h" />
     <ClInclude Include="..\private\indices.h" />
-    <ClInclude Include="..\private\int_interval.h" />
+    <ClInclude Include="..\private\uint_interval.h" />
     <ClInclude Include="..\private\lexer.h" />
     <ClInclude Include="..\private\m2o_pattern\m2o_candidate.h" />
     <ClInclude Include="..\private\m2o_pattern\m2o_debug_utils.h" />
@@ -47,7 +47,7 @@
     <ClInclude Include="..\tests\test_utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\private\int_interval.cpp" />
+    <ClCompile Include="..\private\uint_interval.cpp" />
     <ClCompile Include="..\private\m2o_pattern\m2o_candidate.cpp" />
     <ClCompile Include="..\private\m2o_pattern\m2o_debug_utils.cpp" />
     <ClCompile Include="..\private\m2o_pattern\m2o_discrimination_tree.cpp" />

@@ -33,7 +33,7 @@ namespace djup
             Pattern(const Namespace & i_namespace, const Tensor & i_pattern);
 
             Pattern(const Namespace & i_namespace, 
-                const Tensor & i_pattern, const Tensor & i_when = true);
+                const Tensor & i_pattern, const Tensor & i_when);
 
             MatchResult MatchOne(const Tensor & i_target, 
                 const char * i_artifact_path) const;

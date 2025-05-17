@@ -34,7 +34,7 @@ namespace djup
                         return i_with;
                     else
                         return i_tensor;
-                    });
+                });
             }
 
             void GetInvolvedIdentifiers(std::vector<std::shared_ptr<const Expression>> & o_involved, const Tensor & i_expr)
@@ -79,8 +79,8 @@ namespace djup
                 {
                     const Tensor & argument = arguments[i];
 
-                    IntInterval cardinality = GetCardinality(argument);
-                    if (cardinality != IntInterval{ 1, 1 })
+                    UIntInterval cardinality = GetCardinality(argument);
+                    if (cardinality != UIntInterval{ 1, 1 })
                     {
                         DJUP_ASSERT(IsRepetition(argument));
 

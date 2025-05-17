@@ -27,7 +27,6 @@ namespace djup
         {
             Lexer & m_lexer;
             Namespace & m_namespace;
-            Name m_source_file;
         };
 
         struct ParserImpl
@@ -354,7 +353,7 @@ namespace djup
         try
         {
             Namespace new_namespace("", GetStandardNamespace());
-            ParsingContext context{lexer, new_namespace };
+            ParsingContext context{ lexer, new_namespace };
             Tensor result = ParserImpl::ParseExpression(context);
 
             // all the source must be consumed

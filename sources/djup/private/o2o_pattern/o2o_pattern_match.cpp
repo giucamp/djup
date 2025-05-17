@@ -383,10 +383,10 @@ namespace djup
         {
             const uint32_t repetitions = i_candidate.m_repetitions;
 
-            size_t target_index = 0;
+            uint32_t target_index = 0;
             for (uint32_t repetition = 0; repetition < repetitions; repetition++)
             {
-                for (size_t pattern_index = 0; pattern_index < i_candidate.m_segment.m_pattern.size(); target_index++, pattern_index++)
+                for (uint32_t pattern_index = 0; pattern_index < i_candidate.m_segment.m_pattern.size(); target_index++, pattern_index++)
                 {
                     const Tensor & pattern = i_candidate.m_segment.m_pattern[pattern_index];
 
@@ -397,18 +397,19 @@ namespace djup
 
                     if (arg_info.m_cardinality.m_min != arg_info.m_cardinality.m_max)
                     {
-                        size_t total_available_targets = i_candidate.m_target_arguments.size() - target_index;
+                        uint32_t total_available_targets = static_cast<uint32_t>(
+                            i_candidate.m_target_arguments.size()) - target_index;
 
-                        size_t sub_pattern_count = pattern.GetExpression()->GetArguments().size();
+                        uint32_t sub_pattern_count = static_cast<uint32_t>(pattern.GetExpression()->GetArguments().size());
                         DJUP_ASSERT(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                         // compute usable range
-                        IntInterval usable;
-                        usable.m_max = static_cast<int32_t>(total_available_targets - arg_info.m_remaining.m_min);
-                        usable.m_min = static_cast<int32_t>(arg_info.m_remaining.m_max ==
-                            std::numeric_limits<int32_t>::max() ?
+                        UIntInterval usable;
+                        usable.m_max = total_available_targets - arg_info.m_remaining.m_min;
+                        usable.m_min = arg_info.m_remaining.m_max ==
+                            std::numeric_limits<uint32_t>::max() ?
                             0 :
-                            total_available_targets - arg_info.m_remaining.m_max);
+                            total_available_targets - arg_info.m_remaining.m_max;
 
                         usable = arg_info.m_cardinality.ClampRange(usable);
 
@@ -580,8 +581,8 @@ namespace djup
             Tensor pattern = PreprocessPattern(i_pattern);
             const Tensor & target = i_target;
 
-            IntInterval single_range = {1, 1};
-            IntInterval single_remaining = {0, 0};
+            UIntInterval single_range = {1, 1};
+            UIntInterval single_remaining = {0, 0};
 
             static_assert(g_start_node_index == 0 && g_end_node_index == 1);
             i_context.m_graph_nodes.emplace_back(); // start node
@@ -706,8 +707,8 @@ namespace djup
                         else if (bld_it->m_curr_node == g_end_node_index)
                         {
                             // complete non-contradictory solution, save it
-                            solutions.emplace_back().m_substitutions = std::move(
-                                bld_it->m_builder.StealSubstitutions());
+                            solutions.emplace_back().m_substitutions = 
+                                bld_it->m_builder.StealSubstitutions();
 
                             bld_it = builders.erase(bld_it);
                         }

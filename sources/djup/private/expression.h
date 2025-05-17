@@ -12,7 +12,7 @@
 #include <core/name.h>
 #include <djup/tensor.h>
 #include <private/tensor_type.h>
-#include <private/int_interval.h>
+#include <private/uint_interval.h>
 
 namespace djup
 {
@@ -85,7 +85,7 @@ namespace djup
 
     FunctionFlags GetFunctionFlags(const Expression & i_expression);
 
-    IntInterval GetCardinality(const Tensor & i_expression);
+    UIntInterval GetCardinality(const Tensor & i_expression);
 
     bool IsRepetition(const Tensor & i_expression);
 

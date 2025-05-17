@@ -32,7 +32,7 @@ namespace djup
 
             for(size_t i = 0; i < pattern_args.size(); i++)
             {
-                IntInterval remaining{0, 0};
+                UIntInterval remaining{0, 0};
                 for(size_t j = i + 1; j < pattern_args.size(); j++)
                     remaining += result.m_arguments_info[j].m_cardinality;
             

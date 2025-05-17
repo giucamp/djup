@@ -5,19 +5,19 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <private/common.h>
-#include <private/int_interval.h>
+#include <private/uint_interval.h>
 #include <core/to_string.h>
 
 namespace djup
 {
-    IntInterval IntInterval::operator | (const IntInterval & i_other) const noexcept
+    UIntInterval UIntInterval::operator | (const UIntInterval & i_other) const noexcept
     {
-        IntInterval res = *this;
+        UIntInterval res = *this;
         res |= i_other;
         return res;
     }
 
-    IntInterval & IntInterval::operator |= (const IntInterval & i_other) noexcept
+    UIntInterval & UIntInterval::operator |= (const UIntInterval & i_other) noexcept
     {
         if (IsEmpty())
         {
@@ -31,14 +31,14 @@ namespace djup
         return *this;
     }
 
-    IntInterval IntInterval::operator + (const IntInterval & i_other) const noexcept
+    UIntInterval UIntInterval::operator + (const UIntInterval & i_other) const noexcept
     {
-        IntInterval res = *this;
+        UIntInterval res = *this;
         res += i_other;
         return res;
     }
 
-    IntInterval & IntInterval::operator += (const IntInterval & i_other) noexcept
+    UIntInterval & UIntInterval::operator += (const UIntInterval & i_other) noexcept
     {
         if (IsEmpty())
         {
@@ -57,17 +57,17 @@ namespace djup
         return *this;
     }
 
-    bool IntInterval::operator == (const IntInterval & i_other) const noexcept
+    bool UIntInterval::operator == (const UIntInterval & i_other) const noexcept
     {
         return m_min == i_other.m_min && m_max == i_other.m_max;
     }
 
-    bool IntInterval::operator != (const IntInterval & i_other) const noexcept
+    bool UIntInterval::operator != (const UIntInterval & i_other) const noexcept
     {
         return !(*this == i_other);
     }
 
-    int32_t IntInterval::ClampValue(int32_t i_value) const noexcept
+    uint32_t UIntInterval::ClampValue(uint32_t i_value) const noexcept
     {
         if (i_value < m_min)
             return m_min;
@@ -77,9 +77,9 @@ namespace djup
             return i_value;
     }
 
-    IntInterval IntInterval::ClampRange(IntInterval i_range) const noexcept
+    UIntInterval UIntInterval::ClampRange(UIntInterval i_range) const noexcept
     {
-        IntInterval res = i_range;
+        UIntInterval res = i_range;
 
         if (res.m_max > m_max)
             res.m_max = m_max;
@@ -89,7 +89,7 @@ namespace djup
         return res;
     }
 
-    std::string IntInterval::ToString() const
+    std::string UIntInterval::ToString() const
     {
         if (IsEmpty())
             return "empty";

@@ -115,7 +115,7 @@ namespace djup
             return true;
         }
 
-        StringBuilder & operator << (StringBuilder & i_dest, const Candidate & i_source)
+        /*StringBuilder & operator << (StringBuilder & i_dest, const Candidate & i_source)
         {
             i_dest << "Pattern: " << TensorListToString(i_source.m_pattern.m_pattern);
             if(i_source.m_repetitions != 0)
@@ -123,7 +123,7 @@ namespace djup
             i_dest.NewLine();
             i_dest << " Target: " << TensorListToString(i_source.m_target_arguments);
             return i_dest;
-        }
+        }*/
 
         struct GraphNode
         {
@@ -472,10 +472,10 @@ namespace djup
                         DJUP_ASSERT(sub_pattern_count != 0); // empty repetitions are illegal and should raise an error when constructed
 
                         // compute usable range
-                        IntInterval usable;
-                        usable.m_max = static_cast<int32_t>(total_available_targets - arg_info.m_remaining.m_min);
-                        usable.m_min = static_cast<int32_t>(arg_info.m_remaining.m_max == 
-                            std::numeric_limits<int32_t>::max() ?
+                        UIntInterval usable;
+                        usable.m_max = static_cast<uint32_t>(total_available_targets - arg_info.m_remaining.m_min);
+                        usable.m_min = static_cast<uint32_t>(arg_info.m_remaining.m_max == 
+                            std::numeric_limits<uint32_t>::max() ?
                             0 :
                             total_available_targets - arg_info.m_remaining.m_max);
 
@@ -545,7 +545,7 @@ namespace djup
                         const PatternInfo & pattern_info = GetPatternInfo(i_context, pattern);
 
                         // if the target does not have enough arguments, early reject
-                        int32_t target_arguments = static_cast<int32_t>(target.GetExpression()->GetArguments().size());
+                        uint32_t target_arguments = static_cast<uint32_t>(target.GetExpression()->GetArguments().size());
                         if(target_arguments >= pattern_info.m_arguments_range.m_min &&
                             target_arguments <= pattern_info.m_arguments_range.m_max )
                         {
@@ -674,8 +674,8 @@ namespace djup
             const Tensor & target = i_target;
 
             MatchingContext context;
-            IntInterval single_range = {1, 1};
-            IntInterval single_remaining = {0, 0};
+            UIntInterval single_range = {1, 1};
+            UIntInterval single_remaining = {0, 0};
 
             static_assert(g_start_node_index == 1);
             static_assert(g_end_node_index == 0);
@@ -839,7 +839,7 @@ namespace djup
         MatchingContext context = MakeSubstitutionsGraph(i_target, i_pattern);
 
         std::vector<Solution> solutions;
-        solutions.push_back(Solution{g_end_node_index});
+        solutions.push_back(Solution{ g_end_node_index, {}, {}, {} });
 
         do {
             const Solution source_solution = solutions.back();

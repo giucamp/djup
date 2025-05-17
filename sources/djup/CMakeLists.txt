@@ -19,7 +19,7 @@ add_library(djup STATIC
     private/constant_shape.h
     private/expression.h
     private/indices.h
-    private/int_interval.h
+    private/uint_interval.h
     private/lexer.h
     private/m2o_pattern/m2o_candidate.h
     private/m2o_pattern/m2o_debug_utils.h
@@ -45,7 +45,7 @@ add_library(djup STATIC
     private/constant_shape.cpp
     private/expression.cpp
     private/indices.cpp
-    private/int_interval.cpp
+    private/uint_interval.cpp
     private/is.cpp
     private/lexer.cpp
     private/m2o_pattern/m2o_candidate.cpp

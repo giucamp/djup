@@ -93,7 +93,7 @@
     <ClInclude Include="..\private\expression.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\int_interval.h">
+    <ClInclude Include="..\private\uint_interval.h">
       <Filter>private</Filter>
     </ClInclude>
   </ItemGroup>
@@ -215,7 +215,7 @@
     <ClCompile Include="..\tests\test_m2o_substitutions_builder.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\int_interval.cpp">
+    <ClCompile Include="..\private\uint_interval.cpp">
       <Filter>private</Filter>
     </ClCompile>
     <ClCompile Include="..\private\o2o_pattern\o2o_apply_substitutions.cpp">
