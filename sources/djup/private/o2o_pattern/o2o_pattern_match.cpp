@@ -726,10 +726,18 @@ namespace djup
         }
 
         Pattern::Pattern(const Namespace & i_namespace,
+            const Tensor & i_pattern)
+            : m_namespace(i_namespace)
+        {
+            m_pattern = PreprocessPattern(i_pattern);
+        }
+
+        Pattern::Pattern(const Namespace & i_namespace,
             const Tensor & i_pattern, const Tensor & i_when)
             : m_namespace(i_namespace)
         {
             m_pattern = PreprocessPattern(i_pattern);
+            m_when = PreprocessPattern(i_when);
         }
 
         std::vector<MatchResult> Pattern::MatchAll(const Tensor & i_target,
@@ -741,6 +749,23 @@ namespace djup
             MakeSubstitutionsGraph(context, i_target, m_pattern);
 
             std::vector<MatchResult> solutions = GetAllSolutions(context);
+
+            if (!IsEmpty(m_when))
+            {
+                for (auto it = solutions.begin(); it != solutions.end(); )
+                {
+                    const std::vector<Substitution> substitutions = it->m_substitutions;
+                    const Tensor when_result = ApplySubstitutions(m_when, substitutions);
+                    if (Always(when_result))
+                    {
+                        ++it;
+                    }
+                    else
+                    {
+                        it = solutions.erase(it);
+                    }
+                }
+            }
 
             return { solutions };
         }

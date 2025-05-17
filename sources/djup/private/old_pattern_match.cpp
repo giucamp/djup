@@ -876,9 +876,9 @@ namespace djup
 
                     if(edge_it->second.m_open)
                     {
+                        DJUP_ASSERT(solution.m_depth >= edge_it->second.m_open);
                         solution.m_depth -= edge_it->second.m_open;
-                        DJUP_ASSERT(solution.m_depth >= 0);
-
+                        
                         if(solution.m_depth == 0)
                         {
                             for(auto & var_subst : solution.m_variadic_substitutions)

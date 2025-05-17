@@ -30,6 +30,8 @@ namespace djup
         {
         public:
 
+            Pattern(const Namespace & i_namespace, const Tensor & i_pattern);
+
             Pattern(const Namespace & i_namespace, 
                 const Tensor & i_pattern, const Tensor & i_when = true);
 
@@ -41,6 +43,7 @@ namespace djup
 
         private:
             Tensor m_pattern;
+            Tensor m_when;
             const Namespace & m_namespace;
         };
 

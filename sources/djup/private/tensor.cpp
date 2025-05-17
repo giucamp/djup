@@ -249,6 +249,28 @@ namespace djup
         return AlwaysEqual(*i_first.GetExpression(), *i_second.GetExpression());
     }
 
+    Tensor True()
+    {
+        static const Tensor res("true");
+        return res;
+    }
+
+    Tensor False()
+    {
+        static const Tensor res("false");
+        return res;
+    }
+
+    bool Always(const Tensor & i_bool_tensor)
+    {
+        return AlwaysEqual(i_bool_tensor, True());
+    }
+
+    bool Never(const Tensor & i_bool_tensor)
+    {
+        return AlwaysEqual(i_bool_tensor, False());
+    }
+
     bool IsConstant(const Tensor & i_tensor)
     {
         return i_tensor.GetExpression()->GetMetadata().m_is_constant;
