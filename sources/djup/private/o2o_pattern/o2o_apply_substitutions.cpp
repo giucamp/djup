@@ -109,7 +109,7 @@ namespace djup
                                         {
                                             const Tensor subst_val = subst.m_value.GetExpression()->GetArgument(rep).GetExpression();
 
-                                            // apply to the first argument of the repetition the substitution
+                                            // apply the substitution to the first (and only) argument of the repetition
                                             Tensor rep_arg = argument.GetExpression()->GetArgument(0);
                                             const auto subst_expr = SubstituteSingleIdentifier(
                                                 rep_arg.GetExpression(), 

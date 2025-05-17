@@ -16,7 +16,7 @@ namespace djup
 {
     namespace o2o_pattern
     {
-        struct Substitution;;
+        struct Substitution;
 
         class SubstitutionsBuilder
         {
