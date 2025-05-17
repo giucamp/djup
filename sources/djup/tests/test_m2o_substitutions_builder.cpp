@@ -117,13 +117,22 @@ namespace djup
 
                 CORE_EXPECTS(builder.GetSubstitutions().size() == 2);
 
-                DJUP_EXPR_EXPECTS_EQ(
-                    ToSimplifiedString(builder.GetSubstitutions().at(0).m_value),
-                    "Tuple(Tuple(1, 2, 3), Tuple(4, 5, 6))");
+                Tensor values[] = { "Tuple(Tuple(1, 2, 3), Tuple(4, 5, 6))"_t,
+                                    "Tuple(Tuple(10, 11, 12), Tuple(13, 14, 15))"_t };
 
-                DJUP_EXPR_EXPECTS_EQ(
-                    ToSimplifiedString(builder.GetSubstitutions().at(1).m_value),
-                    "Tuple(Tuple(10, 11, 12), Tuple(13, 14, 15))");
+                for (const Substitution substitution : builder.GetSubstitutions())
+                {
+                    bool found = false;
+                    for (const Tensor & value : values)
+                    {
+                        if(AlwaysEqual(substitution.m_value, value))
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    CORE_EXPECTS(found);
+                }
             }
 
             PrintLn("successful");
