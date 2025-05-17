@@ -42,11 +42,11 @@ namespace core
     {
     public:
 
-        Name() = default;
+        Name();
 
         Name(const std::string & i_name);
 
-        Name(const char* i_name);
+        Name(const char * i_name);
 
         Name(std::string_view i_name);
 

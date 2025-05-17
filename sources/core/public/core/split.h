@@ -11,6 +11,16 @@
 
 namespace core
 {
+    /** Splits a string in tokens, using the specified separator char.
+        Tokens are returned with std::string_view's pointing to the
+        source buffer (no dynamic or fixed-size string buffers).
+        Example:
+        
+        for(std::string_view word : Split("abc def fgh", ' '))
+        {
+            ...
+        }
+    */
     class Split
     {
     private:
@@ -19,12 +29,9 @@ namespace core
 
     public:
 
-        constexpr Split() noexcept = default;
+        constexpr Split() noexcept;
 
-        constexpr Split(const std::string_view & i_source, char i_separator) noexcept
-            : m_source(i_source), m_separator(i_separator)
-        {
-        }
+        constexpr Split(const std::string_view & i_source, char i_separator) noexcept;
 
         struct end_marker_t{};
 
@@ -33,51 +40,26 @@ namespace core
         class const_iterator
         {
         public:
-            using iterator_category = std::input_iterator_tag;
+            using iterator_category = std::forward_iterator_tag;
 
-            constexpr const_iterator() noexcept = default;
+            constexpr const_iterator() noexcept;
 
-            constexpr const_iterator(const std::string_view & i_source, char i_separator)
-                : m_end_of_string(i_source.data() + i_source.size()), m_separator(i_separator)
-            {
-                m_token = get_next(i_source.data());
-            }
+            constexpr const_iterator(const std::string_view & i_source, char i_separator);
 
-            constexpr const std::string_view & operator*() const noexcept { return m_token; }
+            constexpr const std::string_view & operator * () const noexcept;
 
-            constexpr const_iterator & operator++() noexcept
-            {
-                m_token = get_next(m_token.data() + m_token.size() + 1);
-                return *this;
-            }
+            constexpr const_iterator & operator ++ () noexcept;
 
-            constexpr const_iterator operator++(int) noexcept
-            {
-                auto const copy{*this};
-                m_token = get_next(m_token.data() + m_token.size() + 1);
-                return copy;
-            }
+            constexpr const_iterator operator ++ (int) noexcept;
 
-            constexpr bool operator == (end_marker_t) noexcept { return is_over(); }
+            constexpr bool operator == (end_marker_t) noexcept;
 
-            constexpr bool operator != (end_marker_t) noexcept { return !is_over(); }
+            constexpr bool operator != (end_marker_t) noexcept;
 
         private:
-            constexpr std::string_view get_next(const char * i_from) noexcept
-            {
-                auto curr = i_from;
-                do
-                {
-                    if(curr >= m_end_of_string)
-                    {
-                        return {};
-                    }
-                } while(*++curr != m_separator);
-                assert(curr >= i_from);
-                return {i_from, static_cast<std::string_view::size_type>(curr - i_from)};
-            }
+            constexpr std::string_view get_next(const char * i_from) noexcept;
 
-            constexpr bool is_over() const noexcept { return m_token.data() == nullptr; }
+            constexpr bool is_over() const noexcept;
 
         private:
             std::string_view  m_token;
@@ -87,18 +69,15 @@ namespace core
 
         using iterator = const_iterator;
 
-        constexpr const_iterator cbegin() const noexcept
-        {
-            return const_iterator(m_source, m_separator);
-        }
+        constexpr const_iterator cbegin() const noexcept;
 
-        constexpr end_marker_t cend() const noexcept { return end_marker; }
+        constexpr end_marker_t cend() const noexcept;
 
-        constexpr iterator begin() const noexcept { return iterator(m_source, m_separator); }
+        constexpr iterator begin() const noexcept;
 
-        constexpr end_marker_t end() const noexcept { return end_marker; }
+        constexpr end_marker_t end() const noexcept;
     };
 
-    constexpr Split::end_marker_t Split::end_marker;
-
 } // namespace core
+
+#include <core/split.inl>

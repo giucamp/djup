@@ -9,6 +9,8 @@
 
 namespace core
 {
+    Name::Name() = default;
+
     Name::Name(const std::string & i_name)
         : m_string(i_name.begin(), i_name.end())
     {

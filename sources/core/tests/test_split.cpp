@@ -12,13 +12,13 @@ namespace core
 {
     namespace tests
     {
-        void Split()
+        void Split_()
         {
             Print("Test: Core - Split...");
 
             std::string expected_words[] = {"abc", "def", "fgh"};
             size_t i = 0;
-            for(auto && word : core::Split("abc def fgh", ' '))
+            for(std::string_view word : Split("abc def fgh", ' '))
             {
                 CORE_EXPECTS_EQ(expected_words[i], word);
                 i++;

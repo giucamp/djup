@@ -240,7 +240,7 @@ namespace core
                field must be saved and restored because m_element and
                m_next_free overlap. */
             const UINT next_free = item.m_next_free;
-            memset(&item.m_element, 0Xcd, sizeof(item.m_element));
+            memset(static_cast<void*>(&item.m_element), 0Xcd, sizeof(item.m_element));
             item.m_next_free = next_free;
         #endif
         assert(m_allocated_objects > 0);

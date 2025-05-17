@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\core\pool.inl" />
+    <None Include="..\public\core\split.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
