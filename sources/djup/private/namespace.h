@@ -7,7 +7,7 @@
 #pragma once
 #include <private/common.h>
 #include <memory>
-#include <private/m2o_pattern/m2o_discrimination_tree.h>
+#include <private/o2o_pattern/o2o_pattern_match.h>
 #include <core/name.h>
 
 namespace djup
@@ -51,8 +51,6 @@ namespace djup
         /* Applies type inference and substitutions axioms to an expr until 
            the result doesn't chance anymore */
         Tensor Canonicalize(const Tensor & i_source) const;
-
-        std::string SubstitutionGraphToDotLanguage() const;
     
     private:
         
@@ -65,14 +63,14 @@ namespace djup
         std::vector<ScalarType> m_scalar_types;
 
         // substitution axioms: patterns and right-hand-side expressions
-        m2o_pattern::DiscriminationTree m_substitution_axioms_patterns;
+        std::vector<o2o_pattern::Pattern> m_substitution_axioms_patterns;
         std::vector<Tensor> m_substitution_axioms_rhss;
 
         // type-inference axioms: patterns and right-hand-side expressions
-        m2o_pattern::DiscriminationTree m_type_inference_axioms_patterns;
+        std::vector<o2o_pattern::Pattern> m_type_inference_axioms_patterns;
         std::vector<Tensor> m_type_inference_axioms_rhss;
 
-        /* identifiers */
+        // identifiers
         std::unordered_map<Name, Tensor> m_identifiers;
 
         // namespace data

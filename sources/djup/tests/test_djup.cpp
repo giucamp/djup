@@ -29,13 +29,13 @@ namespace djup
             Lexer();
             TensorToString();
             Parse();
-            M2oPatternInfo();
+            //M2oPatternInfo();
             OldPattern();
             TensorToGraph();
-            M2oDiscriminationTree_();
-            TestM2oSubstitutionBuilder();
+            //M2oDiscriminationTree_();
+            //TestM2oSubstitutionBuilder();
             O2oPattern();
-            M2oPattern();
+            //M2oPattern();
 
             PrintLn("successful");
         }

@@ -6,7 +6,6 @@
 
 #include <private/common.h>
 #include <private/namespace.h>
-#include <private/m2o_pattern/m2o_substitution_graph.h>
 #include <private/make_expr.h>
 #include <private/expression.h>
 #include <private/builtin_names.h>
@@ -107,32 +106,31 @@ namespace djup
     {
         const size_t pattern_id = m_substitution_axioms_rhss.size();
         m_substitution_axioms_rhss.push_back(i_with);
-        m_substitution_axioms_patterns.AddPattern(NumericCast<int32_t>(pattern_id), i_what, i_when);
+        m_substitution_axioms_patterns.emplace_back(*this, i_what, i_when);
     }
 
     void Namespace::AddTypeInferenceAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when)
     {
         const size_t pattern_id = m_type_inference_axioms_rhss.size();
         m_type_inference_axioms_rhss.push_back(i_type);
-        m_type_inference_axioms_patterns.AddPattern(NumericCast<int32_t>(pattern_id), i_what, i_when);
+        m_type_inference_axioms_patterns.emplace_back(*this, i_what, i_when);
     }
 
     Tensor Namespace::ApplySubstitutionAxioms(const Tensor & i_source) const
     {
-        std::vector<PatternMatch> matches;
-
-        m2o_pattern::SubstitutionGraph substitution_graph(m_substitution_axioms_patterns);
-        
-        substitution_graph.FindMatches(*this, i_source);
-
-        if(!matches.empty())
+        for (size_t i = 0; i < m_substitution_axioms_patterns.size(); ++i)
         {
-            const PatternMatch & match = matches[0];
-            const Tensor & replacement = m_substitution_axioms_rhss[match.m_pattern_id];
-            return SubstitutePatternMatch(replacement, match);
+            const o2o_pattern::Pattern & pattern = m_substitution_axioms_patterns[i];
+            std::optional<o2o_pattern::MatchResult> solution = pattern.MatchOne(i_source, nullptr);
+            if (solution)
+            {
+                Tensor substitution_result = o2o_pattern::ApplySubstitutions(
+                    m_substitution_axioms_rhss[i], solution->m_substitutions);
+                return substitution_result;
+            }
         }
-        else
-            return i_source;
+
+        return i_source;
     }
 
     /*
@@ -172,10 +170,5 @@ namespace djup
         } while(prev_expr != result.GetExpression().get());
 
         return result;
-    }
-
-    std::string Namespace::SubstitutionGraphToDotLanguage() const
-    {
-        return m_substitution_axioms_patterns.ToGraphWiz("Substitutions").ToDotLanguage();
     }
 }

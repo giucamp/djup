@@ -8,6 +8,7 @@
 #include <private/common.h>
 #include <private/expression.h>
 #include <vector>
+#include <optional>
 
 namespace djup
 {
@@ -35,7 +36,7 @@ namespace djup
             Pattern(const Namespace & i_namespace, 
                 const Tensor & i_pattern, const Tensor & i_when);
 
-            MatchResult MatchOne(const Tensor & i_target, 
+            std::optional<MatchResult> MatchOne(const Tensor & i_target, 
                 const char * i_artifact_path) const;
 
             std::vector<MatchResult> MatchAll(const Tensor & i_target,

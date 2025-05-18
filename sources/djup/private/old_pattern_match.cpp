@@ -11,7 +11,8 @@
 #include <private/make_expr.h>
 #include <private/namespace.h>
 #include <private/expression.h>
-#include <private/m2o_pattern/m2o_pattern_info.h>
+#include <private/o2o_pattern/o2o_pattern_info.h>
+#include <private/o2o_pattern/o2o_pattern_match.h>
 #include <core/flags.h>
 #include <core/diagnostic.h>
 #include <vector>
@@ -28,11 +29,11 @@
 
 namespace djup
 {
-    using namespace m2o_pattern;
+    using namespace o2o_pattern;
 
     namespace
     {
-        struct ApplySubstitutions
+        struct ApplySubstitutions_
         {
             const PatternMatch & m_match;
 
@@ -89,11 +90,11 @@ namespace djup
             }
         };
 
-        struct Substitution
+        /*struct Substitution
         {
             Name m_identifier_name;
             Tensor m_value;
-        };
+        };*/
 
         struct Candidate
         {
@@ -928,6 +929,6 @@ namespace djup
 
     Tensor SubstitutePatternMatch(const Tensor & i_source, const PatternMatch & i_match)
     {
-        return SubstituteByPredicate(i_source, ApplySubstitutions{i_match});
+        return SubstituteByPredicate(i_source, ApplySubstitutions_{i_match});
     }
 }

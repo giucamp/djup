@@ -93,8 +93,7 @@ namespace djup
             else
             {                
                 AddToVariadic(i_substitutions);
-
-     
+                     
                 return true;
             }
         }

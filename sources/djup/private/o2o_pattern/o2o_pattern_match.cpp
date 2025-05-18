@@ -771,6 +771,16 @@ namespace djup
             return { solutions };
         }
 
+        std::optional<MatchResult> Pattern::MatchOne(const Tensor & i_target,
+            const char * i_artifact_path) const
+        {
+            std::vector<MatchResult> solutions = MatchAll(i_target, i_artifact_path);
+            if (solutions.empty())
+                return {};
+            else
+                return solutions[0];
+        }
+
     } // namespace o2o_pattern
 
 } // namespace djup

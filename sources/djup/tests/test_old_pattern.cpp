@@ -6,13 +6,9 @@
 
 #include <private/common.h>
 #include <private/namespace.h>
+#include <private/old_pattern_match.h>
 #include <tests/test_utils.h>
-#include <fstream>
-#include <private/m2o_pattern/m2o_debug_utils.h>
-
-#define DBG_CREATE_GRAPHVIZ_SVG         1
-#define DBG_GRAPHVIZ_EXE                "\"C:\\Program Files\\Graphviz\\bin\\dot.exe\""
-#define DBG_DEST_DIR                    "D:\\repos\\djup\\tests\\"
+#include <private/o2o_pattern/o2o_debug_utils.h>
 
 extern bool g_enable_graphviz;
 
@@ -257,18 +253,6 @@ namespace djup
 
             test_namespace.AddSubstitutionAxiom("f((3+1), 4, real x..., 5, 6)",    "g((4, a)...)");
             test_namespace.AddSubstitutionAxiom("f((3+1), 4, real x..., 9)",    "g((4, a)...)");*/
-
-            auto str = test_namespace.SubstitutionGraphToDotLanguage(); 
-            bool save_it = false;
-            if (save_it)
-            {
-                std::string dot_file_path(std::string(DBG_DEST_DIR) + "Subst.txt");
-                std::ofstream(dot_file_path) << str;
-                std::string cmd = ToString("\"", DBG_GRAPHVIZ_EXE, " -T png -O ", dot_file_path, "\"");
-                int res = std::system(cmd.c_str());
-                if (res != 0)
-                    Error("The command ", cmd, " returned ", res);
-            }
 
             /*CORE_EXPECTS(AlwaysEqual(test_namespace.Canonicalize("2+3"), "5"));
             CORE_EXPECTS(AlwaysEqual(test_namespace.Canonicalize("0*7"), "0"));*/

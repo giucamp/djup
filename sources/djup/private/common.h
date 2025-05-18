@@ -21,7 +21,7 @@
 
 // DJUP_ASSERT
 #ifndef NDEBUG
-    #define DJUP_ASSERT(condition)      if(!(condition)) {DJUP_DEBUG_BREAK;} else { }
+    #define DJUP_ASSERT(condition)          if(!(condition)) {DJUP_DEBUG_BREAK;} else (void)0
 #else
     #if defined(_MSC_VER)
         #define DJUP_ASSERT(condition)      __assume(condition)

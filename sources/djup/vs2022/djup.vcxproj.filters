@@ -57,24 +57,6 @@
     <ClInclude Include="..\private\tensor_type.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="..\private\m2o_pattern\m2o_pattern_info.h">
-      <Filter>private\m2o_pattern</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\m2o_pattern\m2o_substitution_graph.h">
-      <Filter>private\m2o_pattern</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\m2o_pattern\m2o_substitutions_builder.h">
-      <Filter>private\m2o_pattern</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\m2o_pattern\m2o_candidate.h">
-      <Filter>private\m2o_pattern</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\m2o_pattern\m2o_debug_utils.h">
-      <Filter>private\m2o_pattern</Filter>
-    </ClInclude>
-    <ClInclude Include="..\private\m2o_pattern\m2o_discrimination_tree.h">
-      <Filter>private\m2o_pattern</Filter>
-    </ClInclude>
     <ClInclude Include="..\private\o2o_pattern\o2o_pattern_info.h">
       <Filter>private\o2o_pattern</Filter>
     </ClInclude>
@@ -139,30 +121,6 @@
     </ClCompile>
     <ClCompile Include="..\private\tensor_type.cpp">
       <Filter>private</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\m2o_pattern\m2o_substitution_graph.cpp">
-      <Filter>private\m2o_pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\m2o_pattern\m2o_substitution_graph_to_dot_language.cpp">
-      <Filter>private\m2o_pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\m2o_pattern\m2o_substitution_match.cpp">
-      <Filter>private\m2o_pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\m2o_pattern\m2o_substitutions_builder.cpp">
-      <Filter>private\m2o_pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\m2o_pattern\m2o_candidate.cpp">
-      <Filter>private\m2o_pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\m2o_pattern\m2o_debug_utils.cpp">
-      <Filter>private\m2o_pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\m2o_pattern\m2o_discrimination_tree.cpp">
-      <Filter>private\m2o_pattern</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\m2o_pattern\m2o_pattern_info.cpp">
-      <Filter>private\m2o_pattern</Filter>
     </ClCompile>
     <ClCompile Include="..\private\o2o_pattern\o2o_pattern_info.cpp">
       <Filter>private\o2o_pattern</Filter>

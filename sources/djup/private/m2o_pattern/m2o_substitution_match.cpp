@@ -6,7 +6,6 @@
 
 #include <private/m2o_pattern/m2o_substitution_graph.h>
 #include <private/m2o_pattern/m2o_discrimination_tree.h>
-#include <private/m2o_pattern/m2o_candidate.h>
 #include <private/builtin_names.h>
 #include <core/flags.h>
 #include <core/to_string.h>
