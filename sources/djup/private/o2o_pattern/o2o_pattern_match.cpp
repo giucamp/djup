@@ -23,9 +23,9 @@ namespace djup
     {
         namespace
         {
-            Tensor PreprocessPattern(const Tensor & i_pattern)
+            Tensor PreprocessPattern(const Namespace & i_namespace, const Tensor & i_pattern)
             {
-                return SubstituteByPredicate(i_pattern, [](const Tensor & i_candidate) {
+                return SubstituteByPredicate(i_namespace, i_pattern, [&i_namespace](const Tensor & i_candidate) {
                     FunctionFlags flags = GetFunctionFlags(*i_candidate.GetExpression());
 
                     bool some_substitution = false;
@@ -56,6 +56,7 @@ namespace djup
                             if (!IsConstant(argument))
                             {
                                 new_arguments[index] = MakeExpression(
+                                    i_namespace,
                                     argument.GetExpression()->GetType(),
                                     builtin_names::AssociativeIdentifier,
                                     { argument },
@@ -65,7 +66,7 @@ namespace djup
                     }
 
                     if (some_substitution)
-                        return MakeExpression(
+                        return MakeExpression(i_namespace,
                             i_candidate.GetExpression()->GetType(),
                             i_candidate.GetExpression()->GetName(),
                             new_arguments, i_candidate.GetExpression()->GetMetadata());
@@ -578,7 +579,7 @@ namespace djup
         void MakeSubstitutionsGraph(MatchingContext & i_context, 
             const Tensor & i_target, const Tensor & i_pattern)
         {
-            Tensor pattern = PreprocessPattern(i_pattern);
+            Tensor pattern = PreprocessPattern(*i_context.m_namespace, i_pattern);
             const Tensor & target = i_target;
 
             UIntInterval single_range = {1, 1};
@@ -730,15 +731,15 @@ namespace djup
             const Tensor & i_pattern)
             : m_namespace(i_namespace)
         {
-            m_pattern = PreprocessPattern(i_pattern);
+            m_pattern = PreprocessPattern(i_namespace, i_pattern);
         }
 
         Pattern::Pattern(const Namespace & i_namespace,
             const Tensor & i_pattern, const Tensor & i_when)
             : m_namespace(i_namespace)
         {
-            m_pattern = PreprocessPattern(i_pattern);
-            m_when = PreprocessPattern(i_when);
+            m_pattern = PreprocessPattern(i_namespace, i_pattern);
+            m_when = PreprocessPattern(i_namespace, i_when);
         }
 
         std::vector<MatchResult> Pattern::MatchAll(const Tensor & i_target,
@@ -756,7 +757,7 @@ namespace djup
                 for (auto it = solutions.begin(); it != solutions.end(); )
                 {
                     const std::vector<Substitution> substitutions = it->m_substitutions;
-                    const Tensor when_result = ApplySubstitutions(m_when, substitutions);
+                    const Tensor when_result = ApplySubstitutions(m_namespace, m_when, substitutions);
                     if (Always(when_result))
                     {
                         ++it;

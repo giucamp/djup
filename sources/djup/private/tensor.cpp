@@ -59,13 +59,13 @@ namespace djup
     }
 
     Tensor::Tensor(ScalarConst, int64_t i_scalar)
-        : m_expression(MakeLiteral(i_scalar).StealExpression())
+        : m_expression(MakeLiteral(*GetStandardNamespace(), i_scalar).StealExpression())
     {
 
     }
 
     Tensor::Tensor(ScalarConst, bool i_scalar)
-        : m_expression(MakeLiteral(i_scalar).StealExpression())
+        : m_expression(MakeLiteral(*GetStandardNamespace(), i_scalar).StealExpression())
     {
 
     }
@@ -126,7 +126,7 @@ namespace djup
 
     Tensor operator / (const Tensor & i_dividend, const Tensor & i_divisor)
     {
-        return i_dividend * Pow(i_divisor, MakeLiteral<-1>());
+        return i_dividend * Pow(i_divisor, MakeLiteral<-1>(*GetStandardNamespace()));
     }
 
     Tensor & operator *= (Tensor & i_first, const Tensor & i_second)
@@ -186,37 +186,37 @@ namespace djup
 
     Tensor Add(Span<Tensor const> i_arguments)
     {
-        return MakeExpression({}, builtin_names::Add, i_arguments, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::Add, i_arguments, {});
     }
 
     Tensor Mul(Span<Tensor const> i_arguments)
     {
-        return MakeExpression({}, builtin_names::Mul, i_arguments, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::Mul, i_arguments, {});
     }
 
     Tensor Pow(Tensor const & i_base, Tensor const & i_exp)
     {
-        return MakeExpression({}, builtin_names::Pow, { i_base, i_exp }, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::Pow, { i_base, i_exp }, {});
     }
 
     Tensor And(Span<Tensor const> i_arguments)
     {
-        return MakeExpression({}, builtin_names::And, i_arguments, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::And, i_arguments, {});
     }
 
     Tensor Or(Span<Tensor const> i_arguments)
     {
-        return MakeExpression({}, builtin_names::Or, i_arguments, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::Or, i_arguments, {});
     }
 
     Tensor Not(const Tensor & i_argument)
     {
-        return MakeExpression({}, builtin_names::Not, { i_argument }, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::Not, { i_argument }, {});
     }
 
     Tensor Equal(const Tensor & i_first, const Tensor & i_second)
     {
-        return MakeExpression({}, builtin_names::Equal, { i_first, i_second }, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::Equal, { i_first, i_second }, {});
     }
 
     Tensor NotEqual(const Tensor& i_first, const Tensor& i_second)
@@ -226,22 +226,22 @@ namespace djup
 
     Tensor Less(const Tensor & i_first, const Tensor & i_second)
     {
-        return MakeExpression({}, builtin_names::Less, { i_first, i_second }, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::Less, { i_first, i_second }, {});
     }
 
     Tensor Stack(Span<Tensor const> i_arguments)
     {
-        return MakeExpression({}, builtin_names::Stack, i_arguments, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::Stack, i_arguments, {});
     }
 
     Tensor Tuple(Span<Tensor const> i_arguments)
     {
-        return MakeExpression({}, builtin_names::Tuple, i_arguments, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::Tuple, i_arguments, {});
     }
 
     Tensor If(Span<Tensor const> i_operands)
     {
-        return MakeExpression({}, builtin_names::If, i_operands, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::If, i_operands, {});
     }
 
     bool AlwaysEqual(const Tensor & i_first, const Tensor & i_second)
@@ -288,17 +288,17 @@ namespace djup
 
     Tensor RepetitionsZeroToMany(Span<Tensor const> i_tensors)
     {
-        return MakeExpression({}, builtin_names::RepetitionsZeroToMany, i_tensors, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::RepetitionsZeroToMany, i_tensors, {});
     }
 
     Tensor RepetitionsOneToMany(Span<Tensor const> i_tensors)
     {
-        return MakeExpression({}, builtin_names::RepetitionsOneToMany, i_tensors, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::RepetitionsOneToMany, i_tensors, {});
     }
 
     Tensor RepetitionsZeroToOne(Span<Tensor const> i_tensors)
     {
-        return MakeExpression({}, builtin_names::RepetitionsZeroToOne, i_tensors, {});
+        return MakeExpression(*GetStandardNamespace(), {}, builtin_names::RepetitionsZeroToOne, i_tensors, {});
     }
 
     std::string ToSimplifiedString(const Tensor & i_source, FormatFlags i_format_flags, size_t i_depth)

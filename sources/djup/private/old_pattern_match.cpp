@@ -283,9 +283,10 @@ namespace djup
             return res.first->second;
         }
 
-        Tensor PreprocessPattern(const Tensor & i_pattern)
+        Tensor PreprocessPattern(const Namespace & i_namespace, const Tensor & i_pattern)
         {
-            return SubstituteByPredicate(i_pattern, [](const Tensor & i_candidate){
+            return SubstituteByPredicate(i_namespace,
+                i_pattern, [&i_namespace](const Tensor & i_candidate){
                 FunctionFlags flags = GetFunctionFlags(*i_candidate.GetExpression());
 
                 bool some_substitution = false;
@@ -316,6 +317,7 @@ namespace djup
                         if(IsIdentifier(argument))
                         {
                             new_arguments[index] = MakeExpression(
+                                i_namespace,
                                 argument.GetExpression()->GetType(),
                                 builtin_names::AssociativeIdentifier,
                                 {argument}, 
@@ -326,6 +328,7 @@ namespace djup
 
                 if(some_substitution)
                     return MakeExpression(
+                        i_namespace,
                         i_candidate.GetExpression()->GetType(),
                         i_candidate.GetExpression()->GetName(), 
                         new_arguments, 
@@ -669,9 +672,9 @@ namespace djup
             }
         }
 
-        MatchingContext MakeSubstitutionsGraph(const Tensor & i_target, const Tensor & i_pattern)
+        MatchingContext MakeSubstitutionsGraph(const Namespace & i_namespace, const Tensor & i_target, const Tensor & i_pattern)
         {
-            Tensor pattern = PreprocessPattern(i_pattern);
+            Tensor pattern = PreprocessPattern(i_namespace, i_pattern);
             const Tensor & target = i_target;
 
             MatchingContext context;
@@ -835,9 +838,9 @@ namespace djup
 
     } // namespace
 
-    PatternMatch Match(const Tensor & i_target, const Tensor & i_pattern)
+    PatternMatch Match(const Namespace & i_namespace, const Tensor & i_target, const Tensor & i_pattern)
     {
-        MatchingContext context = MakeSubstitutionsGraph(i_target, i_pattern);
+        MatchingContext context = MakeSubstitutionsGraph(i_namespace, i_target, i_pattern);
 
         std::vector<Solution> solutions;
         solutions.push_back(Solution{ g_end_node_index, {}, {}, {} });
@@ -920,15 +923,15 @@ namespace djup
         return {};
     }
 
-    size_t PatternMatchingCount(const Tensor & i_target, const Tensor & i_pattern)
+    size_t PatternMatchingCount(const Namespace & i_namespace, const Tensor & i_target, const Tensor & i_pattern)
     {
-        MatchingContext context = MakeSubstitutionsGraph(i_target, i_pattern);
+        MatchingContext context = MakeSubstitutionsGraph(i_namespace, i_target, i_pattern);
         const size_t solutions = CountSolutions(context, g_end_node_index);
         return solutions;
     }
 
-    Tensor SubstitutePatternMatch(const Tensor & i_source, const PatternMatch & i_match)
+    Tensor SubstitutePatternMatch(const Namespace & i_namespace, const Tensor & i_source, const PatternMatch & i_match)
     {
-        return SubstituteByPredicate(i_source, ApplySubstitutions_{i_match});
+        return SubstituteByPredicate(i_namespace, i_source, ApplySubstitutions_{i_match});
     }
 }

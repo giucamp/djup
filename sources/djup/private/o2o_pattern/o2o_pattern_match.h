@@ -48,8 +48,8 @@ namespace djup
             const Namespace & m_namespace;
         };
 
-        Tensor ApplySubstitutions(const Tensor & i_where,
-            Span<const Substitution> i_substitutions);
+        Tensor ApplySubstitutions(const Namespace & i_namespace,
+            const Tensor & i_where, Span<const Substitution> i_substitutions);
 
     } // namespace o2o_pattern
 

@@ -18,6 +18,8 @@ namespace djup
         {
             struct ApplySubstitutionContext
             {
+                const Namespace & m_namespace;
+
                 Span<const Substitution> m_substitutions;
 
                 std::unordered_map<std::shared_ptr<const Expression>,
@@ -26,10 +28,10 @@ namespace djup
                 uint32_t m_curr_depth{ 0 };
             };
 
-            Tensor SubstituteSingleIdentifier(const Tensor & i_where,
-                const Name & i_name, const Tensor & i_with)
+            Tensor SubstituteSingleIdentifier(const Namespace & i_namespace, 
+                const Tensor & i_where, const Name & i_name, const Tensor & i_with)
             {
-                return SubstituteByPredicate(i_where, [&i_name, &i_with](const Tensor i_tensor) {
+                return SubstituteByPredicate(i_namespace, i_where, [&i_name, &i_with](const Tensor i_tensor) {
                     if (i_tensor.GetExpression()->GetName() == i_name)
                         return i_with;
                     else
@@ -112,7 +114,7 @@ namespace djup
                                             // apply the substitution to the first (and only) argument of the repetition
                                             Tensor rep_arg = argument.GetExpression()->GetArgument(0);
                                             const auto subst_expr = SubstituteSingleIdentifier(
-                                                rep_arg.GetExpression(), 
+                                                i_context.m_namespace, rep_arg.GetExpression(), 
                                                 subst.m_identifier_name, subst_val);
 
                                             i_context.m_processed[argument.GetExpression()] = subst_expr.GetExpression();
@@ -146,7 +148,7 @@ namespace djup
                 if (some_argument_replaced)
                 {
                     const Expression & expr = *replacement.GetExpression();
-                    replacement = MakeExpression(
+                    replacement = MakeExpression(i_context.m_namespace,
                         expr.GetType(), expr.GetName(), new_arguments, expr.GetMetadata());
                 }
 
@@ -161,10 +163,10 @@ namespace djup
 
         } // anonymous namespace
 
-        Tensor ApplySubstitutions(const Tensor & i_where,
-            Span<const Substitution> i_substitutions)
+        Tensor ApplySubstitutions(const Namespace & i_namespace, 
+            const Tensor & i_where, Span<const Substitution> i_substitutions)
         {
-            ApplySubstitutionContext context{ i_substitutions, {}, {} };
+            ApplySubstitutionContext context{ i_namespace, i_substitutions, {}, {} };
             return ApplySubstitutionsImpl(i_where, context);
         }
         

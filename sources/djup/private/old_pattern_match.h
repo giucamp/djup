@@ -24,9 +24,9 @@ namespace djup
         std::unordered_map<Name, Tensor> m_substitutions;
     };
 
-    size_t PatternMatchingCount(const Tensor & i_target, const Tensor & i_pattern);
+    size_t PatternMatchingCount(const Namespace & i_namespace, const Tensor & i_target, const Tensor & i_pattern);
 
-    PatternMatch Match(const Tensor & i_target, const Tensor & i_pattern);
+    PatternMatch Match(const Namespace & i_namespace, const Tensor & i_target, const Tensor & i_pattern);
 
     Tensor SubstitutePatternMatch(const Tensor & i_source, const PatternMatch & i_match);
 }

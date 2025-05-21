@@ -104,14 +104,12 @@ namespace djup
 
     void Namespace::AddSubstitutionAxiom(const Tensor & i_what, const Tensor & i_with, const Tensor & i_when)
     {
-        const size_t pattern_id = m_substitution_axioms_rhss.size();
         m_substitution_axioms_rhss.push_back(i_with);
         m_substitution_axioms_patterns.emplace_back(*this, i_what, i_when);
     }
 
     void Namespace::AddTypeInferenceAxiom(const Tensor & i_what, const Tensor & i_type, const Tensor & i_when)
     {
-        const size_t pattern_id = m_type_inference_axioms_rhss.size();
         m_type_inference_axioms_rhss.push_back(i_type);
         m_type_inference_axioms_patterns.emplace_back(*this, i_what, i_when);
     }
@@ -124,7 +122,7 @@ namespace djup
             std::optional<o2o_pattern::MatchResult> solution = pattern.MatchOne(i_source, nullptr);
             if (solution)
             {
-                Tensor substitution_result = o2o_pattern::ApplySubstitutions(
+                Tensor substitution_result = o2o_pattern::ApplySubstitutions(*this,
                     m_substitution_axioms_rhss[i], solution->m_substitutions);
                 return substitution_result;
             }

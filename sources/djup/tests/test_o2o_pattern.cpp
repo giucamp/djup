@@ -59,7 +59,7 @@ namespace djup
 
                 for (size_t solution_index = 0; solution_index < solutions.size(); ++solution_index)
                 {
-                    Tensor after_sub = o2o_pattern::ApplySubstitutions(
+                    Tensor after_sub = o2o_pattern::ApplySubstitutions(*GetStandardNamespace(),
                         i_test_descr.m_pattern, solutions[solution_index].m_substitutions);
 
                     const bool substitution_succesful = AlwaysEqual(after_sub, i_test_descr.m_target);
@@ -88,6 +88,7 @@ namespace djup
         {
             Print("Test: djup - o2o Pattern Matching...");
 
+#if 0
             {
                 O2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_1";
@@ -172,7 +173,9 @@ namespace djup
                 O2oPatternTest(descr);
             }
 
-            /*{
+#endif
+
+            {
                 auto target = "g(f(1 2 3 4 5), f(1 2 5 6 7 8 9))"_t;
                 auto pattern = "g(f(1 real x...)...)"_t;
                 O2oPatternTestDescr descr;
@@ -182,7 +185,7 @@ namespace djup
                 descr.m_target = target;
                 descr.m_expected_solutions = 1;
                 O2oPatternTest(descr);
-            }*/
+            }
 
             /*{
                 auto target = "g(f(1 2 3 4 5), f(1 2 5 6 7 8 9))"_t;

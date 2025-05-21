@@ -120,7 +120,7 @@ namespace djup
                 else
                     metadata.m_is_identifier = true;
 
-                Tensor result = MakeExpression(type,
+                Tensor result = MakeExpression(i_context.m_namespace, type,
                     std::move(name), arguments, std::move(metadata));
 
                 return result;
@@ -150,9 +150,9 @@ namespace djup
                 else if(std::optional<Token> token = lexer.TryAccept(SymbolId::BoolLiteral))
                 {
                     if(token->m_source_chars == "true")
-                        return MakeLiteral<true>();
+                        return MakeLiteral<true>(i_context.m_namespace);
                     else if(token->m_source_chars == "false")
-                        return MakeLiteral<false>();
+                        return MakeLiteral<false>(i_context.m_namespace);
                     else
                         Error("Unrecognized bool literal: ", token->m_source_chars);
                 }
@@ -208,7 +208,7 @@ namespace djup
                 else if (lexer.TryAccept(SymbolId::Return))
                 {
                     Tensor value = ParseExpression(i_context);
-                    return MakeExpression({}, builtin_names::Return, 
+                    return MakeExpression(i_context.m_namespace, {}, builtin_names::Return,
                         { std::move(value) }, {});
                 }
 
@@ -309,13 +309,14 @@ namespace djup
                     if(i_context.m_lexer.TryAccept(SymbolId::SubstitutionAxiom))
                     {
                         Tensor right_hand_side = ParseExpression(i_context);
-                        expression = MakeExpression({}, builtin_names::SubstitutionAxiom,
+                        expression = MakeExpression(i_context.m_namespace, {}, builtin_names::SubstitutionAxiom,
                             { expression, right_hand_side, when }, {});
                     }
                     else if (i_context.m_lexer.TryAccept(SymbolId::LeftBrace))
                     {
                         Tensor right_hand_side = ParseNamespace(i_context, SymbolId::RightBrace);
-                        expression = MakeExpression({}, builtin_names::SubstitutionAxiom,
+                        expression = MakeExpression(i_context.m_namespace, 
+                            {}, builtin_names::SubstitutionAxiom,
                             { expression, right_hand_side, when }, {});
                     }
                     else if(!IsEmpty(when))
@@ -337,7 +338,7 @@ namespace djup
                 {
                     statements.push_back(ParseStatement(i_context));
                 }
-                return MakeNamespace(statements);
+                return MakeNamespace(i_context.m_namespace, statements);
             }
 
         }; // struct ParserImpl

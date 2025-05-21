@@ -20,7 +20,8 @@ namespace djup
             std::shared_ptr<const Expression> >;
 
         template <typename PREDICATE>
-            Tensor SubstituteByPredicateImpl(const Tensor & i_where, 
+            Tensor SubstituteByPredicateImpl(const Namespace & i_namespace,
+                const Tensor & i_where,
                 const PREDICATE & i_predicate,
                 ReplacementMap & i_replacement_map)
         {
@@ -36,8 +37,8 @@ namespace djup
             bool some_argument_replaced = false;
             for(const Tensor & argument : replacement.GetExpression()->GetArguments())
             {
-                new_arguments.push_back(
-                    SubstituteByPredicateImpl(argument, i_predicate, i_replacement_map));
+                new_arguments.push_back( SubstituteByPredicateImpl(i_namespace, 
+                    argument, i_predicate, i_replacement_map));
 
                 some_argument_replaced = some_argument_replaced || 
                     new_arguments.back().GetExpression() != argument.GetExpression();
@@ -45,7 +46,7 @@ namespace djup
             if(some_argument_replaced)
             {
                 const Expression & expr = *replacement.GetExpression();
-                replacement = MakeExpression(
+                replacement = MakeExpression(i_namespace,
                     expr.GetType(), expr.GetName(), new_arguments, expr.GetMetadata());
             }
 
@@ -67,22 +68,21 @@ namespace djup
         can return a tensor bound to a different expression (in this case a 
         substitution was performed). */
     template <typename PREDICATE>
-        [[nodiscard]] Tensor SubstituteByPredicate(
-            const Tensor & i_where,
-            const PREDICATE & i_predicate)
+        [[nodiscard]] Tensor SubstituteByPredicate(const Namespace & i_namespace,
+            const Tensor & i_where, const PREDICATE & i_predicate)
     {
         detail::ReplacementMap replacement_map;
-        return detail::SubstituteByPredicateImpl(i_where, i_predicate, replacement_map);
+        return detail::SubstituteByPredicateImpl(i_namespace, i_where, i_predicate, replacement_map);
     }
 
     /** Tries to apply a substitution to a whole expression graph.
         The predicate must take a single tensor argument and must return tensor.
         For every subexpression the predicate is invoked. The predicate can return the
-        its argument to signal that the substituion was not done, or it can return a 
+        its argument to signal that the substitution was not done, or it can return a 
         tensor bound to a different expression (in this case a substitution was performed). */
     template <typename PREDICATE>
         [[nodiscard]] std::vector<Tensor> SubstituteByPredicate(
-            Span<const Tensor> i_where,
+            const Namespace & i_namespace, Span<const Tensor> i_where,
             const PREDICATE & i_predicate)
     {
         detail::ReplacementMap replacement_map;
@@ -90,7 +90,7 @@ namespace djup
         std::vector<Tensor> result;
         result.reserve(i_where.size());
         for(auto const & where : i_where)
-            result.push_back(detail::SubstituteByPredicateImpl(where, i_predicate, replacement_map));
+            result.push_back(detail::SubstituteByPredicateImpl(i_namespace, where, i_predicate, replacement_map));
 
         return result;
     }
