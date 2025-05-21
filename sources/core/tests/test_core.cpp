@@ -21,6 +21,7 @@ namespace core
         void FromChars();
         void ToString();
         void Split_();
+        void Algorithms();
         void TestUdpSocket();
         void GraphWiz();
 
@@ -39,6 +40,7 @@ namespace core
             FromChars();
             ToString();
             Split_();
+            Algorithms();
             TestUdpSocket();
 
             PrintLn("successful");

@@ -46,6 +46,7 @@ add_library(core STATIC
     private/system_utils.cpp
     private/to_chars.cpp
     private/to_string.cpp
+    tests/test_algorithm.cpp
     tests/test_bits.cpp
     tests/test_core.cpp
     tests/test_from_chars.cpp

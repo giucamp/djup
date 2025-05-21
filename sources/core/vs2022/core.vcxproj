@@ -27,6 +27,7 @@
     <ClCompile Include="..\private\system_utils.cpp" />
     <ClCompile Include="..\private\to_chars.cpp" />
     <ClCompile Include="..\private\to_string.cpp" />
+    <ClCompile Include="..\tests\test_algorithm.cpp" />
     <ClCompile Include="..\tests\test_bits.cpp" />
     <ClCompile Include="..\tests\test_from_chars.cpp" />
     <ClCompile Include="..\tests\test_core.cpp" />
