@@ -88,9 +88,9 @@ namespace djup
                     {
                         if(cardinality == infinite)
                             cardinality = 0;
-                        else
+                        /*else
                             Error("Mismatching cardinality for variadic substitution of ",
-                                involved.GetExpression()->GetName(), " (", cardinality, " and 0)");
+                                involved.GetExpression()->GetName(), " (", cardinality, " and 0)");*/
                         continue;
                     }
 

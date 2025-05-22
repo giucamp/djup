@@ -68,6 +68,13 @@ namespace djup
                         failed_test_descr = ToString(
                             "\tsolution: ", solution_index, "\n",
                             "\tafter subst: ", ToSimplifiedString(after_sub), "\n");
+
+                        failed_test_descr += "\tSubstitutions:\n";
+
+                        for (const o2o_pattern::Substitution & subst : solutions[solution_index].m_substitutions)
+                        {
+                            failed_test_descr += "\t" + ToString(subst) + "\n";
+                        }
                     }
                     CORE_EXPECTS(substitution_succesful);
                 }
@@ -200,9 +207,10 @@ namespace djup
             {
                 auto target = "g(f(1 2 3 4 5), f(1 2 5 6 7 8 9))"_t;
                 auto pattern = "g(f(1 real x... real y...)...)"_t;
+                //TensorToGraph(pattern).SaveAsImage(GetArtifactPath("pattern") / "pattern.png");
                 O2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_9";
-                descr.m_save_graphs = false;
+                descr.m_save_graphs = true;
                 descr.m_pattern = pattern;
                 descr.m_target = target;
                 descr.m_expected_solutions = 35; // = 7*5, cartesian product between the replacements of z and y
