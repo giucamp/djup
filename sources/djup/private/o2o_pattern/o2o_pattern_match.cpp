@@ -342,6 +342,13 @@ namespace djup
             {
                 if(m_has_edge)
                     FlushPendingEdge(m_dest_node, m_close);
+                
+                if (!m_any_edge_added)
+                {
+                    AddCandidate(m_context, m_start_node, m_dest_node,
+                        {}, {}, std::move(m_substitutions),
+                        0, 0, 1);
+                }
             }
 
         private:
@@ -361,6 +368,7 @@ namespace djup
                     m_target, m_pattern, std::move(m_substitutions),
                     open, i_close, m_repetitions);
                 m_open = 0;
+                m_any_edge_added = true;
             }
 
         private:
@@ -376,6 +384,7 @@ namespace djup
             uint32_t m_repetitions{};
             bool m_increase_depth{ false };
             bool m_has_edge{ false };
+            bool m_any_edge_added{ false };
             std::vector<Substitution> m_substitutions;
         };
 
@@ -392,9 +401,6 @@ namespace djup
                     const Tensor & pattern = i_candidate.m_segment.m_pattern[pattern_index];
 
                     const ArgumentInfo & arg_info = i_candidate.m_segment.m_arg_infos[pattern_index];
-
-                    if (target_index >= i_candidate.m_target_arguments.size())
-                        return false;
 
                     if (arg_info.m_cardinality.m_min != arg_info.m_cardinality.m_max)
                     {
@@ -446,6 +452,9 @@ namespace djup
                         }
                         return false;
                     }
+
+                    if (target_index >= i_candidate.m_target_arguments.size())
+                        return false;
 
                     const Tensor & target = i_candidate.m_target_arguments[target_index];
 

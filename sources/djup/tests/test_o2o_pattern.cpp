@@ -88,7 +88,6 @@ namespace djup
         {
             Print("Test: djup - o2o Pattern Matching...");
 
-#if 0
             {
                 O2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_1";
@@ -105,6 +104,19 @@ namespace djup
                 descr.m_save_graphs = false;
                 descr.m_pattern = "g(1 2 3 f(real a h(real b)) real c)"_t;
                 descr.m_target = "g(1 2 3 f(4 h(5)) 6)"_t;
+                descr.m_expected_solutions = 1;
+                O2oPatternTest(descr);
+            }
+
+            {
+                auto target = "f()"_t;
+                auto pattern = "f(real x...)"_t;
+
+                O2oPatternTestDescr descr;
+                descr.m_test_name = "pattern_3a";
+                descr.m_save_graphs = false;
+                descr.m_pattern = pattern;
+                descr.m_target = target;
                 descr.m_expected_solutions = 1;
                 O2oPatternTest(descr);
             }
@@ -173,10 +185,8 @@ namespace djup
                 O2oPatternTest(descr);
             }
 
-#endif
-
             {
-                auto target = "g(f(1 2 3 4 5), f(1 2 5 6 7 8 9))"_t;
+                auto target = "g(f(1 2 3 4), f(1 7 8 9))"_t;
                 auto pattern = "g(f(1 real x...)...)"_t;
                 O2oPatternTestDescr descr;
                 descr.m_test_name = "pattern_8";
@@ -187,7 +197,7 @@ namespace djup
                 O2oPatternTest(descr);
             }
 
-            /*{
+            {
                 auto target = "g(f(1 2 3 4 5), f(1 2 5 6 7 8 9))"_t;
                 auto pattern = "g(f(1 real x... real y...)...)"_t;
                 O2oPatternTestDescr descr;
@@ -197,7 +207,7 @@ namespace djup
                 descr.m_target = target;
                 descr.m_expected_solutions = 35; // = 7*5, cartesian product between the replacements of z and y
                 O2oPatternTest(descr);
-            }*/
+            }
 
             {
                 auto target = "Add(1 2 3 4 5)"_t;

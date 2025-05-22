@@ -25,10 +25,12 @@ namespace djup
                 std::unordered_map<std::shared_ptr<const Expression>,
                     std::shared_ptr<const Expression> > m_processed;
 
+                std::vector<Name> m_identifiers_to_remove;
+
                 uint32_t m_curr_depth{ 0 };
             };
 
-            Tensor SubstituteSingleIdentifier(const Namespace & i_namespace, 
+            Tensor SubstituteSingleIdentifier(const Namespace & i_namespace,
                 const Tensor & i_where, const Name & i_name, const Tensor & i_with)
             {
                 return SubstituteByPredicate(i_namespace, i_where, [&i_name, &i_with](const Tensor i_tensor) {
@@ -36,10 +38,10 @@ namespace djup
                         return i_with;
                     else
                         return i_tensor;
-                });
+                    });
             }
 
-            void GetInvolvedIdentifiers(std::vector<std::shared_ptr<const Expression>> & o_involved, const Tensor & i_expr)
+            void GetInvolvedIdentifiers(std::vector<Tensor> & o_involved, const Tensor & i_expr)
             {
                 if (IsIdentifier(i_expr) && !IsRepetition(i_expr))
                 {
@@ -64,12 +66,68 @@ namespace djup
                 return i_tensor;
             }
 
+            uint32_t GetInvolvedCardinality(
+                ApplySubstitutionContext & i_context,
+                const std::vector<Tensor> & i_involved_identifiers)
+            {
+                const auto infinite = std::numeric_limits<uint32_t>::max();
+                uint32_t cardinality = infinite;
+
+                for (const auto & involved : i_involved_identifiers)
+                {
+                    const Expression * subst_val = nullptr;
+                    for (const Substitution & subst : i_context.m_substitutions)
+                    {
+                        if (subst.m_identifier_name == involved.GetExpression()->GetName())
+                        {
+                            subst_val = subst.m_value.GetExpression().get();
+                            break;
+                        }
+                    }
+                    if (subst_val == nullptr)
+                    {
+                        if(cardinality == infinite)
+                            cardinality = 0;
+                        else
+                            Error("Mismatching cardinality for variadic substitution of ",
+                                involved.GetExpression()->GetName(), " (", cardinality, " and 0)");
+                        continue;
+                    }
+
+                    if (subst_val->GetName() == builtin_names::Tuple)
+                    {
+                        const uint32_t this_cardinality = static_cast<uint32_t>(
+                            subst_val->GetArguments().size());
+
+                        if (cardinality == infinite)
+                        {
+                            cardinality = this_cardinality;
+                        }
+                        else if(cardinality != this_cardinality)
+                        {
+                            Error("Mismatching cardinality for variadic substitution of ",
+                                involved.GetExpression()->GetName(), " (", cardinality, 
+                                " and ", this_cardinality, ")");
+                        }
+                    }
+                    else
+                    {
+                        Error("Non-tuple expression in variadic substitution: ",
+                            involved.GetExpression()->GetName());
+                    }
+                }
+                return cardinality;
+            }
+        
             Tensor ApplySubstitutionsImpl(const Tensor & i_where,
                 ApplySubstitutionContext & i_context)
             {
                 auto const it = i_context.m_processed.find(i_where.GetExpression());
                 if (it != i_context.m_processed.end())
                     return Tensor(it->second);
+
+                //PrintLn();
+                //PrintLn("Substitute in ", ToSimplifiedString(i_where));
 
                 Tensor replacement = SubstituteSingle(i_where, i_context);
 
@@ -87,51 +145,42 @@ namespace djup
                         DJUP_ASSERT(IsRepetition(argument));
 
                         ++i_context.m_curr_depth;
+#
+                        some_argument_replaced = true;
 
-                        std::vector<std::shared_ptr<const Expression>> involved_identifiers;
+                        // enum all identifiers appearing in the repetition (...)
+                        std::vector<Tensor> involved_identifiers;
                         GetInvolvedIdentifiers(involved_identifiers, argument);
-
-                        uint32_t repetitions = 0;
-                        for (const Substitution & subst : i_context.m_substitutions)
+                        
+                        /* get a common cardinality of the tuple arguments 
+                           (or raise an error) */
+                        const uint32_t cardinality = GetInvolvedCardinality(i_context, involved_identifiers);
+                        
+                        // for each repetition
+                        for (uint32_t repetition = 0; repetition < cardinality; repetition++)
                         {
-                            for (const auto & involved_identifier : involved_identifiers)
+                            /* construct a context with every i-th tuple argument */
+                            std::vector<Substitution> substitutions(
+                                i_context.m_substitutions.begin(), i_context.m_substitutions.end());
+                            for (Substitution & subst : substitutions)
                             {
-                                if (involved_identifier->GetName() == subst.m_identifier_name)
-                                {
-                                    if (subst.m_value.GetExpression()->GetName() != builtin_names::Tuple)
-                                        Error("Expected tuple for variadic substitution of ", subst.m_identifier_name);
-                                    uint32_t new_repetitions = NumericCast<uint32_t>(subst.m_value.GetExpression()->GetArguments().size());
-                                    if (repetitions != 0 && repetitions != new_repetitions)
-                                        Error("Inconsistent repetition count for variadic substitution of ", subst.m_identifier_name);
-                                    repetitions = new_repetitions;
+                                if (!AnyOf(involved_identifiers, 
+                                    [&subst](const Tensor & i_tensor) {
+                                        return i_tensor.GetExpression()->GetName() ==
+                                            subst.m_identifier_name; }))
+                                    continue;
 
-                                    for (uint32_t rep = 0; rep < repetitions; ++rep)
-                                    {
-                                        if (rep < subst.m_value.GetExpression()->GetArguments().size())
-                                        {
-                                            const Tensor subst_val = subst.m_value.GetExpression()->GetArgument(rep).GetExpression();
-
-                                            // apply the substitution to the first (and only) argument of the repetition
-                                            Tensor rep_arg = argument.GetExpression()->GetArgument(0);
-                                            const auto subst_expr = SubstituteSingleIdentifier(
-                                                i_context.m_namespace, rep_arg.GetExpression(), 
-                                                subst.m_identifier_name, subst_val);
-
-                                            i_context.m_processed[argument.GetExpression()] = subst_expr.GetExpression();
-                                        }
-
-                                        new_arguments.push_back(
-                                            ApplySubstitutionsImpl(argument, i_context));
-
-                                        some_argument_replaced = some_argument_replaced ||
-                                            new_arguments.back().GetExpression() != argument.GetExpression();
-                                    }
-                                    break;
-                                }
+                                DJUP_ASSERT(subst.m_value.GetExpression()->GetName() == builtin_names::Tuple);
+                                subst.m_value = subst.m_value.GetExpression()->GetArgument(repetition);
                             }
-                        }
+                            ApplySubstitutionContext context = i_context;
+                            context.m_substitutions = substitutions;
 
-                        Tensor replacement = ApplySubstitutionsImpl(argument, i_context);
+                            const Tensor rep_argument = argument.GetExpression()->GetArgument(0);
+
+                            new_arguments.push_back(
+                                ApplySubstitutionsImpl(rep_argument, context));
+                        }
 
                         DJUP_ASSERT(i_context.m_curr_depth != 0);
                         --i_context.m_curr_depth;
